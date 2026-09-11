@@ -30,6 +30,8 @@ Each principle is enforced in code and covered by tests. If a task seems to need
 | `docs/decisions/` | Architecture decision records. Add one for any decision that changes behaviour. |
 | `docs/build-plan.md` | What to build next, in order, with acceptance criteria. |
 | `docs/evals/capture-policy.json` | How clients should react to real messages. Run against every client. |
+| `skill/memento/` | *Planned (M6).* The Memento skill in Agent Skills format. Also the distiller's instructions. |
+| `distiller/` | *Planned (M7).* Scheduled MCP client that structures the inbox with one chosen model. |
 
 ## Commands
 
@@ -53,10 +55,12 @@ Copy `.env.example` to `.env` first. Python 3.14 (for `uuid.uuid7`), Django 6.1,
 - **Deterministic ingest.** Webhooks map fields; they don't interpret. Idempotency comes from unique keys, not checks-then-writes.
 - **British English** in user-facing text and docs.
 - Keep the MCP surface at nine tools. Adding a tool needs an ADR.
+- **The distiller is a client.** It never imports `memories` or `config`, and the server never holds a model-provider key (0013).
+- **The skill is behaviour.** Like tool text, changes to `skill/` need eval runs before they merge.
 
 ## Status
 
-Phases 1 to 3 (interrogate, define, model) are done: the data model, services, Pocket ingest and tool spec, with 52 tests passing. The MCP server, auth and deployment are not built yet. Phase 4 (designing the morning email and web timeline) hasn't started; the build plan says where it slots in.
+Phases 1 to 3 (interrogate, define, model) are done: the data model, services, Pocket ingest and tool spec, with 52 tests passing. The MCP server, auth and deployment are not built yet. Phase 4 (designing the morning email and web timeline) hasn't started; the build plan says where it slots in. Cross-model consistency (0013: contract, skill, inbox fallback, distiller) is planned across M3, M6 and M7.
 
 ## Verify before relying on these
 

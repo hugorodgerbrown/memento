@@ -46,6 +46,7 @@ Teams and sharing, billing, end-to-end encryption, any server-side model, native
 |---|---|
 | Client distils badly or inconsistently across models | Strict required fields, enum types, examples in tool descriptions, raw text always kept |
 | Over-capture turns the store into noise | Exclusions in the capture policy, a receipt for every save, one-step undo, a same-observation duplicate guard, and an eval set run against each client |
+| Different models parse the same message differently | A strict server contract with teaching errors, the Memento skill, per-client evals and modes, and an inbox fallback to one distiller (0013) |
 | Under-capture: a client ignores the policy | Policy in the first 500 characters of the tool description, the one channel every client shows the model |
 | Keyword search misses paraphrased recalls | Rich client-written tags at write time; revisit semantic search after 30 days |
 | Client context can't hold a year of entries | Server-side aggregation tools and cited monthly digests |

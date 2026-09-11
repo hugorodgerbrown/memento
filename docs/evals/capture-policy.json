@@ -1,5 +1,5 @@
 {
-  "about": "Capture-policy evals for Memento's remember tool. Run each message through each client (Claude web, Claude Code, ChatGPT) with only the Memento MCP server connected, and compare the tool calls with the expectation. Today is 2026-09-11. Pass bar: 80% per client, and zero saves where expect is skip on anything marked sensitive.",
+  "about": "Capture-policy evals for Memento's remember tool. Run every case for each client (Claude web, Claude Code, ChatGPT, the distiller), with and without the Memento skill, with only the Memento MCP server connected. Today is 2026-09-11, Europe/London. Pass bar: 80% per client, and zero saves where expect is skip on anything marked sensitive. Record results in docs/evals/results/. A client that meets the bar in its best configuration runs in direct mode; otherwise inbox mode (ADR 0013).",
   "actions": {
     "save": "remember called, with the entries listed",
     "skip": "remember not called",
@@ -7,47 +7,219 @@
     "save_or_ask": "either is acceptable"
   },
   "cases": [
-    {"id": "log-multi", "message": "woke up this morning and tendonitis is bad. played padel yesterdy for 90 minutes with Fred. Good sleep",
-     "expect": "save", "entries": [
-       {"kind": "memory", "raw": "woke up this morning and tendonitis is bad", "happened": "2026-09-11/day"},
-       {"kind": "memory", "raw": "played padel yesterdy for 90 minutes with Fred", "happened": "2026-09-10/day", "tags_include": ["person:fred"]},
-       {"kind": "memory", "raw": "Good sleep", "happened": "2026-09-11/day"}],
-     "why": "The primary use case. Unprompted, split in three, typo kept in raw."},
-    {"id": "log-terse", "message": "5k run, 27 min. knee fine",
-     "expect": "save", "entries": [{"kind": "memory", "raw": "5k run, 27 min"}, {"kind": "memory", "raw": "knee fine"}],
-     "why": "Fragments are still logs."},
-    {"id": "explicit-decision", "message": "Remember that I've decided to stop taking consulting work without a written scope.",
-     "expect": "save", "entries": [{"kind": "decision"}], "why": "Explicit request."},
-    {"id": "reminder", "message": "remind me to book the physio on Monday",
-     "expect": "save", "entries": [{"kind": "reminder", "due": "2026-09-14"}], "why": "Relative date resolved to a real one."},
-    {"id": "question-only", "message": "what's the best stretch for tennis elbow?",
-     "expect": "skip", "why": "A question, not a log, even though it hints at a condition."},
-    {"id": "task-with-aside", "message": "I'm exhausted today, but can you help me fix this Django migration error?",
-     "expect": "save_or_ask", "entries": [{"kind": "memory", "raw": "I'm exhausted today"}],
-     "why": "Log the state, never the task."},
-    {"id": "drafting", "message": "Draft an email to my team saying I'll be out next week for surgery.",
-     "expect": "ask", "why": "Content being drafted for others; the fact inside may or may not be one to keep."},
-    {"id": "hypothetical", "message": "If I moved to Porto, how would taxes change?",
-     "expect": "skip", "why": "Hypothetical."},
-    {"id": "fiction", "message": "Write a short story about a padel player who injures his wrist.",
-     "expect": "skip", "why": "Fiction."},
-    {"id": "others-private", "message": "My sister Ana just told me she's pregnant, it's not public yet.",
-     "expect": "ask", "sensitive": true, "why": "Someone else's private news. Principle 8."},
-    {"id": "change", "context": "Saved: 'I live in Lisbon' (2023).", "message": "Moved into the new flat in Porto last weekend!",
-     "expect": "save", "entries": [{"kind": "memory", "supersede_reason": "change", "happened": "2026-09-05/day"}],
-     "why": "recall first, then supersede as a change, not a new unrelated entry."},
-    {"id": "correction", "context": "Saved today: 'played padel yesterdy for 90 minutes with Fred'.", "message": "actually it was 60 minutes not 90",
-     "expect": "save", "entries": [{"kind": "memory", "supersede_reason": "correction"}],
-     "why": "Correction of an existing entry, not a second padel session."},
-    {"id": "repeat", "context": "Saved 10 minutes ago: 'Good sleep'.", "message": "as I said, good sleep last night",
-     "expect": "skip", "why": "Already logged. If the client re-sends it, the server's duplicate guard catches it."},
-    {"id": "undo", "context": "Just saved: 'had three glasses of wine'.", "message": "don't log that",
-     "expect": "skip", "then": "forget with confirm: true, no preview", "why": "One-step undo within 15 minutes."},
-    {"id": "low-mood", "message": "been feeling really low all week, not sleeping much",
-     "expect": "save", "sensitive": true, "entries": [{"kind": "memory"}, {"kind": "memory"}],
-     "why": "Your life, so it's kept. The receipt must be gentle; the client's own care behaviour comes first."},
-    {"id": "quoted-advice", "message": "physio said to rest the arm for two weeks",
-     "expect": "save", "entries": [{"kind": "memory", "raw": "physio said to rest the arm for two weeks"}],
-     "why": "Reported advice is your experience. It is not stored as medical fact."}
+    {
+      "id": "log-multi",
+      "message": "woke up this morning and tendonitis is bad. played padel yesterdy for 90 minutes with Fred. Good sleep",
+      "expect": "save",
+      "entries": [
+        {
+          "kind": "memory",
+          "raw": "woke up this morning and tendonitis is bad",
+          "happened": "2026-09-11/day"
+        },
+        {
+          "kind": "memory",
+          "raw": "played padel yesterdy for 90 minutes with Fred",
+          "happened": "2026-09-10/day",
+          "tags_include": [
+            "person:fred"
+          ]
+        },
+        {
+          "kind": "memory",
+          "raw": "Good sleep",
+          "happened": "2026-09-11/day"
+        }
+      ],
+      "why": "The primary use case. Unprompted, split in three, typo kept in raw."
+    },
+    {
+      "id": "log-terse",
+      "message": "5k run, 27 min. knee fine",
+      "expect": "save",
+      "entries": [
+        {
+          "kind": "memory",
+          "raw": "5k run, 27 min"
+        },
+        {
+          "kind": "memory",
+          "raw": "knee fine"
+        }
+      ],
+      "why": "Fragments are still logs."
+    },
+    {
+      "id": "explicit-decision",
+      "message": "Remember that I've decided to stop taking consulting work without a written scope.",
+      "expect": "save",
+      "entries": [
+        {
+          "kind": "decision"
+        }
+      ],
+      "why": "Explicit request."
+    },
+    {
+      "id": "reminder",
+      "message": "remind me to book the physio on Monday",
+      "expect": "save",
+      "entries": [
+        {
+          "kind": "reminder",
+          "due": "2026-09-14"
+        }
+      ],
+      "why": "Relative date resolved to a real one."
+    },
+    {
+      "id": "question-only",
+      "message": "what's the best stretch for tennis elbow?",
+      "expect": "skip",
+      "why": "A question, not a log, even though it hints at a condition."
+    },
+    {
+      "id": "task-with-aside",
+      "message": "I'm exhausted today, but can you help me fix this Django migration error?",
+      "expect": "save_or_ask",
+      "entries": [
+        {
+          "kind": "memory",
+          "raw": "I'm exhausted today"
+        }
+      ],
+      "why": "Log the state, never the task."
+    },
+    {
+      "id": "drafting",
+      "message": "Draft an email to my team saying I'll be out next week for surgery.",
+      "expect": "ask",
+      "why": "Content being drafted for others; the fact inside may or may not be one to keep."
+    },
+    {
+      "id": "hypothetical",
+      "message": "If I moved to Porto, how would taxes change?",
+      "expect": "skip",
+      "why": "Hypothetical."
+    },
+    {
+      "id": "fiction",
+      "message": "Write a short story about a padel player who injures his wrist.",
+      "expect": "skip",
+      "why": "Fiction."
+    },
+    {
+      "id": "others-private",
+      "message": "My sister Ana just told me she's pregnant, it's not public yet.",
+      "expect": "ask",
+      "sensitive": true,
+      "why": "Someone else's private news. Principle 8."
+    },
+    {
+      "id": "change",
+      "context": "Saved: 'I live in Lisbon' (2023).",
+      "message": "Moved into the new flat in Porto last weekend!",
+      "expect": "save",
+      "entries": [
+        {
+          "kind": "memory",
+          "supersede_reason": "change",
+          "happened": "2026-09-05/day"
+        }
+      ],
+      "why": "recall first, then supersede as a change, not a new unrelated entry."
+    },
+    {
+      "id": "correction",
+      "context": "Saved today: 'played padel yesterdy for 90 minutes with Fred'.",
+      "message": "actually it was 60 minutes not 90",
+      "expect": "save",
+      "entries": [
+        {
+          "kind": "memory",
+          "supersede_reason": "correction"
+        }
+      ],
+      "why": "Correction of an existing entry, not a second padel session."
+    },
+    {
+      "id": "repeat",
+      "context": "Saved 10 minutes ago: 'Good sleep'.",
+      "message": "as I said, good sleep last night",
+      "expect": "skip",
+      "why": "Already logged. If the client re-sends it, the server's duplicate guard catches it."
+    },
+    {
+      "id": "undo",
+      "context": "Just saved: 'had three glasses of wine'.",
+      "message": "don't log that",
+      "expect": "skip",
+      "then": "forget with confirm: true, no preview",
+      "why": "One-step undo within 15 minutes."
+    },
+    {
+      "id": "low-mood",
+      "message": "been feeling really low all week, not sleeping much",
+      "expect": "save",
+      "sensitive": true,
+      "entries": [
+        {
+          "kind": "memory"
+        },
+        {
+          "kind": "memory"
+        }
+      ],
+      "why": "Your life, so it's kept. The receipt must be gentle; the client's own care behaviour comes first."
+    },
+    {
+      "id": "quoted-advice",
+      "message": "physio said to rest the arm for two weeks",
+      "expect": "save",
+      "entries": [
+        {
+          "kind": "memory",
+          "raw": "physio said to rest the arm for two weeks"
+        }
+      ],
+      "why": "Reported advice is your experience. It is not stored as medical fact."
+    },
+    {
+      "id": "past-midnight",
+      "context": "Local time is 00:40 on 12 Sep 2026, Europe/London.",
+      "message": "played padel tonight, knee sore after",
+      "expect": "save_or_ask",
+      "entries": [
+        {
+          "kind": "memory",
+          "happened": "2026-09-11/day"
+        },
+        {
+          "kind": "memory"
+        }
+      ],
+      "why": "'Tonight' after midnight usually means the evening just gone. Tests use of the server's now."
+    },
+    {
+      "id": "no-date-knowledge",
+      "context": "The client's model is not told today's date.",
+      "message": "dentist appointment went fine this morning",
+      "expect": "save",
+      "entries": [
+        {
+          "kind": "memory",
+          "happened": "2026-09-11/day"
+        }
+      ],
+      "why": "The date must come from the server's now, not the model's guess."
+    },
+    {
+      "id": "weak-client-escape",
+      "context": "The client's first remember call was rejected twice for its claim.",
+      "message": "log: new running shoes, felt great",
+      "expect": "save",
+      "then": "remember with raw_text alone, landing in the inbox",
+      "why": "A struggling model takes the way out instead of giving up. Nothing is lost."
+    }
   ]
 }

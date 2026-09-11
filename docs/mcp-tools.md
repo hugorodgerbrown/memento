@@ -10,6 +10,7 @@ Status: draft for sign-off. The descriptions below are the exact text the model 
 - **Errors teach.** Every validation error says what to do instead, because the reader of the error is a model that will retry.
 - **The first 500 characters are the policy.** Memento must work from any MCP client, with no Project or custom prompt. Server-level `instructions` are ignored by claude.ai and unread by Claude Desktop, and claude.ai reportedly truncates tool descriptions at about 500 characters (anthropics/claude-ai-mcp#93, anthropics/claude-code#43749; re-check at build time). So the capture policy lives in the first 500 characters of `remember`, field rules live in each parameter's schema description, and reminders ride in tool results. Server `instructions` are still sent, for the clients that read them.
 - **Nothing is saved silently.** Capture is proactive, so every save returns a one-line receipt for the model to relay, and "don't log that" undoes it in one step.
+- **The server is the arbiter across models** (0013, planned for M3 and M7). Every result includes `now` in the user's time zone. `remember` rejects claims with relative time words and memories dated in the future, and warns on near-duplicate tags. `remember` accepts `raw_text` alone, which goes to the inbox as a chat capture; every validation error offers that way out. Clients registered in `inbox` mode always take that path, and the distiller structures the inbox.
 - **Annotations are honest.** Read tools are `readOnlyHint`; `forget` is `destructiveHint` and needs a two-step confirm.
 
 | Tool | Service function | Annotations | Scope |
@@ -37,8 +38,8 @@ Field guidance lives in each parameter's schema description, so it survives desc
 | Field | Type | Required | Schema description |
 |---|---|---|---|
 | `raw_text` | string | yes | The user's own words for this one observation, copied exactly, typos included. Never paraphrase. |
-| `claim` | string, ≤280 | yes | One standalone sentence with names and real dates ("yesterday" becomes "10 Sep 2026"). Fix typos here, not in raw_text. |
-| `kind` | `memory` \| `thought` \| `decision` \| `reminder` | yes | memory: something that happened or a state, like a symptom, sleep or activity. thought: an idea or opinion. decision: a choice made. reminder: something to act on, needs due_at. |
+| `claim` | string, ≤280 | yes, unless sending `raw_text` alone to the inbox | One standalone sentence with names and real dates ("yesterday" becomes "10 Sep 2026"). Fix typos here, not in raw_text. |
+| `kind` | `memory` \| `thought` \| `decision` \| `reminder` | yes, unless sending `raw_text` alone to the inbox | memory: something that happened or a state, like a symptom, sleep or activity. thought: an idea or opinion. decision: a choice made. reminder: something to act on, needs due_at. |
 | `tags` | string[] | no | 2 to 6, reusing tags from list_tags. Prefix people person:, projects project:, places place:, organisations org:. |
 | `happened_at` | ISO 8601 | no | When it happened, not now. "This morning" is today. Omit if unknown; never guess. |
 | `happened_precision` | `exact` \| `day` \| `month` \| `year` | with `happened_at` | How precisely the user said it. |
