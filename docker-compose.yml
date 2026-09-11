@@ -1,0 +1,20 @@
+# Local Postgres, matching production's major version.
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: memento
+      POSTGRES_PASSWORD: memento
+      POSTGRES_DB: memento
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U memento"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  pgdata:

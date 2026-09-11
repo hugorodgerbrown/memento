@@ -1,0 +1,34 @@
+[project]
+name = "memento"
+version = "0.1.0"
+description = "Durable personal memory behind an MCP interface. The server stores; LLMs interpret at the edges."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "django>=6.1,<6.2",
+    "psycopg[binary]>=3.2",
+    "dj-database-url>=3.0",
+    "whitenoise>=6.9",
+    "gunicorn>=23.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.12",
+    "pre-commit>=4.2",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+extend-exclude = ["memories/migrations"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "DJ", "C4", "RUF"]
+ignore = ["RUF012"]  # Django's Meta and admin class attributes are idiomatic
+
+[tool.ruff.lint.isort]
+known-first-party = ["config", "memories"]
