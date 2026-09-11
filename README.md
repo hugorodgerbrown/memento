@@ -28,10 +28,11 @@ make run        # http://localhost:8000/admin
 | [Brief](docs/brief.md) | Thesis, principles, jobs, risks and kill criteria |
 | [MCP tools](docs/mcp-tools.md) | The tool surface, with descriptions exactly as shipped |
 | [Build plan](docs/build-plan.md) | What's next, in order, with acceptance criteria |
+| [Deploy](docs/deploy.md) | The Render blueprint, and the settings that exist because of it |
 | [Decisions](docs/decisions/README.md) | Why things are the way they are |
 | [Capture evals](docs/evals/capture-policy.json) | How clients should react to real messages |
 | [Diagrams](docs/diagrams/) | Concept, data model, voice path, and more |
 
 ## Status
 
-The data model, service layer and Pocket ingest are built and tested. The MCP server, authentication and deployment are next; see the build plan.
+The data model, service layer and Pocket ingest are built and tested, and staging is described by [`render.yaml`](render.yaml). The MCP server and authentication are next; see the build plan.

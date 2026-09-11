@@ -10,6 +10,8 @@ dependencies = [
     "dj-database-url>=3.0",
     "whitenoise>=6.9",
     "gunicorn>=23.0",
+    "uvicorn[standard]>=0.35",
+    "uvicorn-worker>=0.4",
 ]
 
 [dependency-groups]

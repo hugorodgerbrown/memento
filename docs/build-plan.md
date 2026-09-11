@@ -11,6 +11,11 @@ Each milestone ends in something usable and a green CI. Don't start a milestone 
 
 **Done when:** a push to `main` deploys to staging, `/healthz` returns `ok`, and you can log in to the admin.
 
+In progress. `render.yaml` describes both resources and the build, pre-deploy and
+start commands; serving is gunicorn with uvicorn workers over `config.asgi`, and
+`docs/deploy.md` has the first-run steps. Outstanding: apply the blueprint in
+Render, create the superuser, and confirm the deployed health check and admin.
+
 ## M2. MCP server and client registry
 
 - Streamable HTTP endpoint at `/mcp`, using the official Python MCP SDK mounted in Django's ASGI app.

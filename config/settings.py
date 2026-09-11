@@ -33,6 +33,14 @@ SECRET_KEY = env("DJANGO_SECRET_KEY", "dev-only-insecure-key" if DEBUG else None
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1" if DEBUG else "")
 CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS")
 
+# The host only knows the service's own hostname once it exists, so it can't be
+# written into render.yaml. Render sets RENDER_EXTERNAL_HOSTNAME on every
+# instance, and addresses health checks to it, so trust it here.
+RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "")
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -111,6 +119,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Pocket webhook signing secret (Pocket app: Settings > Integrations > Webhooks).
 POCKET_WEBHOOK_SECRET = env("POCKET_WEBHOOK_SECRET", "")
+
+# The health check has to reach the database, not a redirect. Render counts any
+# 3xx as healthy, so without this exemption a service with a dead database would
+# still pass its check by answering 301. Matched against the path, no leading slash.
+SECURE_REDIRECT_EXEMPT = [r"^healthz$"]
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

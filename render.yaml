@@ -1,0 +1,66 @@
+# Render Blueprint: Memento staging (build plan M1).
+#
+# Apply from the Render dashboard: New > Blueprint, then pick this repository.
+# Nothing here is secret; POCKET_WEBHOOK_SECRET is marked sync: false and set
+# once, by hand, in the dashboard. See docs/deploy.md for the first-run steps.
+#
+# Both the service and the database sit in the same region so they talk over
+# Render's private network rather than the public internet.
+
+services:
+  - name: memento-staging
+    type: web
+    runtime: python # Python comes from .python-version (3.14, needed for uuid7)
+    region: frankfurt
+    plan: 0.5c-512mb # preDeployCommand needs a paid plan
+    branch: main
+    healthCheckPath: /healthz
+
+    # uv first, then the locked environment, then hashed and compressed static
+    # files for WhiteNoise (CompressedManifestStaticFilesStorage insists on them).
+    buildCommand: >-
+      pip install uv &&
+      uv sync --locked &&
+      uv run python manage.py collectstatic --no-input
+
+    # Runs on a separate instance after the build and before the new version
+    # serves traffic. A failed migration fails the deploy, and the previous
+    # version keeps serving.
+    preDeployCommand: uv run python manage.py migrate --no-input
+
+    # ASGI from the start, so M2 can mount the MCP streamable HTTP endpoint
+    # without changing how the service is served. Gunicorn supervises; uvicorn
+    # workers do the serving. Two workers fit 512MB comfortably.
+    startCommand: >-
+      uv run gunicorn config.asgi:application
+      --worker-class uvicorn_worker.UvicornWorker
+      --workers 2
+      --bind 0.0.0.0:$PORT
+      --access-logfile -
+      --timeout 120
+
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: memento-staging-db
+          property: connectionString
+      - key: DJANGO_SECRET_KEY
+        generateValue: true # Render generates it once and keeps it
+      - key: DJANGO_DEBUG
+        value: "0"
+      - key: LOG_LEVEL
+        value: INFO
+      # Set in the dashboard at M4, when the Pocket webhook is pointed here.
+      # Until then it is empty and pocket.verify_signature rejects every delivery.
+      - key: POCKET_WEBHOOK_SECRET
+        sync: false
+
+databases:
+  - name: memento-staging-db
+    plan: 0.1c-256mb
+    postgresMajorVersion: "16" # matches docker-compose.yml and CI
+    region: frankfurt
+    # No external access: the web service reaches it over the private network.
+    # For a psql session, open a shell on the service and run `uv run python
+    # manage.py dbshell`. Widening this is a deliberate act, not a default.
+    ipAllowList: []
