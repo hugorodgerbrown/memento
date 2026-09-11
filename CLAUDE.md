@@ -29,6 +29,7 @@ Each principle is enforced in code and covered by tests. If a task seems to need
 | `memories/tests/` | One file per area; tests are named for the principle or decision they protect. |
 | `docs/decisions/` | Architecture decision records. Add one for any decision that changes behaviour. |
 | `docs/build-plan.md` | What to build next, in order, with acceptance criteria. |
+| `render.yaml` | Staging: web service, Postgres and the deploy steps. Explained in `docs/deploy.md`. |
 | `docs/evals/capture-policy.json` | How clients should react to real messages. Run against every client. |
 | `skill/memento/` | *Planned (M6).* The Memento skill in Agent Skills format. Also the distiller's instructions. |
 | `distiller/` | *Planned (M7).* Scheduled MCP client that structures the inbox with one chosen model. |
@@ -41,7 +42,8 @@ make db        # local Postgres 16 via Docker
 make migrate
 make test      # full suite (needs Postgres; SQLite is not supported)
 make check     # everything CI runs: lint, format, migrations check, tests
-make run
+make run       # development server
+make serve     # ASGI, exactly as Render runs it (collectstatic first)
 ```
 
 Copy `.env.example` to `.env` first. Python 3.14 (for `uuid.uuid7`), Django 6.1, Postgres 16, managed by uv.

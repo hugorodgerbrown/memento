@@ -2,7 +2,7 @@
 include $(wildcard .env)
 export
 
-.PHONY: setup db migrate run test lint fmt check superuser
+.PHONY: setup db migrate run serve test lint fmt check superuser
 
 setup:        ## Install dependencies and git hooks
 	uv sync
@@ -16,6 +16,11 @@ migrate:      ## Apply migrations
 
 run:          ## Development server on http://localhost:8000
 	uv run python manage.py runserver
+
+serve:        ## ASGI, exactly as Render runs it. Needs collectstatic first.
+	uv run gunicorn config.asgi:application \
+	  --worker-class uvicorn_worker.UvicornWorker \
+	  --workers 2 --bind 127.0.0.1:8000 --access-logfile -
 
 test:         ## Full test suite against Postgres
 	uv run python manage.py test
