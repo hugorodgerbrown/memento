@@ -44,7 +44,6 @@ Render, create the superuser, and confirm the deployed health check and admin.
 - Point a personal Pocket webhook at staging `/ingest/pocket/`.
 - Record real deliveries (with personal content redacted) as test fixtures: a solo note with a dated reminder, a conversation, a transcript edit, a label change, a deletion.
 - Resolve every Pocket item under "Verify before relying" in `CLAUDE.md`, and update `pocket.py` and its tests to match reality.
-- Fix reminder completion across a supersede chain: `_sync_reminders` looks the entry up by `external_ref`, which stays on the superseded row, so ticking an action item off in Pocket completes a dead entry and leaves the live one firing. Walk `superseded_by` to the head of the chain.
 - Decide push versus pull now that Pocket ships an MCP server with a recency mode (`docs/first-recordings.md`). Push stays the plan unless the unknowns above bite.
 
 **Done when:** fixtures from real payloads replace the hand-written ones and the suite passes.

@@ -104,15 +104,16 @@ think to `recall` first, the 15 Sep observation lands as a second standing entry
 and `view=current` returns two contradictory facts. The chain that makes Memento
 worth having depends on a step nothing prompts. ADR 0014.
 
-**2. Completing in Pocket completes the wrong entry.** Once a client supersedes
-Pocket's reminder, the `external_ref` stays on the superseded row — the `remember`
-tool doesn't expose `external_ref`, so the replacement has none. When the action
-item is later ticked off in Pocket, `_sync_reminders` looks it up by `external_ref`,
-finds the dead row, and calls `complete_reminder` on that. The live reminder stays
-open and keeps firing in the morning email forever. `due_reminders` already filters
-`superseded_by__isnull=True`, so the dead row correctly never fires; the fix is for
-`_sync_reminders` to walk `superseded_by` to the head of the chain before
-completing. Not yet fixed.
+**2. Completing in Pocket completed the wrong entry.** Fixed. Once a client
+supersedes Pocket's reminder, the `external_ref` stays on the superseded row — the
+`remember` tool doesn't expose `external_ref`, so the replacement has none. When the
+action item was ticked off in Pocket, `_sync_reminders` looked it up by
+`external_ref`, found the dead row and completed that; the live reminder stayed open
+and would have fired in the morning email indefinitely. `due_reminders` already
+filtered `superseded_by__isnull=True`, so the dead row never fired — only the
+completion path was wrong. `services.current_version()` now walks the chain to its
+head, and `_sync_reminders` completes that, or nothing at all when a memory has
+replaced the reminder ("I've already done it" need not arrive as a reminder).
 
 **3. Split granularity is close to a one-way door.** `supersedes` is a
 `OneToOneField`, and `remember` refuses to supersede an entry that already has a

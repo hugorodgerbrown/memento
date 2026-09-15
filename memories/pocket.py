@@ -214,8 +214,12 @@ def _sync_reminders(link, capture, summary) -> tuple[int, int]:
         existing = Entry.objects.filter(owner=link.owner, external_ref=ref).first()
         completed = item.get("isCompleted") or item.get("is_completed")
         if existing:
-            if completed and not existing.completed_at:
-                services.complete_reminder(link.owner, str(existing.pk))
+            # external_ref stays on the row Pocket created, but a client may have
+            # superseded it with a tighter claim. Complete the version that stands,
+            # or nothing at all if a memory has replaced the reminder.
+            current = services.current_version(existing)
+            if completed and current.kind == Kind.REMINDER and not current.completed_at:
+                services.complete_reminder(link.owner, str(current.pk))
                 done += 1
             continue
         due = _due_at(item.get("dueDate") or "", link.timezone)
