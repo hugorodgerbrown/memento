@@ -17,3 +17,4 @@ Short records of decisions that shape behaviour: context, decision, consequences
 | [0011](0011-proactive-capture.md) | Capture is proactive, and the policy lives in the tool description |
 | [0012](0012-numbers-in-text.md) | Numbers stay in text until day 30 |
 | [0013](0013-cross-model-consistency.md) | Cross-model consistency: converge every client, with an inbox fallback |
+| [0014](0014-what-you-said.md) | Memento records what you said, not everything that happened |

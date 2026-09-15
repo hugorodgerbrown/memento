@@ -179,6 +179,52 @@ class PocketIngestTests(TestCase):
         self.assertEqual(pocket.ingest(ticked), "updated")
         self.assertIsNotNone(Entry.objects.get(kind="reminder").completed_at)
 
+    def test_ticking_off_completes_the_version_that_stands(self):
+        """A client sharpens Pocket's claim; external_ref stays on the row it replaced."""
+        pocket.ingest(payload())
+        theirs = Entry.objects.get(kind="reminder")
+        mine = s.remember(
+            self.me,
+            client_name="claude",
+            kind="reminder",
+            raw_text="remind me to renew the memento dot app domain",
+            claim="Renew the memento.app domain before it lapses.",
+            due_at=theirs.due_at,
+            capture=str(theirs.capture_id),
+            supersedes=str(theirs.pk),
+            supersede_reason="correction",
+        )
+        self.assertEqual(pocket.ingest(self._ticked()), "updated")
+        mine.refresh_from_db()
+        theirs.refresh_from_db()
+        self.assertIsNotNone(mine.completed_at)  # the one that would have kept firing
+        self.assertIsNone(theirs.completed_at)  # the replaced row is left as it was
+
+    def test_ticking_off_a_reminder_replaced_by_a_memory_completes_nothing(self):
+        """ "I've done it" may arrive as a memory. Nothing to complete, and no crash."""
+        pocket.ingest(payload())
+        theirs = Entry.objects.get(kind="reminder")
+        s.remember(
+            self.me,
+            client_name="claude",
+            kind="memory",
+            raw_text="remind me to renew the memento dot app domain",
+            claim="Renewed the memento.app domain.",
+            capture=str(theirs.capture_id),
+            supersedes=str(theirs.pk),
+            supersede_reason="change",
+            happened_at=datetime(2026, 9, 12, 9, 0, tzinfo=UTC),
+            happened_precision="day",
+        )
+        self.assertEqual(pocket.ingest(self._ticked()), "updated")
+        theirs.refresh_from_db()
+        self.assertIsNone(theirs.completed_at)
+
+    def _ticked(self):
+        p = payload(event="action_items.updated")
+        p["summarizations"]["sum_1"]["v2"]["actionItems"]["actionItems"][0]["isCompleted"] = True
+        return p
+
     # Pocket deletion doesn't reach Memento
     def test_deleting_in_pocket_keeps_the_memory(self):
         pocket.ingest(payload())

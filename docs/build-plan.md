@@ -22,6 +22,8 @@ Render, create the superuser, and confirm the deployed health check and admin.
 - A `Client` model: owner, name (becomes `client_name` in provenance), hashed bearer token, scopes, and `mode` (`direct` by default, or `inbox`; see 0013).
 - The nine tools from `docs/mcp-tools.md`, each a thin wrapper over `services.py`, with the exact descriptions, schema field descriptions, annotations and result shapes in the spec.
 - `forget` enforces preview-then-confirm, except `services.is_simple_undo()`.
+- `inbox` carries context (0014): with each capture, a bounded set of the owner's current entries that it might update, so a client can supersede instead of duplicating.
+- `timeline` and `list_tags` say that counts measure mentions, not occurrences; `recall` forbids inferring that something didn't happen from the absence of an entry (0014).
 - Server `instructions` are sent too, for clients that read them.
 
 **Done when:** contract tests call every tool through the MCP layer; a test fails if `remember`'s description exceeds 500 characters; Claude Code can log and recall against staging.
@@ -42,6 +44,7 @@ Render, create the superuser, and confirm the deployed health check and admin.
 - Point a personal Pocket webhook at staging `/ingest/pocket/`.
 - Record real deliveries (with personal content redacted) as test fixtures: a solo note with a dated reminder, a conversation, a transcript edit, a label change, a deletion.
 - Resolve every Pocket item under "Verify before relying" in `CLAUDE.md`, and update `pocket.py` and its tests to match reality.
+- Decide push versus pull now that Pocket ships an MCP server with a recency mode (`docs/first-recordings.md`). Push stays the plan unless the unknowns above bite.
 
 **Done when:** fixtures from real payloads replace the hand-written ones and the suite passes.
 
@@ -55,6 +58,7 @@ Render, create the superuser, and confirm the deployed health check and admin.
 ## M6. The Memento skill (0013, part 2)
 
 - Author `skill/memento/SKILL.md` in the open Agent Skills format: frontmatter name and description with a clear trigger, then worked examples (starting with the padel message), kinds and their edge cases, splitting rules, tag conventions, date resolution, correction versus change, and reading recipes for trend questions, monthly digests and citations.
+- Include the plantar fasciitis thread from `docs/first-recordings.md`: recall before distilling, choose `change` over a second entry, and write as one unit whatever will later be updated as one unit, because `supersedes` is one-to-one (0014).
 - Keep `SKILL.md` short; put long examples in `references/` so clients load them only when needed.
 - Re-run the evals with the skill installed. Keep changes that improve the failure categories from M5, and revert changes that don't.
 - Package it for distribution: a Claude plugin and an OpenAI plugin, each bundling the skill with the Memento connector where the platform allows.

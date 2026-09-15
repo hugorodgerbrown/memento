@@ -206,6 +206,18 @@ def _close_validity(entry: Entry, previous: Entry | None) -> None:
         target.save(update_fields=["valid_until"])
 
 
+def current_version(entry: Entry) -> Entry:
+    """
+    The version of this entry that stands now. Anything holding an old id -- a
+    source system keyed on external_ref, a client working from a stale recall --
+    must act on the head, not on the row it remembers. Chains never branch:
+    `supersedes` is one-to-one and set only at creation.
+    """
+    while hasattr(entry, "superseded_by"):
+        entry = entry.superseded_by
+    return entry
+
+
 # --- recall ----------------------------------------------------------------
 
 

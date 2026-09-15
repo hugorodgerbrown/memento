@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="Helvetica Neue, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1F2A44"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#B7791F"/>
+    </marker>
+  </defs>
+  <rect width="960" height="560" fill="#FFFFFF"/>
+
+  <text x="40" y="40" font-size="20" font-weight="600" fill="#1F2A44">From two spoken notes to a change you can query</text>
+  <text x="40" y="64" font-size="13" fill="#55606E">The first real recordings, 14 and 15 September 2026. Pocket stores at once; your LLM structures later; the chain carries the change.</text>
+
+  <text x="40" y="92" font-size="11" font-weight="600" fill="#55606E">SPOKEN</text>
+  <text x="292" y="92" font-size="11" font-weight="600" fill="#5C3D0B">CAPTURE, STORED AT ONCE</text>
+  <text x="576" y="92" font-size="11" font-weight="600" fill="#2F6F8F">ENTRIES, WRITTEN LATER</text>
+
+  <!-- Row 1: 14 September -->
+  <rect x="40" y="104" width="200" height="152" rx="8" fill="#FFFFFF" stroke="#9AA3AE"/>
+  <text x="56" y="126" font-size="12" font-weight="600" fill="#1F2A44">14 Sep, 11:21</text>
+  <g font-size="11" fill="#55606E">
+    <text x="56" y="152">“This morning, the plantar</text>
+    <text x="56" y="170">fasciitis has moved to the</text>
+    <text x="56" y="188">right foot… last night it was</text>
+    <text x="56" y="206">actually pretty painful.</text>
+    <text x="56" y="224">… no exercise yesterday.”</text>
+  </g>
+
+  <text x="266" y="172" font-size="10" fill="#55606E" text-anchor="middle">webhook</text>
+  <line x1="244" y1="180" x2="288" y2="180" stroke="#1F2A44" stroke-width="1.5" marker-end="url(#ah)"/>
+
+  <rect x="292" y="104" width="232" height="152" rx="8" fill="#FBF3E4" stroke="#B7791F" stroke-width="2"/>
+  <text x="308" y="126" font-size="12" font-weight="600" fill="#5C3D0B">Capture · inbox</text>
+  <g font-size="11" fill="#1F2A44">
+    <text x="308" y="152">segments verbatim, speaker Hugo</text>
+    <text x="308" y="174">captured_at = default happened_at</text>
+    <text x="308" y="196">Pocket's summary → hints, not facts</text>
+    <text x="308" y="218">immutable: a trigger, not a guard</text>
+  </g>
+
+  <text x="550" y="172" font-size="10" fill="#55606E" text-anchor="middle">inbox</text>
+  <line x1="528" y1="180" x2="572" y2="180" stroke="#1F2A44" stroke-width="1.5" marker-end="url(#ah)"/>
+
+  <rect x="576" y="104" width="290" height="152" rx="8" fill="#FFFFFF" stroke="#2F6F8F" stroke-width="2"/>
+  <text x="592" y="126" font-size="12" font-weight="600" fill="#1F2A44">3 entries, each an exact excerpt</text>
+  <g font-size="12" fill="#1F2A44">
+    <text x="592" y="154">memory · PF moved left → right · 14 Sep</text>
+    <text x="592" y="180">memory · PF painful overnight · 13 Sep</text>
+    <text x="592" y="206">memory · no exercise · 13 Sep</text>
+  </g>
+  <text x="592" y="234" font-size="11" fill="#55606E">nothing earlier to supersede: a dangling change</text>
+
+  <!-- Row 2: 15 September -->
+  <rect x="40" y="292" width="200" height="174" rx="8" fill="#FFFFFF" stroke="#9AA3AE"/>
+  <text x="56" y="314" font-size="12" font-weight="600" fill="#1F2A44">15 Sep, 09:23</text>
+  <g font-size="11" fill="#55606E">
+    <text x="56" y="340">“Bad night's sleep last night.</text>
+    <text x="56" y="358">Probably too much to drink</text>
+    <text x="56" y="376">down at Rob's in Somerset…</text>
+    <text x="56" y="394">tendons are fine, and PF is</text>
+    <text x="56" y="412">fine on left foot, and on</text>
+    <text x="56" y="430">right foot is very mild.”</text>
+  </g>
+
+  <line x1="244" y1="368" x2="288" y2="368" stroke="#1F2A44" stroke-width="1.5" marker-end="url(#ah)"/>
+
+  <rect x="292" y="292" width="232" height="174" rx="8" fill="#FBF3E4" stroke="#B7791F" stroke-width="2"/>
+  <text x="308" y="314" font-size="12" font-weight="600" fill="#5C3D0B">Capture · inbox</text>
+  <g font-size="11" fill="#1F2A44">
+    <text x="308" y="338">one run-on sentence splits into</text>
+    <text x="308" y="356">three legal excerpts — is_excerpt</text>
+    <text x="308" y="374">is a substring test, not a</text>
+    <text x="308" y="392">sentence test</text>
+  </g>
+  <text x="308" y="418" font-size="11" font-weight="600" fill="#5C3D0B">Skipped, same day:</text>
+  <text x="308" y="436" font-size="11" fill="#1F2A44">“Getting Started with Pocket” —</text>
+  <text x="308" y="452" font-size="11" fill="#1F2A44">speaker is Pocket: no content kept</text>
+
+  <line x1="528" y1="368" x2="572" y2="368" stroke="#1F2A44" stroke-width="1.5" marker-end="url(#ah)"/>
+
+  <rect x="576" y="292" width="290" height="174" rx="8" fill="#FFFFFF" stroke="#2F6F8F" stroke-width="2"/>
+  <text x="592" y="314" font-size="12" font-weight="600" fill="#1F2A44">4 entries</text>
+  <g font-size="12" fill="#1F2A44">
+    <text x="592" y="342">memory · slept badly · 14 Sep</text>
+    <text x="592" y="368">thought · blames the drink at Rob's</text>
+    <text x="592" y="394">memory · tendons fine · 15 Sep</text>
+    <text x="592" y="420" font-weight="600">memory · left clear, right mild · 15 Sep</text>
+  </g>
+  <text x="592" y="448" font-size="11" fill="#55606E">a thought is a hypothesis, linked to nothing</text>
+
+  <!-- supersede link -->
+  <path d="M870,404 H892 V180 H870" fill="none" stroke="#B7791F" stroke-width="2" marker-end="url(#ag)"/>
+  <text x="910" y="292" font-size="11" font-weight="600" fill="#5C3D0B" transform="rotate(-90 910 292)" text-anchor="middle">supersedes · change</text>
+  <text x="926" y="292" font-size="10" fill="#5C3D0B" transform="rotate(-90 926 292)" text-anchor="middle">sets valid_until on the 14 Sep entry</text>
+
+  <!-- footer -->
+  <rect x="40" y="490" width="892" height="50" rx="8" fill="#EEF0F2" stroke="#9AA3AE"/>
+  <text x="56" y="512" font-size="12" fill="#1F2A44"><tspan font-weight="600">Now answerable:</tspan> recall(current) → “very mild, right foot”.  recall(as_of=14 Sep) → “moved to the right, painful overnight”.</text>
+  <text x="56" y="532" font-size="12" fill="#55606E"><tspan font-weight="600" fill="#1F2A44">Not answerable:</tspan> how severe, how often, how many days without exercise — no scalar field (0012), and silence is not evidence (0014).</text>
+</svg>
