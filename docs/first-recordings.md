@@ -9,12 +9,21 @@ for the skill's examples (M6) and for the eval cases in `docs/evals/`.
 
 | Recorded | Title | Speaker | Substance |
 |---|---|---|---|
-| 15 Sep 09:23 | Sleep and Plantar Fasciitis Update | Hugo | Bad night's sleep, blamed on drinking at James' in Dorset; tendons fine, PF clear on the left, very mild on the right |
+| 15 Sep 09:23 | Sleep and Plantar Fasciitis Update | Hugo | Bad night's sleep, blamed on drinking at Rob's in Somerset; tendons fine, PF clear on the left, very mild on the right |
 | 14 Sep 22:49 | Breathalyzer Reading and Timestamp | Hugo | "oh dot forty", taken at 23:49 |
 | 14 Sep 22:14 | Breathalyzer Test Result | Hugo | "0. 41 milligrams" |
-| 14 Sep 16:03 | Website Takeover Response for Ash | Hugo | Email from Ash about the website takeover from Christian; respond tomorrow |
+| 14 Sep 16:03 | Website Takeover Response for Priya | Hugo | Email from Priya about the website takeover from Daniel; respond tomorrow |
 | 14 Sep 11:21 | Plantar Fasciitis Progress Update | Hugo | PF has moved to the right foot; painful last night; no exercise yesterday |
 | 14 Sep 11:14 | Getting Started with Pocket | Pocket | The stock onboarding guide |
+
+## A note on the quotes
+
+Other people's names and places have been replaced with pseudonyms throughout:
+the transcripts as stored are verbatim, but what is quoted here is not, so the
+excerpts below would not pass `is_excerpt` against the real captures. Every other
+detail — timings, structure, speaker labelling — is as recorded. The owner's own
+name is kept, because the solo-voice rule turns on `PocketLink.speaker_label`
+matching it.
 
 ## What this does and doesn't confirm
 
@@ -38,7 +47,7 @@ Five `Capture` rows, `status=inbox`, `captured_at` from `createdAt`, Pocket's
 summary and bullets into `hints` — another model's reading, kept apart from raw.
 One `IngestLog` skip with no content.
 
-Only the Ash note can produce an entry at ingest. If Pocket's summary carries an
+Only the Priya note can produce an entry at ingest. If Pocket's summary carries an
 action item with a `dueDate`, `_sync_reminders` writes a reminder immediately
 (0007): `raw_text` is the whole transcript, `claim` is Pocket's action item
 title, `client_name` is `pocket`, `external_ref` is `pocket:<globalActionItemId>`.
@@ -68,7 +77,7 @@ first few weeks of any memory store: changes with dangling ends.
 | kind | raw_text (exact excerpt) | claim | happened_at |
 |---|---|---|---|
 | memory | Bad night's sleep last night. | Slept badly. | 14 Sep, day |
-| thought | Probably too much to drink down at James' in Dorset. | Puts the bad night's sleep down to drinking at James' in Dorset. | 14 Sep, day |
+| thought | Probably too much to drink down at Rob's in Somerset. | Puts the bad night's sleep down to drinking at Rob's in Somerset. | 14 Sep, day |
 | memory | tendons are fine | Tendons were fine. | 15 Sep 09:23, exact |
 | memory | PF is fine on left foot, and on right foot is very mild | Plantar fasciitis has cleared on the left foot and is very mild on the right. | 15 Sep 09:23, exact |
 
@@ -81,10 +90,10 @@ Note that "tendons are fine, and PF is fine on left foot, and on right foot is
 very mild" splits into three legal excerpts: `is_excerpt` is a whitespace-squashed
 substring test, not a sentence test, so sub-clauses of run-on speech are fine.
 
-### 14 Sep 16:03 — Ash
+### 14 Sep 16:03 — Priya
 
-A memory ("Email from Ash about the, um, website takeover from Christian",
-tagged `person:ash`, `person:christian`, `project:website`), plus the reminder
+A memory ("Email from Priya about the, um, website takeover from Daniel",
+tagged `person:priya`, `person:daniel`, `project:website`), plus the reminder
 Pocket already made. `docs/mcp-tools.md` tells the client to supersede that
 reminder's claim rather than recreate it. See the defect below before doing so.
 
@@ -139,7 +148,7 @@ today. M3 moves it to a per-user profile and puts `now` in every tool result;
 `inbox` should also show each capture's local time.
 
 **6. Tightening a claim is neither a correction nor a change.** Replacing Pocket's
-"Website takeover response for Ash" with the owner's own words doesn't mean the
+"Website takeover response for Priya" with the owner's own words doesn't mean the
 old claim was never true (0009's `correction`) or that the world moved on
 (`change`). Today it has to be labelled `correction`, which also hides Pocket's
 original from `view="history"`. Defensible — it was never the owner's claim — but
