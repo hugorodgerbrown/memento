@@ -2,7 +2,7 @@
 include $(wildcard .env)
 export
 
-.PHONY: setup db migrate run serve test lint fmt check superuser client
+.PHONY: setup db migrate run serve test lint fmt check superuser client eval
 
 setup:        ## Install dependencies and git hooks
 	uv sync
@@ -39,6 +39,9 @@ check: lint   ## Everything CI runs
 
 superuser:    ## Create an admin user
 	uv run python manage.py createsuperuser
+
+eval:         ## Capture evals against Claude Code, on a separate database: make eval [RUNS=3] [CASE=id]
+	uv run python evals/capture.py --runs $(or $(RUNS),3) $(if $(CASE),--case $(CASE))
 
 client:       ## Create an MCP client: make client USER=hugo NAME=claude-code [SCOPES=...]
 	uv run python manage.py create_client $(USER) $(NAME) $(if $(SCOPES),--scopes $(SCOPES))
