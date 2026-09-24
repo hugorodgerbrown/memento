@@ -59,7 +59,7 @@ Built (0017), ahead of M1's deploy by choice: `Profile` holds the time zone; eve
 
 **Done when:** a baseline exists for every case, with failures categorised: dates, splitting, kinds, tags, verbatim, or policy.
 
-Baseline recorded (24 Sep 2026): `evals/capture.py` (`make eval`) runs every case against Claude Code, isolated, on its own database. 45 of 54 runs passed (83%); failures and what they mean are in `docs/evals/results/2026-09-24-claude-code-no-skill-findings.md`. Outstanding: `past-midnight`, which needs a run between 00:00 and 04:00, and the week of daily use. Finding 4, month precision refused by format, is fixed in the server by 0018.
+Baseline recorded (24 Sep 2026): `evals/capture.py` (`make eval`) runs every case against Claude Code, isolated, on its own database. 45 of 54 runs passed (83%); failures and what they mean are in `docs/evals/results/2026-09-24-claude-code-no-skill-findings.md`. `past-midnight` passed 3/3 at 00:30 on 25 Sep, with and without the skill. Outstanding: the week of daily use. Finding 4, month precision refused by format, is fixed in the server by 0018.
 
 ## M6. The Memento skill (0013, part 2)
 
@@ -71,7 +71,7 @@ Baseline recorded (24 Sep 2026): `evals/capture.py` (`make eval`) runs every cas
 
 **Done when:** the skill measurably beats the baseline on Claude Code, and the with/without results are recorded.
 
-Skill built and measured (24 Sep 2026): `skill/memento` passes 54 of 54 runs on Claude Code against 45 of 54 for a same-day control, fixing every M5 failure category with no regressions (`docs/evals/results/2026-09-24-claude-code-skill-findings.md`). `make eval SKILL=1 MODEL=…` runs it. Outstanding: packaging as a Claude plugin and an OpenAI plugin, and `past-midnight` in both configurations.
+Skill built and measured (24 Sep 2026): `skill/memento` passes 54 of 54 runs on Claude Code against 45 of 54 for a same-day control, fixing every M5 failure category with no regressions (`docs/evals/results/2026-09-24-claude-code-skill-findings.md`). `make eval SKILL=1 MODEL=…` runs it. Outstanding: packaging as a Claude plugin and an OpenAI plugin.
 
 ## M7. The distiller (0013, part 3)
 
