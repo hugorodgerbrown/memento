@@ -84,9 +84,7 @@ def payload(**changes):
 class PocketIngestTests(TestCase):
     def setUp(self):
         self.me = get_user_model().objects.create(username="sam")
-        PocketLink.objects.create(
-            owner=self.me, pocket_user_id="user_me", speaker_label="Sam", timezone="Europe/London"
-        )
+        PocketLink.objects.create(owner=self.me, pocket_user_id="user_me", speaker_label="Sam")
 
     # Signature
     def test_signature_valid_tampered_and_stale(self):

@@ -41,6 +41,8 @@ Built (0016): `/mcp` serves the nine tools, stateless, with per-client bearer to
 
 **Done when:** each rule has a test named for it, including a weak-client simulation: repeated invalid calls end in an inbox capture, never a lost one.
 
+Built (0017), ahead of M1's deploy by choice: `Profile` holds the time zone; every result carries `now`; `remember` rejects relative time in claims and memories dated ahead (a scheduled `change` excepted, per 0009), warns on near-duplicate tags, and keeps raw-only saves and inbox-mode clients' words as chat captures. Tests are in `memories/tests/test_contract.py`. The tool-text changes have not had an eval run.
+
 ## M4. Pocket live on staging
 
 - Point a personal Pocket webhook at staging `/ingest/pocket/`.

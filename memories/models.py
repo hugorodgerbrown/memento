@@ -13,6 +13,7 @@ Each principle from the brief is enforced here, not just documented:
 """
 
 import uuid
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
@@ -253,6 +254,27 @@ class Capture(models.Model):
         return [self.text] + [r["text"] for r in self.revisions]
 
 
+def validate_timezone(name: str) -> None:
+    try:
+        ZoneInfo(name)
+    except (ZoneInfoNotFoundError, ValueError) as e:
+        raise ValidationError(
+            f"{name!r} is not a time zone. Use an IANA name, e.g. Europe/London."
+        ) from e
+
+
+class Profile(models.Model):
+    """Per-user settings the server needs to be the arbiter of time (0013)."""
+
+    owner = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile"
+    )
+    timezone = models.CharField(max_length=64, default="UTC", validators=[validate_timezone])
+
+    def __str__(self):
+        return f"{self.owner} ({self.timezone})"
+
+
 class PocketLink(models.Model):
     """Connects a Pocket account to a Memento user, and says which voice is yours."""
 
@@ -263,7 +285,6 @@ class PocketLink(models.Model):
     speaker_label = models.CharField(
         max_length=128, help_text="Your name as Pocket's voice print labels you."
     )
-    timezone = models.CharField(max_length=64, default="UTC")
 
     def __str__(self):
         return f"Pocket {self.pocket_user_id} for {self.owner}"
