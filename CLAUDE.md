@@ -32,6 +32,7 @@ Each principle is enforced in code and covered by tests. If a task seems to need
 | `docs/build-plan.md` | What to build next, in order, with acceptance criteria. |
 | `render.yaml` | Staging: web service, Postgres and the deploy steps. Explained in `docs/deploy.md`. |
 | `docs/evals/capture-policy.json` | How clients should react to real messages. Run against every client. |
+| `evals/capture.py` | Runs those cases against Claude Code (`make eval`), isolated, on the `memento_eval` database. A client: never imports `memories` or `config`. Results in `docs/evals/results/`. |
 | `skill/memento/` | *Planned (M6).* The Memento skill in Agent Skills format. Also the distiller's instructions. |
 | `distiller/` | *Planned (M7).* Scheduled MCP client that structures the inbox with one chosen model. |
 
@@ -45,6 +46,7 @@ make test      # full suite (needs Postgres; SQLite is not supported)
 make check     # everything CI runs: lint, format, migrations check, tests
 make run       # development server, with /mcp (uvicorn, reloads)
 make client USER=hugo NAME=claude-code   # MCP client + bearer token, shown once
+make eval      # capture evals against Claude Code (RUNS=3, CASE=id)
 make serve     # ASGI, exactly as Render runs it (collectstatic first)
 ```
 

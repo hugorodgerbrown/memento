@@ -59,6 +59,8 @@ Built (0017), ahead of M1's deploy by choice: `Profile` holds the time zone; eve
 
 **Done when:** a baseline exists for every case, with failures categorised: dates, splitting, kinds, tags, verbatim, or policy.
 
+Baseline recorded (24 Sep 2026): `evals/capture.py` (`make eval`) runs every case against Claude Code, isolated, on its own database. 45 of 54 runs passed (83%); failures and what they mean are in `docs/evals/results/2026-09-24-claude-code-no-skill-findings.md`. Outstanding: `past-midnight`, which needs a run between 00:00 and 04:00, and the week of daily use.
+
 ## M6. The Memento skill (0013, part 2)
 
 - Author `skill/memento/SKILL.md` in the open Agent Skills format: frontmatter name and description with a clear trigger, then worked examples (starting with the padel message), kinds and their edge cases, splitting rules, tag conventions, date resolution, correction versus change, and reading recipes for trend questions, monthly digests and citations.
