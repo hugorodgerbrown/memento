@@ -7,7 +7,7 @@ The M6 measurement. Two runs on the same evening, same server (with 0018), same 
 | Passed | 45 / 54 (83%) | **54 / 54 (100%)** |
 | policy failures | 8 | 0 |
 | dates failures | 3 | 0 |
-| Saves with no receipt (read by hand, not graded) | 2 | 0 |
+| Saves with no receipt (graded since the follow-up below) | 0 | 0 |
 | Sensitive saved without asking | 0 | 0 |
 
 Reports: [control](2026-09-24-claude-code-control.md), [skill](2026-09-24-claude-code-skill.md), each with its JSON.
@@ -31,7 +31,7 @@ Nothing that passed in the control failed with the skill.
 ## Worth knowing
 
 - **0018 shows up in the control.** Without the skill, the `change` case now sends `happened_at: "2026-09"` for "last weekend". The server accepts it where it used to refuse it, so the fault shows as a precision that is too coarse (graded as dates) instead of a retry. The skill's precision table fixes it.
-- **Silent saves.** The grader doesn't check Principle 9. Reading every reply, two control runs (`correction`, `reminder`) saved without saying so. No skill run did. Worth adding to the grader.
+- **Silent saves: none.** This section first said two control runs (`correction`, `reminder`) saved without telling the user. That was wrong. The hand check matched only a few words, and those replies said "I've corrected it" and "I've set a reminder". The grader now checks Principle 9 itself: a run that saves must say so. Re-grading every stored run (M5 baseline, control, skill) finds no silent saves and changes no score.
 - **`weak-client-escape`** passes in both runs by fixing the claim instead of falling back to the inbox. That's allowed, but it means the inbox path is still unexercised by a real client.
 
 ## Limits
