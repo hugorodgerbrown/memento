@@ -21,3 +21,4 @@ Short records of decisions that shape behaviour: context, decision, consequences
 | [0015](0015-ignore-pocket-action-items.md) | Pocket's action items are ignored |
 | [0016](0016-mcp-transport-and-clients.md) | The MCP endpoint: stateless HTTP beside Django, one token per client |
 | [0017](0017-contract-choices.md) | How the contract is enforced |
+| [0018](0018-partial-dates.md) | `happened_at` accepts a month or a year on its own |

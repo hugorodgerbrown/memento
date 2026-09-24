@@ -167,6 +167,55 @@ class WriteTests(MCPTestCase):
         (shown,) = self.ok("recall", ids=[entry_id])["entries"]
         self.assertEqual(shown["happened_at"], "2026-09-10")
 
+    def test_a_month_alone_is_accepted_at_month_precision(self):
+        """0018: the partial date a model naturally sends for "last March"."""
+        for precision in ("month", None):
+            with self.subTest(precision=precision):
+                kw = {"happened_precision": precision} if precision else {}
+                entry_id = self.save(
+                    f"Started running {precision}", "Started running.", happened_at="2026-03", **kw
+                )
+                entry = Entry.objects.get(pk=entry_id)
+                self.assertEqual(entry.happened_precision, "month")
+                self.assertEqual(
+                    timezone.localtime(entry.happened_at).date().isoformat(), "2026-03-01"
+                )
+                (shown,) = self.ok("recall", ids=[entry_id])["entries"]
+                self.assertEqual(shown["happened_at"], "2026-03")
+
+    def test_a_year_alone_is_accepted_at_year_precision(self):
+        """0018: "back in 2019"."""
+        entry_id = self.save(
+            "Back in 2019 I lived in Bristol", "Lived in Bristol.", happened_at="2019"
+        )
+        entry = Entry.objects.get(pk=entry_id)
+        self.assertEqual(entry.happened_precision, "year")
+        (shown,) = self.ok("recall", ids=[entry_id])["entries"]
+        self.assertEqual(shown["happened_at"], "2019")
+
+    def test_a_partial_date_cannot_claim_more_precision_than_it_has(self):
+        """0018: a month is not a day. The error says which to fix."""
+        message = self.error(
+            "remember", raw_text="x", claim="x", kind="memory",
+            happened_at="2026-09", happened_precision="day",
+        )  # fmt: skip
+        self.assertIn("2026-09 names a month", message)
+        self.assertIn("happened_precision to month", message)
+        message = self.error(
+            "remember", raw_text="x", claim="x", kind="memory",
+            happened_at="2019", happened_precision="month",
+        )  # fmt: skip
+        self.assertIn("2019 names a year", message)
+
+    def test_partial_dates_are_for_happened_at_only(self):
+        """0018: other fields have no precision to record, so they need a full date."""
+        message = self.error(
+            "remember", raw_text="Renew the domain", claim="Renew the domain.", kind="reminder",
+            due_at="2026-10",
+        )  # fmt: skip
+        self.assertIn("needs a full date", message)
+        self.assertIn("ISO 8601", message)
+
     def test_change_closes_the_old_entry(self):
         """Changes append (Principle 4)."""
         left = self.save("PF in the left foot", "Plantar fasciitis in the left foot.")

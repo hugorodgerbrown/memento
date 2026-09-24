@@ -41,8 +41,8 @@ Field guidance lives in each parameter's schema description, so it survives desc
 | `claim` | string, ≤280 | yes, unless sending `raw_text` alone to the inbox | One standalone sentence, at most 280 characters, with names and real dates ("yesterday" becomes "10 Sep 2026"). Fix typos here, not in raw_text. Omit claim and kind to send raw_text alone to the inbox, to be structured later. |
 | `kind` | `memory` \| `thought` \| `decision` \| `reminder` | yes, unless sending `raw_text` alone to the inbox | memory: something that happened or a state, like a symptom, sleep or activity. thought: an idea or opinion. decision: a choice made. reminder: something to act on, needs due_at. |
 | `tags` | string[] | no | 2 to 6, reusing tags from list_tags. Prefix people person:, projects project:, places place:, organisations org:. |
-| `happened_at` | ISO 8601 | no | When it happened, not now. "This morning" is today. Omit if unknown; never guess. |
-| `happened_precision` | `exact` \| `day` \| `month` \| `year` | with `happened_at` | How precisely the user said it. |
+| `happened_at` | ISO 8601, or `YYYY-MM` / `YYYY` for a month or year (0018) | no | When it happened, not now. "This morning" is today. Omit if unknown; never guess. |
+| `happened_precision` | `exact` \| `day` \| `month` \| `year` | with `happened_at`; defaults to what the value carries | How precisely the user said it. |
 | `due_at` | ISO 8601 | reminders only | When to remind. |
 | `supersedes` | entry id | no | When a saved entry is wrong or out of date. recall it first. |
 | `supersede_reason` | `correction` \| `change` | with `supersedes` | correction: it was never true. change: it was true until now; set happened_at to when it changed. |

@@ -9,6 +9,7 @@ docs/mcp-tools.md exactly; a test compares them.
 
 import contextvars
 import json
+import re
 from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import Annotated, Any, Literal
@@ -229,30 +230,45 @@ async def _run(fn: Callable[[], dict[str, Any]], *, way_out: str = "") -> dict[s
 
 ISO_HINT = "Use ISO 8601, such as 2026-09-10 or 2026-09-10T08:30:00+01:00."
 
+# 0018: "2026-09" and "2026" are what a model sends for "last March" or "back in 2019".
+PARTIAL_DATE = re.compile(r"(\d{4})(?:-(\d{2}))?")
+COARSENESS = [Precision.EXACT, Precision.DAY, Precision.MONTH, Precision.YEAR]
 
-def _when(value: str | None, field: str) -> tuple[datetime | None, bool]:
+
+def _when(value: str | None, field: str) -> tuple[datetime | None, str]:
     """
-    An aware datetime, and whether only a date was given. A date or time without
-    a zone is read in the user's time zone, not the server's.
+    An aware datetime, and the precision the value itself carries: a year, a
+    month, a day or an exact time. A partial date means its first moment. A date
+    or time without a zone is read in the user's time zone, not the server's.
     """
     if not value:
-        return None, False
-    tz = _tz()
+        return None, ""
+    tz, text = _tz(), value.strip()
     try:
-        if len(value.strip()) == 10 and (day := parse_date(value.strip())):
-            return timezone.make_aware(datetime.combine(day, datetime.min.time()), tz), True
-        parsed = parse_datetime(value.strip())
+        if partial := PARTIAL_DATE.fullmatch(text):
+            start = datetime(int(partial[1]), int(partial[2] or 1), 1)
+            precision = Precision.MONTH if partial[2] else Precision.YEAR
+            return timezone.make_aware(start, tz), precision
+        if len(text) == 10 and (day := parse_date(text)):
+            return timezone.make_aware(
+                datetime.combine(day, datetime.min.time()), tz
+            ), Precision.DAY
+        parsed = parse_datetime(text)
     except ValueError:
         parsed = None
     if parsed is None:
         raise ValidationError(f"{field} isn't a date I can read: {value!r}. {ISO_HINT}")
     if timezone.is_naive(parsed):
         parsed = timezone.make_aware(parsed, tz)
-    return parsed, False
+    return parsed, Precision.EXACT
 
 
 def _at(value: str | None, field: str) -> datetime | None:
-    return _when(value, field)[0]
+    """A full date or time: only happened_at has a precision to record a partial one."""
+    when, precision = _when(value, field)
+    if precision in (Precision.MONTH, Precision.YEAR):
+        raise ValidationError(f"{field} needs a full date, not {value!r}. {ISO_HINT}")
+    return when
 
 
 # --- results -------------------------------------------------------------------
@@ -458,10 +474,16 @@ async def remember(
             )
         if len(claim) > 280:
             raise ValidationError(f"claim is {len(claim)} characters; keep it to 280 or fewer.")
-        when, date_only = _when(happened_at, "happened_at")
-        precision = happened_precision or ""
-        if when and not precision:
-            precision = Precision.DAY if date_only else Precision.EXACT
+        when, given = _when(happened_at, "happened_at")
+        precision = happened_precision or given
+        if given in (Precision.MONTH, Precision.YEAR) and (
+            COARSENESS.index(precision) < COARSENESS.index(given)
+        ):
+            raise ValidationError(
+                f"happened_at {happened_at} names a {given}, so it can't have {precision} "
+                f"precision. Set happened_precision to {given}, or send the full date if the "
+                "user gave one."
+            )
         if precision and not when:
             raise ValidationError("happened_precision needs happened_at. Omit both if unknown.")
         entry = services.remember(
