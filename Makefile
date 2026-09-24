@@ -36,6 +36,13 @@ fmt:          ## Fix lint issues and format
 check: lint   ## Everything CI runs
 	uv run python manage.py makemigrations --check --dry-run
 	uv run python manage.py test
+	cd distiller && uv sync --locked -q && uv run python -m unittest -q
+
+distil:       ## Run the distiller once over the last 35 minutes of the inbox: needs MEMENTO_URL, MEMENTO_TOKEN, ANTHROPIC_API_KEY
+	cd distiller && uv run python distil.py $(if $(SINCE),--since $(SINCE))
+
+distil-eval:  ## Capture-policy cases as inbox notes, through the distiller: make distil-eval [RUNS=3] [CASE=id]
+	cd distiller && uv run python ../evals/distilling.py --runs $(or $(RUNS),3) $(if $(CASE),--case $(CASE))
 
 superuser:    ## Create an admin user
 	uv run python manage.py createsuperuser

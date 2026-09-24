@@ -34,7 +34,7 @@ Each principle is enforced in code and covered by tests. If a task seems to need
 | `docs/evals/capture-policy.json` | How clients should react to real messages. Run against every client. |
 | `evals/capture.py` | Runs those cases against Claude Code (`make eval`), isolated, on the `memento_eval` database. A client: never imports `memories` or `config`. Results in `docs/evals/results/`. |
 | `skill/memento/` | The Memento skill in Agent Skills format (M6). Also the distiller's instructions. `make eval SKILL=1` measures it. |
-| `distiller/` | *Planned (M7).* Scheduled MCP client that structures the inbox with one chosen model. |
+| `distiller/` | The distiller (M7, 0019): a scheduled MCP client that structures the inbox with one chosen model. Its own `pyproject.toml`; tests with `cd distiller && uv run python -m unittest`. |
 
 ## Commands
 
@@ -47,6 +47,8 @@ make check     # everything CI runs: lint, format, migrations check, tests
 make run       # development server, with /mcp (uvicorn, reloads)
 make client USER=hugo NAME=claude-code   # MCP client + bearer token, shown once
 make eval      # capture evals against Claude Code (RUNS=3, CASE=id, SKILL=1, MODEL=id)
+make distil    # run the distiller once (MEMENTO_URL, MEMENTO_TOKEN, ANTHROPIC_API_KEY)
+make distil-eval  # capture-policy cases as inbox notes, through the distiller
 make serve     # ASGI, exactly as Render runs it (collectstatic first)
 ```
 
@@ -66,7 +68,7 @@ Copy `.env.example` to `.env` first. Python 3.14 (for `uuid.uuid7`), Django 6.1,
 
 ## Status
 
-Phases 1 to 3 (interrogate, define, model) are done: the data model, services, Pocket ingest and tool spec. M2 is built: the MCP server at `/mcp` with per-client bearer tokens (0016). M3, the contract, is built too (0017), ahead of M1's deploy. M6, the skill, is built and beats a same-day control on Claude Code (54/54 against 45/54); plugin packaging is outstanding. Staging (M1) is described but not yet applied, and OAuth is M8. Phase 4 (designing the morning email and web timeline) hasn't started; the build plan says where it slots in. Cross-model consistency (0013: contract, skill, inbox fallback, distiller) is built for M3 and M6; the distiller (M7) is next.
+Phases 1 to 3 (interrogate, define, model) are done: the data model, services, Pocket ingest and tool spec. M2 is built: the MCP server at `/mcp` with per-client bearer tokens (0016). M3, the contract, is built too (0017), ahead of M1's deploy. M6, the skill, is built and beats a same-day control on Claude Code (54/54 against 45/54); plugin packaging is outstanding. Staging (M1) is described but not yet applied, and OAuth is M8. Phase 4 (designing the morning email and web timeline) hasn't started; the build plan says where it slots in. Cross-model consistency (0013: contract, skill, inbox fallback, distiller) is built for M3 and M6; the distiller (M7, 0019) is built and awaits its eval run.
 
 ## Verify before relying on these
 

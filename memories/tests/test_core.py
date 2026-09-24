@@ -1,11 +1,13 @@
 """Each test maps to a principle in the brief."""
 
+import re
 from datetime import UTC, datetime
+from pathlib import Path
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 
 from memories import services as s
 from memories.models import Entry
@@ -177,3 +179,24 @@ class MementoTests(TestCase):
         self.assertEqual(list(s.due_reminders(dt(2026, 3, 2))), [r])
         s.complete_reminder(self.me, str(r.pk))
         self.assertEqual(list(s.due_reminders(dt(2026, 3, 2))), [])
+
+
+class ServerNeverGeneratesTests(SimpleTestCase):
+    """
+    Principle 2. The distiller (distiller/) calls a model, so the repository holds an
+    LLM SDK; the server's own environment and code must never reach it.
+    """
+
+    ROOT = Path(__file__).resolve().parents[2]
+    SDKS = ("anthropic", "openai", "google-genai", "google-generativeai", "mistralai", "cohere")
+
+    def test_no_model_sdk_in_the_server_environment(self):
+        locked = re.findall(r'^name = "([^"]+)"', (self.ROOT / "uv.lock").read_text(), re.M)
+        self.assertFalse(set(locked) & set(self.SDKS), "a model SDK is in the server's lockfile")
+
+    def test_no_server_code_imports_a_model_sdk_or_the_distiller(self):
+        for path in [*self.ROOT.glob("memories/**/*.py"), *self.ROOT.glob("config/**/*.py")]:
+            with self.subTest(path=path.name):
+                imports = re.findall(r"^\s*(?:from|import)\s+([\w.]+)", path.read_text(), re.M)
+                roots = {i.split(".")[0] for i in imports}
+                self.assertFalse(roots & {"anthropic", "openai", "distil"}, path)

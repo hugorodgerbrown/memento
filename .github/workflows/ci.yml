@@ -41,3 +41,8 @@ jobs:
         run: uv run python manage.py makemigrations --check --dry-run
       - name: Tests
         run: uv run python manage.py test
+      - name: Distiller tests (its own environment; no model calls)
+        working-directory: distiller
+        run: |
+          uv sync --locked
+          uv run python -m unittest -v

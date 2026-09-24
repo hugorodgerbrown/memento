@@ -55,6 +55,28 @@ services:
       - key: POCKET_WEBHOOK_SECRET
         sync: false
 
+  # The distiller (M7, ADR 0019): every 15 minutes, turns the last 35 minutes of
+  # the inbox into entries. A separate client with its own environment and token;
+  # the model provider's key lives here and never on the web service.
+  - name: memento-distiller
+    type: cron
+    runtime: python
+    region: frankfurt
+    plan: starter
+    branch: main
+    schedule: "*/15 * * * *"
+    buildCommand: pip install uv && cd distiller && uv sync --locked
+    startCommand: cd distiller && uv run python distil.py
+    envVars:
+      - key: MEMENTO_URL # https://<the web service>/mcp
+        sync: false
+      - key: MEMENTO_TOKEN # manage.py create_client <user> distiller (read and write, never forget)
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: DISTILLER_MODEL
+        value: claude-sonnet-5
+
 databases:
   - name: memento-staging-db
     plan: 0.1c-256mb

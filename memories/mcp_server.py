@@ -352,6 +352,7 @@ def _capture_dict(capture: Capture) -> dict:
         "id": str(capture.pk),
         "source": capture.source,
         "captured_at": _iso(capture.captured_at),
+        "received_at": _iso(capture.received_at),
         "title": capture.title,
         "transcript": capture.text,
         "revisions": [r["text"] for r in capture.revisions],
@@ -639,10 +640,15 @@ async def complete_reminder(entry_id: EntryId) -> dict[str, Any]:
 @mcp.tool(description=INBOX, annotations=READ_ONLY)
 async def inbox(
     limit: Annotated[int, Field(ge=1, le=50, description="At most this many notes.")] = 10,
+    received_since: Annotated[
+        str | None,
+        Field(description="Only notes that reached Memento at or after this time. ISO 8601."),
+    ] = None,
 ) -> dict[str, Any]:
     def call():
         client = _client(Scope.READ)
-        captures = services.inbox(client.owner, limit=limit)
+        since = _at(received_since, "received_since")
+        captures = services.inbox(client.owner, limit=limit, received_since=since)
         context, held_back = services.inbox_context(client.owner)
         return {
             "waiting": services.inbox_count(client.owner),

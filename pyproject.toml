@@ -34,4 +34,4 @@ select = ["E", "F", "W", "I", "UP", "B", "SIM", "DJ", "C4", "RUF"]
 ignore = ["RUF012"]  # Django's Meta and admin class attributes are idiomatic
 
 [tool.ruff.lint.isort]
-known-first-party = ["config", "memories"]
+known-first-party = ["config", "memories", "distil"]

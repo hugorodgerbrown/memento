@@ -82,6 +82,8 @@ Skill built and measured (24 Sep 2026): `skill/memento` passes 54 of 54 runs on 
 
 **Done when:** Pocket notes and raw-only chat captures are structured within 15 minutes without anyone opening a client, and the distiller passes the eval bar.
 
+Built (0019), not yet measured: `distiller/distil.py` runs the skill on `claude-sonnet-5` through the Tool Runner, over notes received in the last 35 minutes. It leaves for the user what it would ask about, and it is offered only six tools, never `forget`. `inbox` gained `received_since`. `render.yaml` describes the cron job. `make distil-eval` runs the capture-policy cases as inbox notes; its plumbing is verified against the real server with a scripted model. Outstanding: a real eval run (it needs `ANTHROPIC_API_KEY`), and the cron job going live with M1.
+
 ## M8. OAuth 2.1 for claude.ai and ChatGPT
 
 - Authorisation server via django-oauth-toolkit: authorisation code + PKCE, protected-resource metadata, authorisation-server metadata, dynamic client registration. Client ID metadata documents when both clients support them.
