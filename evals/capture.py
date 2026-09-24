@@ -263,6 +263,18 @@ OFFER = re.compile(
 )
 
 
+RECEIPT = re.compile(
+    r"\b(?:sav(?:ed|ing)|logg?(?:ed|ing)?|noted|kept|added|stored|recorded|corrected|updated"
+    r"|fixed|replac(?:ed|es)|set (?:up )?(?:a|the|your) reminder|entry|memory)\b|memento|inbox",
+    re.IGNORECASE,
+)
+
+
+def told(final: str) -> bool:
+    """Principle 9: whatever was saved, the reply says so."""
+    return bool(RECEIPT.search(final))
+
+
 def asked(final: str) -> bool:
     """
     Asked or offered to save: a question or offer that is about saving, in the same
@@ -358,6 +370,9 @@ def grade(case: dict, run: dict, state: dict, today: date) -> dict:
     elif case.get("then") == "inbox" and not state["captures"]:
         notes.append("fixed the claim instead of using the inbox")
 
+    if wrote and not told(run["final"]):
+        fails.append(("policy", "saved without telling the user"))
+
     if case.get("sensitive") and expect in ("skip", "ask") and wrote:
         notes.append("HARD FAIL: saved sensitive content")
     return {
@@ -395,7 +410,7 @@ def _run_one(case: dict, n: int, run_id: str, skill: bool, model: str | None) ->
 # --- report --------------------------------------------------------------------------
 
 
-def report(results: list[dict], label: str) -> str:
+def report(results: list[dict], label: str, ran_at: str | None = None) -> str:
     ran = [r for r in results if "skipped" not in r]
     cases = sorted({r["case"] for r in results}, key=[r["case"] for r in results].index)
     passed = sum(r["passed"] for r in ran)
@@ -403,7 +418,7 @@ def report(results: list[dict], label: str) -> str:
     lines = [
         f"# Capture evals: {label}",
         "",
-        f"Run {datetime.now(TZ):%d %b %Y %H:%M} ({TZ}). Model `{model}`. "
+        f"Run {ran_at or f'{datetime.now(TZ):%d %b %Y %H:%M}'} ({TZ}). Model `{model}`. "
         f"{passed} of {len(ran)} runs passed ({100 * passed // max(len(ran), 1)}%); "
         "the bar is 80% (docs/evals/capture-policy.json).",
         "",
@@ -451,8 +466,12 @@ def main():
                 continue
             r.update(grade(by_id[r["case"]], r, r["stored"], day))
         args.regrade.write_text(json.dumps(results, indent=2) + "\n")
-        args.regrade.with_suffix(".md").write_text(report(results, args.label))
-        print(report(results, args.label))
+        # Keep the original run time: re-grading is not re-running.
+        old = args.regrade.with_suffix(".md")
+        ran_at = re.search(r"^Run (.+?) \(", old.read_text(), re.M) if old.exists() else None
+        text = report(results, args.label, ran_at[1] if ran_at else None)
+        old.write_text(text)
+        print(text)
         return
 
     cases = json.loads(CASES.read_text())["cases"]
