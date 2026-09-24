@@ -16,7 +16,14 @@ make setup      # dependencies and git hooks
 make db         # Postgres 16 in Docker
 make migrate
 make test
-make run        # http://localhost:8000/admin
+make run        # http://localhost:8000/admin, and MCP at /mcp
+```
+
+To connect Claude Code, create a client and add the server with its token:
+
+```bash
+make client USER=<your username> NAME=claude-code
+claude mcp add --transport http memento http://localhost:8000/mcp --header "Authorization: Bearer <token>"
 ```
 
 `make check` runs everything CI runs.
@@ -35,4 +42,4 @@ make run        # http://localhost:8000/admin
 
 ## Status
 
-The data model, service layer and Pocket ingest are built and tested, and staging is described by [`render.yaml`](render.yaml). The MCP server and authentication are next; see the build plan.
+The data model, service layer, Pocket ingest and the MCP server are built and tested, and staging is described by [`render.yaml`](render.yaml). OAuth for claude.ai and ChatGPT comes later; see the build plan.

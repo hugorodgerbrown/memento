@@ -68,6 +68,8 @@ If the same observation arrives twice (same words, kind and day), the server ret
 >
 > `sources` must list the id of every entry you drew on, and nothing you didn't. `covers_from` and `covers_to` are the period the digest describes. `raw_text` is your full synthesis; `claim` is its one-sentence conclusion.
 >
+> Entries record what the user mentioned, not everything that happened. Don't state how often something happened unless the cited entries say so.
+>
 > A digest is deleted automatically if the user later forgets any entry it cites, so cite precisely.
 
 ## recall
@@ -85,19 +87,19 @@ If the same observation arrives twice (same words, kind and day), the server ret
 >
 > If an id you ask for comes back as forgotten, the user deliberately deleted it. Say so; don't search for it elsewhere.
 >
-> When you answer, cite the entries you relied on with their dates, and quote `raw_text` when exact wording matters. If nothing matches, say so plainly. Never fill gaps from general knowledge or from this conversation and present it as their memory.
+> When you answer, cite the entries you relied on with their dates, and quote `raw_text` when exact wording matters. If nothing matches, say so plainly. Never fill gaps from general knowledge or from this conversation and present it as their memory. Entries are what the user mentioned: a missing entry means it wasn't mentioned, not that it didn't happen.
 
 Filters: `query`, `tags` (all must match), `kinds`, `since`, `until` (on `happened_at`), `ids`, `view`, `as_of`, `limit` (default 20, max 100).
 
 ## timeline
 
-> Count the user's entries per tag over time, without returning their contents. Call this first for any question about change, patterns or a long period ("how has my thinking on hiring evolved", "what was I focused on this year"). Then use `recall` on the specific periods and tags that matter.
+> Count the user's entries per tag over time, without returning their contents. Call this first for any question about change, patterns or a long period ("how has my thinking on hiring evolved", "what was I focused on this year"). Then use `recall` on the specific periods and tags that matter. Counts measure how often something was mentioned, not how often it happened.
 
 Parameters: `since`, `until`, `bucket` (`week` \| `month` \| `quarter`), `tag_prefix`. Excludes digests and entries corrected as never true. Entries that later changed still count for the period they were true.
 
 ## list_tags
 
-> List the user's existing tags with how often each is used. Call this before `remember` so you reuse tags instead of creating near-duplicates, and before `recall` to discover what to search for. Filter with `prefix`, e.g. `person:` to list people.
+> List the user's existing tags with how often each is used. Call this before `remember` so you reuse tags instead of creating near-duplicates, and before `recall` to discover what to search for. Filter with `prefix`, e.g. `person:` to list people. Counts are mentions, not occurrences.
 
 ## complete_reminder
 
@@ -105,7 +107,7 @@ Parameters: `since`, `until`, `bucket` (`week` \| `month` \| `quarter`), `tag_pr
 
 ## inbox
 
-> List voice notes waiting to be turned into entries, oldest first. Each has the transcript, when it was recorded, Pocket's own summary as a hint, and any entries already created from it.
+> List voice notes waiting to be turned into entries, oldest first. Each has the transcript, when it was recorded, Pocket's own summary as a hint, and any entries already created from it. The result also lists the user's most recent current entries, so you can update one instead of duplicating it.
 >
 > For each note: split it into separate entries (one per memory, thought, decision or reminder), each with an exact excerpt as `raw_text` and `capture` set. Don't recreate entries that already exist; if one's claim is wrong, supersede it. Treat Pocket's summary as another model's reading: useful for orientation, never a source of facts. Then call `close_capture`.
 >
@@ -123,7 +125,9 @@ Parameters: `since`, `until`, `bucket` (`week` \| `month` \| `quarter`), `tag_pr
 >
 > A tombstone holding only the ids and the date is kept, so you can later tell the user something was forgotten rather than never saved. Nothing else survives.
 >
-> Always call it first with `confirm: false`. The one exception: when the user says "don't log that" right after a save, you may pass `confirm: true` directly. The server allows this only if the plan is a single entry, recorded in the last 15 minutes, that nothing cites. That returns everything that would be deleted, without deleting. Show the user that list in plain words, and call again with `confirm: true` only after they agree. This cannot be undone.
+> Always call it first with `confirm: false`. That returns everything that would be deleted, without deleting, and a `confirm_token`. Show the user that list in plain words, and call again with `confirm: true` and the `confirm_token` only after they agree. This cannot be undone.
+>
+> The one exception: when the user says "don't log that" right after a save, you may pass `confirm: true` directly. The server allows this only if the plan is a single entry, recorded in the last 15 minutes, that nothing cites.
 
 ## Voice capture (Pocket)
 

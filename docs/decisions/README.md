@@ -19,3 +19,4 @@ Short records of decisions that shape behaviour: context, decision, consequences
 | [0013](0013-cross-model-consistency.md) | Cross-model consistency: converge every client, with an inbox fallback |
 | [0014](0014-what-you-said.md) | Memento records what you said, not everything that happened |
 | [0015](0015-ignore-pocket-action-items.md) | Pocket's action items are ignored |
+| [0016](0016-mcp-transport-and-clients.md) | The MCP endpoint: stateless HTTP beside Django, one token per client |
