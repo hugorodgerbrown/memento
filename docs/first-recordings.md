@@ -47,6 +47,8 @@ Five `Capture` rows, `status=inbox`, `captured_at` from `createdAt`, Pocket's
 summary and bullets into `hints` — another model's reading, kept apart from raw.
 One `IngestLog` skip with no content.
 
+*Since 0015, ingest ignores action items, so the next paragraph no longer holds: nothing becomes an entry until a client distils the note.*
+
 Only the Priya note can produce an entry at ingest. If Pocket's summary carries an
 action item with a `dueDate`, `_sync_reminders` writes a reminder immediately
 (0007): `raw_text` is the whole transcript, `claim` is Pocket's action item
@@ -113,7 +115,7 @@ think to `recall` first, the 15 Sep observation lands as a second standing entry
 and `view=current` returns two contradictory facts. The chain that makes Memento
 worth having depends on a step nothing prompts. ADR 0014.
 
-**2. Completing in Pocket completed the wrong entry.** Fixed. Once a client
+**2. Completing in Pocket completed the wrong entry.** Fixed, and later made moot by 0015, which drops action items altogether. Once a client
 supersedes Pocket's reminder, the `external_ref` stays on the superseded row — the
 `remember` tool doesn't expose `external_ref`, so the replacement has none. When the
 action item was ticked off in Pocket, `_sync_reminders` looked it up by

@@ -24,7 +24,7 @@ Each principle is enforced in code and covered by tests. If a task seems to need
 |---|---|
 | `memories/models.py` | `Entry`, `Citation`, `Capture`, `PocketLink`, `IngestLog`, `Tombstone`. Constraints live here. |
 | `memories/services.py` | All behaviour. MCP tools and views must be thin wrappers around these functions. |
-| `memories/pocket.py` | Pocket webhook: signature check, solo-voice rule, reminders from action items. |
+| `memories/pocket.py` | Pocket webhook: signature check, solo-voice rule. Action items are ignored (0015). |
 | `memories/views.py` | `/ingest/pocket/`, `/healthz`. |
 | `memories/tests/` | One file per area; tests are named for the principle or decision they protect. |
 | `docs/decisions/` | Architecture decision records. Add one for any decision that changes behaviour. |
@@ -68,6 +68,6 @@ Phases 1 to 3 (interrogate, define, model) are done: the data model, services, P
 
 These were researched or inferred, not confirmed against live systems:
 
-- **Pocket payloads.** Whether `speakers.labeled` and `action_items.updated` carry the full transcript and action items; the signature format (hex, with or without `sha256=`); whether `globalActionItemId` survives summary regeneration. Milestone 3 records real deliveries as fixtures.
+- **Pocket payloads.** Whether `speakers.labeled` carries the full transcript; the signature format (hex, with or without `sha256=`). Milestone 4 records real deliveries as fixtures.
 - **Client behaviour.** As of March–April 2026 reports, claude.ai ignores MCP server `instructions` and truncates tool descriptions at ~500 characters, and Claude Desktop doesn't read `instructions`. Re-check; it decides where guidance must live.
 - **MCP authorisation spec** details (protected-resource metadata, dynamic client registration, client ID metadata documents) and what claude.ai and ChatGPT currently require.

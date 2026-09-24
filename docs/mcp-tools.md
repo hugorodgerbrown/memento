@@ -105,9 +105,9 @@ Parameters: `since`, `until`, `bucket` (`week` \| `month` \| `quarter`), `tag_pr
 
 ## inbox
 
-> List voice notes waiting to be turned into entries, oldest first. Each has the transcript, when it was recorded, Pocket's own summary and action items as hints, and any entries already created from it, such as reminders.
+> List voice notes waiting to be turned into entries, oldest first. Each has the transcript, when it was recorded, Pocket's own summary as a hint, and any entries already created from it.
 >
-> For each note: split it into separate entries (one per memory, thought, decision or reminder), each with an exact excerpt as `raw_text` and `capture` set. Don't recreate reminders that already exist; if one's claim is wrong, supersede it. Treat Pocket's summary as another model's reading: useful for orientation, never a source of facts. Then call `close_capture`.
+> For each note: split it into separate entries (one per memory, thought, decision or reminder), each with an exact excerpt as `raw_text` and `capture` set. Don't recreate entries that already exist; if one's claim is wrong, supersede it. Treat Pocket's summary as another model's reading: useful for orientation, never a source of facts. Then call `close_capture`.
 >
 > Transcription errors are common with names. If you're unsure what a word was, ask the user rather than guessing.
 
@@ -132,11 +132,11 @@ Pocket delivers signed webhooks to `/ingest/pocket/`. Ingest is deterministic: i
 | Decision | Behaviour |
 |---|---|
 | Which recordings | Solo notes only: every transcript segment labelled with your voice. Anything with another speaker is skipped, and the log keeps the reason but none of the content. A single unlabelled speaker waits until Pocket's voice print labels it. |
-| Spoken reminders | Pocket's dated action items become reminders immediately. `raw_text` is the whole transcript (your words); `claim` is Pocket's title, attributed to Pocket's model. Undated items stay as hints. Ticking one off in Pocket completes it here. |
+| Action items | Ignored (0015). They are Pocket's to-do list, not your words. A reminder you speak is in the transcript, and your LLM distils it from there. |
 | Deleting in Pocket | Ignored and logged. Memento is the permanent record; forget deliberately, here. |
 | Forgetting in Memento | Leaves a tombstone keyed on the Pocket recording id, so re-deliveries are ignored. It does not delete the recording in Pocket. |
 | Transcript edits | Appended as revisions. The original stays; excerpts may come from any revision. |
-| Retries | Safe: one capture per recording id, one reminder per action item id. |
+| Retries | Safe: one capture per recording id. |
 
 Setup: create a personal webhook in the Pocket app pointing at `/ingest/pocket/`, store its signing secret as `POCKET_WEBHOOK_SECRET`, and create a `PocketLink` with your Pocket user id and the name Pocket's voice print gives you.
 
