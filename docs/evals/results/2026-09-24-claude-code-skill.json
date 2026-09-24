@@ -1,0 +1,4366 @@
+[
+  {
+    "case": "log-multi",
+    "run": 1,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 3,
+    "model": "claude-opus-5-5",
+    "seconds": 14,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:22.985025+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "tendonitis"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:23.083342+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "woke up this morning and tendonitis is bad",
+          "claim": "Woke up on 24 Sep 2026 with bad tendonitis.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "tendonitis",
+            "health"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:25.441572+01:00\",\"saved\":[{\"id\":\"01a0d49c-9011-7472-9de8-b039c33edd0d\",\"claim\":\"Woke up on 24 Sep 2026 with bad tendonitis.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "played padel yesterdy for 90 minutes with Fred",
+          "claim": "Played padel for 90 minutes with Fred on 23 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-23",
+          "happened_precision": "day",
+          "tags": [
+            "padel",
+            "exercise",
+            "person:fred"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:27.042166+01:00\",\"saved\":[{\"id\":\"01a0d49c-964e-71ae-85cb-5cadfc5f4ce2\",\"claim\":\"Played padel for 90 minutes with Fred on 23 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "Good sleep",
+          "claim": "Slept well on the night to 24 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "sleep"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:28.377044+01:00\",\"saved\":[{\"id\":\"01a0d49c-9b8a-75ac-85f5-1e512421e1e6\",\"claim\":\"Slept well on the night to 24 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "Sorry the tendonitis is bad this morning. Ninety minutes of padel could well have set it off. Glad you got a good night's sleep, though.\n\nI saved three entries in Memento:\n- **24 Sep:** woke up with bad tendonitis\n- **23 Sep:** played padel with Fred for 90 minutes\n- **24 Sep:** slept well\n\nThese are the first entries tagged tendonitis. If you log flare-ups and matches from now on, we can check later whether padel is setting it off. Tell me if you'd rather I didn't keep any of these.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49c-9b8a-75ac-85f5-1e512421e1e6",
+          "kind": "memory",
+          "claim": "Slept well on the night to 24 Sep 2026.",
+          "raw_text": "Good sleep",
+          "tags": [
+            "sleep"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:10:28.375426+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        },
+        {
+          "id": "01a0d49c-964e-71ae-85cb-5cadfc5f4ce2",
+          "kind": "memory",
+          "claim": "Played padel for 90 minutes with Fred on 23 Sep 2026.",
+          "raw_text": "played padel yesterdy for 90 minutes with Fred",
+          "tags": [
+            "exercise",
+            "padel",
+            "person:fred"
+          ],
+          "happened_at": "2026-09-23",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:10:27.039992+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        },
+        {
+          "id": "01a0d49c-9011-7472-9de8-b039c33edd0d",
+          "kind": "memory",
+          "claim": "Woke up on 24 Sep 2026 with bad tendonitis.",
+          "raw_text": "woke up this morning and tendonitis is bad",
+          "tags": [
+            "health",
+            "tendonitis"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:10:25.439279+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "log-terse",
+    "run": 1,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 2,
+    "model": "claude-opus-5-5",
+    "seconds": 13,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:23.349066+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "knee"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:23.428847+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "5k run, 27 min.",
+          "claim": "Ran 5k in 27 minutes.",
+          "kind": "memory",
+          "tags": [
+            "running",
+            "exercise"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:26.972465+01:00\",\"saved\":[{\"id\":\"01a0d49c-960b-7043-a3c9-6511db95028e\",\"claim\":\"Ran 5k in 27 minutes.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "knee fine",
+          "claim": "Knee felt fine during and after a 5k run.",
+          "kind": "memory",
+          "tags": [
+            "knee",
+            "health",
+            "running"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:28.059339+01:00\",\"saved\":[{\"id\":\"01a0d49c-9a4a-700e-92e5-1e1655013ba8\",\"claim\":\"Knee felt fine during and after a 5k run.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I saved two entries in Memento: your 5k run in 27 minutes, and that your knee was fine. You didn't say when you ran, so neither entry has a date. If it was today, tell me and I'll add 24 Sep. Say \"don't log that\" if you'd rather I hadn't saved them.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49c-9a4a-700e-92e5-1e1655013ba8",
+          "kind": "memory",
+          "claim": "Knee felt fine during and after a 5k run.",
+          "raw_text": "knee fine",
+          "tags": [
+            "health",
+            "knee",
+            "running"
+          ],
+          "happened_at": null,
+          "happened_precision": "",
+          "recorded_at": "2026-09-24T19:10:28.057910+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        },
+        {
+          "id": "01a0d49c-960b-7043-a3c9-6511db95028e",
+          "kind": "memory",
+          "claim": "Ran 5k in 27 minutes.",
+          "raw_text": "5k run, 27 min.",
+          "tags": [
+            "exercise",
+            "running"
+          ],
+          "happened_at": null,
+          "happened_precision": "",
+          "recorded_at": "2026-09-24T19:10:26.970473+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "explicit-decision",
+    "run": 1,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 10,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:23.343929+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "consulting scope"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:23.382172+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "I've decided to stop taking consulting work without a written scope.",
+          "claim": "On 24 Sep 2026, decided to stop taking consulting work without a written scope.",
+          "kind": "decision",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "work",
+            "consulting",
+            "decision"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:25.782298+01:00\",\"saved\":[{\"id\":\"01a0d49c-9164-71ed-8a48-835998abad3d\",\"claim\":\"On 24 Sep 2026, decided to stop taking consulting work without a written scope.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I saved this to Memento as a decision dated 24 Sep 2026: you'll stop taking consulting work without a written scope. Tell me if you'd rather I didn't keep it.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49c-9164-71ed-8a48-835998abad3d",
+          "kind": "decision",
+          "claim": "On 24 Sep 2026, decided to stop taking consulting work without a written scope.",
+          "raw_text": "I've decided to stop taking consulting work without a written scope.",
+          "tags": [
+            "consulting",
+            "decision",
+            "work"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:10:25.780681+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "reminder",
+    "run": 1,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 11,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:23.861232+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "physio"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:23.873385+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "remind me to book the physio on Monday",
+          "claim": "Book the physio on Monday 28 Sep 2026.",
+          "kind": "reminder",
+          "due_at": "2026-09-28T09:00:00+01:00",
+          "tags": [
+            "physio",
+            "health"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:26.812660+01:00\",\"saved\":[{\"id\":\"01a0d49c-956d-763a-8d96-9aaa66834731\",\"claim\":\"Book the physio on Monday 28 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I've saved a reminder in Memento to book the physio on Monday 28 Sep 2026, set for 9am. Tell me if you'd like a different time.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49c-956d-763a-8d96-9aaa66834731",
+          "kind": "reminder",
+          "claim": "Book the physio on Monday 28 Sep 2026.",
+          "raw_text": "remind me to book the physio on Monday",
+          "tags": [
+            "health",
+            "physio"
+          ],
+          "happened_at": null,
+          "happened_precision": "",
+          "recorded_at": "2026-09-24T19:10:26.811041+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": [],
+          "due_at": "2026-09-28T09:00:00+01:00",
+          "completed_at": null
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "question-only",
+    "run": 1,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 14,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [],
+    "final": "The most commonly recommended stretch for tennis elbow (lateral epicondylitis) is the **wrist extensor stretch**:\n\n1. Straighten your arm in front of you, palm facing down.\n2. Let your wrist drop so your fingers point at the floor.\n3. With your other hand, gently press the back of that hand toward you until you feel a mild stretch along the top of your forearm.\n4. Hold for 15\u201330 seconds, repeat 3 times, a few times a day.\n\nOnly take it to a mild stretch, never to pain. A closed fist makes it stronger if you need more.\n\n**Stretching usually isn't the best fix on its own, though.** The best evidence for tennis elbow is on **eccentric loading**, which strengthens the tendon:\n\n- **Eccentric wrist extension:** Rest your forearm on a table with your hand hanging off the edge, palm down, holding a light weight (0.5\u20131 kg, or a can of beans). Use your other hand to lift the wrist up. Then lower it slowly on its own over about 3\u20135 seconds. Do 3 sets of 10\u201315, once or twice a day.\n- **Tyler twist:** This uses a flexible rubber bar (a Theraband FlexBar). Studies have found it works well, and physios often recommend it.\n- **Isometric holds:** Push the back of your hand up against a fixed surface for 30\u201345 seconds without moving it. This helps when the elbow is too irritable for other exercises.\n\nSome mild discomfort during the loading exercises is normal. Pain that's sharp or worse the next day means you should lighten the load.\n\n**See a physio or doctor** if you have numbness or tingling, it isn't improving after 6\u20138 weeks, or you can't grip things properly. Symptoms usually improve over weeks to months, so keep at it.",
+    "stored": {
+      "entries": [],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "task-with-aside",
+    "run": 1,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 15,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:35.902183+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "I'm exhausted today",
+          "claim": "Felt exhausted on 24 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "energy",
+            "mood"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:37.971299+01:00\",\"saved\":[{\"id\":\"01a0d49c-c105-72f9-a039-dcd5a8adf7d1\",\"claim\":\"Felt exhausted on 24 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "Sorry you're running on empty today. I can help with the migration, but I haven't got anything to work from yet. The working directory has no Django project in it, just an `mcp.json` and a `plugin/` folder.\n\nTo keep it quick, paste any of these:\n- **The error output**, i.e. the full traceback from `migrate` or `makemigrations`\n- **The command you ran**\n- **The project path**, if the project is on this machine somewhere else\n\nSome common causes, in case one of them sounds familiar:\n- **`InconsistentMigrationHistory`**: a migration is marked as applied before one it depends on.\n- **`Conflicting migrations detected`**: two leaf migrations in one app. Running `python manage.py makemigrations --merge` usually fixes it.\n- **`table already exists` / `no such column`**: the database schema doesn't match the migration state. The fix is often `migrate <app> <migration> --fake`, but check before running it.\n- **`NodeNotFoundError`**: a dependency points to a migration file that was deleted or renamed.\n\nI saved \"Felt exhausted on 24 Sep 2026\" in Memento. Say if you'd rather I didn't keep it.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49c-c105-72f9-a039-dcd5a8adf7d1",
+          "kind": "memory",
+          "claim": "Felt exhausted on 24 Sep 2026.",
+          "raw_text": "I'm exhausted today",
+          "tags": [
+            "energy",
+            "mood"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:10:37.969744+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "drafting",
+    "run": 1,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 9,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [],
+    "final": "Here's a draft:\n\n---\n\n**Subject:** Out of office next week\n\nHi team,\n\nI'll be out all of next week, Monday 28 September to Friday 2 October, because I'm having surgery. I'll be offline for recovery and won't be checking email or Slack.\n\nWhile I'm away:\n- **Urgent issues:** please contact [Name] at [email/phone].\n- **Ongoing work:** [Name] will cover [project/area], and [Name] will cover [project/area].\n- **Meetings:** I've cancelled or handed off my recurring meetings. Let me know if I've missed one.\n\nI plan to be back on Monday 5 October. If my return date changes, I'll let you know.\n\nThanks for covering while I'm out.\n\nBest,\nHugo\n\n---\n\nI've taken \"next week\" to mean 28 Sep to 2 Oct. Fill in the names in brackets, and change the dates if your time off is different. The draft doesn't give any medical details. If you'd rather not mention surgery, change it to \"for a medical procedure\" or \"on personal leave.\"\n\nWant me to log the surgery in Memento?",
+    "stored": {
+      "entries": [],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "hypothetical",
+    "run": 1,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 30,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "recall",
+        "input": {
+          "query": "live OR living OR moved OR residence OR tax OR salary OR income OR job",
+          "limit": 30
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:38.662322+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "Porto OR Portugal OR Lisbon",
+          "view": "history"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:38.851486+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "home OR city OR apartment OR work OR freelance OR employer OR country",
+          "view": "history",
+          "limit": 30
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:40.533618+01:00\",\"entries\":[]}"
+      }
+    ],
+    "final": "Your Memento has nothing saved about where you live now or how you earn, so I can't compare against your current taxes yet. Here's how Portugal taxes new residents, based on what I know up to mid-2026. Rules change every year in the budget, so check the current figures with a Portuguese accountant (*contabilista certificado*).\n\n**When you'd become tax resident**\n- You're resident if you spend more than 183 days in Portugal in any 12-month period, or if you have a home there that you intend to keep as your usual residence.\n- Once resident, Portugal taxes your income from anywhere in the world. A tax treaty with your current country decides which country gets to tax what, and stops you paying twice on the same income.\n- Porto and Lisbon are taxed the same way, because income tax is national. Only a few smaller items vary by city (see \"Other things to know\").\n\n**Income tax (IRS) on salary or self-employment**\n- Rates are progressive, from about 12\u201313% on the lowest band up to 48% on income above roughly \u20ac83k.\n- An extra \"solidarity\" charge applies at the top: 2.5% on income over \u20ac80k and 5% on income over \u20ac250k.\n- Social security is also due:\n  - Employees pay 11% and the employer adds about 23.75%.\n  - Self-employed people pay 21.4%, calculated on 70% of their income.\n\n**Special regimes that could lower your bill a lot**\n- **NHR (Non-Habitual Resident) is closed to new applicants.** Anything you've read about a 10% tax on pensions or broad exemptions for foreign income no longer applies to newcomers.\n- **IFICI (\"NHR 2.0\") replaced it.** It lasts 10 years:\n  - Qualifying Portuguese work income is taxed at a flat 20%.\n  - Most foreign income is exempt, but not pensions or income from blacklisted jurisdictions.\n  - The catch is that your work has to qualify. That mainly means tech and startups, research and higher education, or highly qualified roles at certain eligible companies.\n  - You can't have been a Portuguese tax resident in the previous 5 years.\n- **IRS Jovem** applies if you're under 35. Part of your work income is exempt for up to 10 years:\n  - 100% in year 1\n  - 75% in years 2\u20134\n  - 50% in years 5\u20137\n  - 25% in years 8\u201310\n  - The exemption is capped at roughly \u20ac28\u201329k a year.\n\n**Investments**\n- Dividends, interest and capital gains are generally taxed at a flat 28%. You can choose to add them to your other income and pay the progressive rates instead, which helps if your income is low.\n- Crypto held for more than 365 days is generally tax-free. Crypto held for less is taxed at 28%.\n- There's no wealth tax.\n- Inheritances and gifts between spouses, children and parents are exempt, apart from a small stamp duty in some cases.\n\n**Other things to know**\n- Porto sets its own annual property tax (IMI) rate, somewhere between 0.3% and 0.45% of the property's official tax value. It also decides whether to refund residents part of the 5% share of income tax that goes to the city.\n- If you're leaving a country that has an exit tax on unrealised gains or on pension transfers, check that before you move.\n\nTo tell you what would actually change for you, I'd need to know:\n1. Which country you're tax resident in now\n2. Roughly how you earn: salary, self-employed, remote job for a foreign employer, pension, or investments\n3. Whether you're under 35, and whether your work might qualify for IFICI\n\nWith those answers I can set your current taxes against Portugal side by side. I can also save your situation or the Porto move to Memento, but only if you ask me to.",
+    "stored": {
+      "entries": [],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "fiction",
+    "run": 1,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 19,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [],
+    "final": "# The Bandeja\n\nMarco had hit the shot ten thousand times. Maybe more. The bandeja, the flat overhead you slice back deep so it dies in the corner, was the first thing his coach in Valencia taught him and the last thing he'd expect to go wrong.\n\nIt was the second set of the club final, 5\u20134, and the ball came high off the back glass. He set his feet, turned his shoulder and brought the racket through. Something in his wrist went *click*, a small dry sound like a knuckle cracking, and then came a heat that ran up his forearm to the elbow.\n\nThe ball went into the net.\n\n\"Unlucky,\" said Javi, his partner, already walking back to position.\n\nMarco flexed his fingers. They worked, but the heat stayed. He served the next point and felt it again, a thin line of pain on the pinky side of the wrist, where the bones meet the forearm.\n\nThey lost the set 7\u20135. He told Javi he was tired and let him think that.\n\n---\n\nThe physio was called In\u00e9s. She pressed two fingers into the soft hollow below his little finger and he nearly came off the bench.\n\n\"TFCC,\" she said. \"Triangular fibrocartilage complex. Very common in padel. It's all that wrist snap on the overheads, and the glass makes you play late.\"\n\n\"How long?\"\n\n\"Six weeks in a brace if you're good. Longer if you're not.\"\n\n\"The league starts in four.\"\n\nIn\u00e9s looked at him the way people look at a dog that has just put its head in a fence. \"Then you'll watch the first two matches.\"\n\n---\n\nThe brace was black and made him look like he was halfway through turning into a robot. He couldn't open jars. He couldn't grip a steering wheel properly. The worst part was going to the club anyway, because he didn't know what else to do with his Tuesday and Thursday evenings, and sitting behind the glass watching other people play.\n\nAt first it was torture. He watched Javi play with a substitute, a tall kid called Rub\u00e9n who hit everything hard and flat, and he mouthed corrections nobody could hear.\n\nBy the third week he had noticed something. From outside the court, the game looked slower. He could see where the gaps would open before they did. He could see that Rub\u00e9n always drifted to the middle after a lob, that the opponents on court four telegraphed every chiquita by dropping their shoulder, and that Javi, his partner of six years, hung back at the net whenever Marco was in trouble. He had never known that. Javi had been covering for him the whole time.\n\nHe started taking notes on his phone, awkwardly, left-handed.\n\n---\n\nIn the fifth week In\u00e9s let him take the brace off for ten minutes and squeeze a foam ball.\n\n\"Good,\" she said. \"When you go back, and you *will* go back, stop flicking the wrist on the bandeja. Let the shoulder do it. The wrist is a hinge, not an engine.\"\n\nHe thought about that all the way home. A hinge, not an engine.\n\n---\n\nHis first match back was a Thursday in late October, under the floodlights. His wrist was taped and he was nervous in a way he hadn't been since he was a teenager.\n\nAt 3\u20133 in the first set the ball came high off the back glass, the same shot as before. He felt the old instinct to snap it.\n\nInstead he turned his shoulder, kept his wrist quiet and let his whole body carry the racket through. The ball went out low and flat, kissed the side glass and died in the corner.\n\nNobody moved for it.\n\n\"That's new,\" said Javi.\n\nMarco grinned and flexed his fingers. There was no heat and no click.\n\n\"Had some time to think,\" he said.",
+    "stored": {
+      "entries": [],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "others-private",
+    "run": 1,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 6,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [],
+    "final": "That's lovely news, congratulations to you and Ana! Becoming an aunt or uncle is exciting, even before you can tell anyone.\n\nI haven't saved this to Memento. It's Ana's news and she hasn't made it public, so I'd rather ask first. Do you want me to keep a private note of it, such as when she told you? If not, I'll leave it out.",
+    "stored": {
+      "entries": [],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "change",
+    "run": 1,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 13,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:49.660997+01:00\",\"tags\":[{\"tag\":\"home\",\"mentions\":1},{\"tag\":\"place:lisbon\",\"mentions\":1}]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "live flat home moved apartment"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:49.737333+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "tags": [
+            "home"
+          ]
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:51.074947+01:00\",\"entries\":[{\"id\":\"01a0d49c-dc84-7285-aaf6-7514b84ee60e\",\"kind\":\"memory\",\"claim\":\"Lives in Lisbon.\",\"raw_text\":\"I live in Lisbon\",\"tags\":[\"home\",\"place:lisbon\"],\"happened_at\":\"2023\",\"happened_precision\":\"year\",\"recorded_at\":\"2026-09-24T19:10:45.012987+01:00\",\"valid_until\":null,\"supersedes\":null,\"supersede_reason\":\"\",\"superseded_by\":null,\"cites\":[]}]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "Moved into the new flat in Porto last weekend!",
+          "claim": "Moved into a new flat in Porto on the weekend of 19 Sep 2026, leaving Lisbon.",
+          "kind": "memory",
+          "happened_at": "2026-09-19",
+          "happened_precision": "day",
+          "tags": [
+            "home",
+            "place:porto"
+          ],
+          "supersedes": "01a0d49c-dc84-7285-aaf6-7514b84ee60e",
+          "supersede_reason": "change",
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:54.410059+01:00\",\"saved\":[{\"id\":\"01a0d49d-0137-75ab-bb59-d9798f8d6e94\",\"claim\":\"Moved into a new flat in Porto on the weekend of 19 Sep 2026, leaving Lisbon.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "Congratulations on the new place! I hope Porto is treating you well so far.\n\nI've saved the move in Memento as the weekend of 19 Sep 2026. It replaces your old entry saying you live in Lisbon, which now shows as true until then. Say \"don't log that\" if you'd rather I hadn't.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49d-0137-75ab-bb59-d9798f8d6e94",
+          "kind": "memory",
+          "claim": "Moved into a new flat in Porto on the weekend of 19 Sep 2026, leaving Lisbon.",
+          "raw_text": "Moved into the new flat in Porto last weekend!",
+          "tags": [
+            "home",
+            "place:porto"
+          ],
+          "happened_at": "2026-09-19",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:10:54.405478+01:00",
+          "valid_until": null,
+          "supersedes": "01a0d49c-dc84-7285-aaf6-7514b84ee60e",
+          "supersede_reason": "change",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [
+        "01a0d49c-dc84-7285-aaf6-7514b84ee60e"
+      ],
+      "captures": []
+    }
+  },
+  {
+    "case": "correction",
+    "run": 1,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 10,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:55.484244+01:00\",\"tags\":[{\"tag\":\"padel\",\"mentions\":1},{\"tag\":\"person:fred\",\"mentions\":1}]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "actually it was 60 minutes not 90",
+          "claim": "Played padel for 60 minutes with Fred on 23 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-23",
+          "happened_precision": "day",
+          "tags": [
+            "padel",
+            "person:fred",
+            "exercise"
+          ],
+          "supersedes": "01a0d49c-f136-74c4-8e08-272e335cb8ce",
+          "supersede_reason": "correction",
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:10:58.280611+01:00\",\"saved\":[{\"id\":\"01a0d49d-1057-7066-ac12-6b1503f1e0b1\",\"claim\":\"Played padel for 60 minutes with Fred on 23 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I've corrected it in Memento: you played padel with Fred for 60 minutes on 23 Sep 2026. The new entry replaces the 90-minute one.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49d-1057-7066-ac12-6b1503f1e0b1",
+          "kind": "memory",
+          "claim": "Played padel for 60 minutes with Fred on 23 Sep 2026.",
+          "raw_text": "actually it was 60 minutes not 90",
+          "tags": [
+            "exercise",
+            "padel",
+            "person:fred"
+          ],
+          "happened_at": "2026-09-23",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:10:58.278971+01:00",
+          "valid_until": null,
+          "supersedes": "01a0d49c-f136-74c4-8e08-272e335cb8ce",
+          "supersede_reason": "correction",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [
+        "01a0d49c-f136-74c4-8e08-272e335cb8ce"
+      ],
+      "captures": []
+    }
+  },
+  {
+    "case": "repeat",
+    "run": 1,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 5,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [],
+    "final": "Got it. I already saved that 10 minutes ago (entry `01a0d49d-103d-77c5-81aa-da7a063ad3f6`), so I didn't save it again. If you want to add detail, like how many hours you slept or anything that helped, I can update that entry.",
+    "stored": {
+      "entries": [],
+      "seeded_left": [
+        "01a0d49d-103d-77c5-81aa-da7a063ad3f6"
+      ],
+      "captures": []
+    }
+  },
+  {
+    "case": "undo",
+    "run": 1,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 8,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "forget",
+        "input": {
+          "entry_id": "01a0d49d-1979-72d1-884e-ff3a578af3b3",
+          "confirm": true
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:04.459549+01:00\",\"deleted\":{\"entries\":[{\"id\":\"01a0d49d-1979-72d1-884e-ff3a578af3b3\",\"kind\":\"memory\",\"claim\":\"Had three glasses of wine.\",\"raw_text\":\"had three glasses of wine\",\"tags\":[\"alcohol\"],\"happened_at\":\"2026-09-24\",\"happened_precision\":\"day\",\"recorded_at\":\"2026-09-24T19:11:00.616768+01:00\",\"valid_until\":null,\"supersedes\":null,\"supersede_reason\":\"\",\"superseded_by\":null,\"cites\":[]}],\"voice_notes\":[]}}"
+      }
+    ],
+    "final": "I've deleted the note about the three glasses of wine from Memento. All it keeps now is a record of the ID and date showing something was removed. None of what you said is left.",
+    "stored": {
+      "entries": [],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "low-mood",
+    "run": 1,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 2,
+    "model": "claude-opus-5-5",
+    "seconds": 14,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:06.171206+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "been feeling really low all week",
+          "claim": "Has been feeling really low all week, in the week up to 24 Sep 2026.",
+          "kind": "memory",
+          "tags": [
+            "mood",
+            "mental-health"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:09.469473+01:00\",\"saved\":[{\"id\":\"01a0d49d-3c0f-74d0-8333-762a630d041f\",\"claim\":\"Has been feeling really low all week, in the week up to 24 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "not sleeping much",
+          "claim": "Has not been sleeping much during the week up to 24 Sep 2026.",
+          "kind": "memory",
+          "tags": [
+            "sleep",
+            "health"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:10.516192+01:00\",\"saved\":[{\"id\":\"01a0d49d-4021-710c-a32e-9752f0f07302\",\"claim\":\"Has not been sleeping much during the week up to 24 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I'm sorry you've been feeling this way all week. Feeling low and sleeping badly tend to make each other worse, and a week of both wears you down.\n\nDo you want to talk about it? We can go over what's been going on, or I can just listen. If you'd find it useful, we could also work out what's getting in the way of sleep, like a racing mind, waking early or trouble dropping off.\n\nIf it gets heavier than \"low\", please talk to someone: a friend, your GP, or Samaritans on 116 123 (free, 24/7, if you're in the UK).\n\nI've saved \"feeling really low all week\" and \"not sleeping much\" in Memento. Just say if you'd rather I didn't keep them.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49d-4021-710c-a32e-9752f0f07302",
+          "kind": "memory",
+          "claim": "Has not been sleeping much during the week up to 24 Sep 2026.",
+          "raw_text": "not sleeping much",
+          "tags": [
+            "health",
+            "sleep"
+          ],
+          "happened_at": null,
+          "happened_precision": "",
+          "recorded_at": "2026-09-24T19:11:10.514657+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        },
+        {
+          "id": "01a0d49d-3c0f-74d0-8333-762a630d041f",
+          "kind": "memory",
+          "claim": "Has been feeling really low all week, in the week up to 24 Sep 2026.",
+          "raw_text": "been feeling really low all week",
+          "tags": [
+            "mental-health",
+            "mood"
+          ],
+          "happened_at": null,
+          "happened_precision": "",
+          "recorded_at": "2026-09-24T19:11:09.468211+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "quoted-advice",
+    "run": 1,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 12,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:08.032758+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "arm physio rest"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:08.088782+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "physio said to rest the arm for two weeks",
+          "claim": "The user's physio advised resting their arm for two weeks (mentioned on 24 Sep 2026).",
+          "kind": "memory",
+          "tags": [
+            "health",
+            "arm",
+            "physio"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:11.715583+01:00\",\"saved\":[{\"id\":\"01a0d49d-44d0-76bd-a18f-3eeba35f173c\",\"claim\":\"The user's physio advised resting their arm for two weeks (mentioned on 24 Sep 2026).\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I've saved in Memento that your physio told you to rest your arm for two weeks. If you tell me which day the appointment was, I can add the date the rest ends and set a reminder for it. Say \"don't log that\" if you'd rather I didn't keep it.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49d-44d0-76bd-a18f-3eeba35f173c",
+          "kind": "memory",
+          "claim": "The user's physio advised resting their arm for two weeks (mentioned on 24 Sep 2026).",
+          "raw_text": "physio said to rest the arm for two weeks",
+          "tags": [
+            "arm",
+            "health",
+            "physio"
+          ],
+          "happened_at": null,
+          "happened_precision": "",
+          "recorded_at": "2026-09-24T19:11:11.713998+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "past-midnight",
+    "run": 1,
+    "skipped": "needs local time 00:00-04:00"
+  },
+  {
+    "case": "no-date-knowledge",
+    "run": 1,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 9,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:08.444296+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "dentist appointment went fine this morning",
+          "claim": "Had a dentist appointment on the morning of 24 Sep 2026, and it went fine.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "dentist",
+            "health"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:10.583393+01:00\",\"saved\":[{\"id\":\"01a0d49d-4061-71ae-8eaa-74cec8bba3b9\",\"claim\":\"Had a dentist appointment on the morning of 24 Sep 2026, and it went fine.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "Good to hear it went fine. I've saved it in Memento as \"Had a dentist appointment on the morning of 24 Sep 2026, and it went fine.\" Tell me if you'd rather I didn't keep it.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49d-4061-71ae-8eaa-74cec8bba3b9",
+          "kind": "memory",
+          "claim": "Had a dentist appointment on the morning of 24 Sep 2026, and it went fine.",
+          "raw_text": "dentist appointment went fine this morning",
+          "tags": [
+            "dentist",
+            "health"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:11:10.581335+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "weak-client-escape",
+    "run": 1,
+    "passed": true,
+    "fails": [],
+    "notes": [
+      "fixed the claim instead of using the inbox"
+    ],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 13,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:16.240312+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "new running shoes, felt great",
+          "claim": "The user has new running shoes, which felt great.",
+          "kind": "memory",
+          "tags": [
+            "running",
+            "exercise",
+            "gear"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:18.055505+01:00\",\"saved\":[{\"id\":\"01a0d49d-5d92-7545-bb21-b3318aabecdb\",\"claim\":\"The user has new running shoes, which felt great.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I saved this to Memento: \"new running shoes, felt great\", tagged running, exercise and gear. You didn't say when, so it has no date. Tell me if it was a run today and I'll add that, or say \"don't log that\" to remove it.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49d-5d92-7545-bb21-b3318aabecdb",
+          "kind": "memory",
+          "claim": "The user has new running shoes, which felt great.",
+          "raw_text": "new running shoes, felt great",
+          "tags": [
+            "exercise",
+            "gear",
+            "running"
+          ],
+          "happened_at": null,
+          "happened_precision": "",
+          "recorded_at": "2026-09-24T19:11:18.053511+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "log-multi",
+    "run": 2,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 3,
+    "model": "claude-opus-5-5",
+    "seconds": 15,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:17.999166+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "tendonitis"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:18.066001+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "woke up this morning and tendonitis is bad",
+          "claim": "Woke up on 24 Sep 2026 with bad tendonitis.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "tendonitis",
+            "health"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:20.587052+01:00\",\"saved\":[{\"id\":\"01a0d49d-6761-76d1-8039-f0629efb0f68\",\"claim\":\"Woke up on 24 Sep 2026 with bad tendonitis.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "played padel yesterdy for 90 minutes with Fred",
+          "claim": "Played padel for 90 minutes with Fred on 23 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-23",
+          "happened_precision": "day",
+          "tags": [
+            "padel",
+            "exercise",
+            "person:fred"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:22.148196+01:00\",\"saved\":[{\"id\":\"01a0d49d-6d91-7438-b7e4-18ff867e0782\",\"claim\":\"Played padel for 90 minutes with Fred on 23 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "Good sleep",
+          "claim": "Slept well on the night to 24 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "sleep"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:23.489359+01:00\",\"saved\":[{\"id\":\"01a0d49d-72cd-76b0-914f-07ec0787aeb9\",\"claim\":\"Slept well on the night to 24 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "Sorry the tendonitis is bad this morning. Flare-ups often show up the day after a long session, and 90 minutes of padel is a lot of repetitive load. At least you slept well.\n\nI've saved three entries in Memento:\n- The bad tendonitis on 24 Sep\n- 90 minutes of padel with Fred on 23 Sep\n- A good night's sleep\n\nThese are your first entries, so there's no history to compare against yet. If you keep logging padel sessions and flare-ups, I can check whether they line up. It would help to note where the tendonitis is (elbow, wrist or shoulder).",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49d-72cd-76b0-914f-07ec0787aeb9",
+          "kind": "memory",
+          "claim": "Slept well on the night to 24 Sep 2026.",
+          "raw_text": "Good sleep",
+          "tags": [
+            "sleep"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:11:23.487478+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        },
+        {
+          "id": "01a0d49d-6d91-7438-b7e4-18ff867e0782",
+          "kind": "memory",
+          "claim": "Played padel for 90 minutes with Fred on 23 Sep 2026.",
+          "raw_text": "played padel yesterdy for 90 minutes with Fred",
+          "tags": [
+            "exercise",
+            "padel",
+            "person:fred"
+          ],
+          "happened_at": "2026-09-23",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:11:22.145823+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        },
+        {
+          "id": "01a0d49d-6761-76d1-8039-f0629efb0f68",
+          "kind": "memory",
+          "claim": "Woke up on 24 Sep 2026 with bad tendonitis.",
+          "raw_text": "woke up this morning and tendonitis is bad",
+          "tags": [
+            "health",
+            "tendonitis"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:11:20.585671+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "log-terse",
+    "run": 2,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 2,
+    "model": "claude-opus-5-5",
+    "seconds": 13,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:20.093518+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "knee"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:20.145093+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "5k run, 27 min",
+          "claim": "Ran 5k in 27 minutes.",
+          "kind": "memory",
+          "tags": [
+            "running",
+            "exercise"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:24.287791+01:00\",\"saved\":[{\"id\":\"01a0d49d-75ef-773d-b6e4-65951d6d6f5f\",\"claim\":\"Ran 5k in 27 minutes.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "knee fine",
+          "claim": "Knee felt fine on a 5k run.",
+          "kind": "memory",
+          "tags": [
+            "knee",
+            "health",
+            "running"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:25.322755+01:00\",\"saved\":[{\"id\":\"01a0d49d-79fc-742c-b7f3-f096919fbd10\",\"claim\":\"Knee felt fine on a 5k run.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I saved two entries in Memento: a 5k run in 27 minutes, and your knee feeling fine. Good time, and good news about the knee.\n\nYou didn't say when you ran, so I left both entries without a date. If it was today, I can add 24 Sep 2026. Or tell me if you'd rather I didn't log these.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49d-79fc-742c-b7f3-f096919fbd10",
+          "kind": "memory",
+          "claim": "Knee felt fine on a 5k run.",
+          "raw_text": "knee fine",
+          "tags": [
+            "health",
+            "knee",
+            "running"
+          ],
+          "happened_at": null,
+          "happened_precision": "",
+          "recorded_at": "2026-09-24T19:11:25.320981+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        },
+        {
+          "id": "01a0d49d-75ef-773d-b6e4-65951d6d6f5f",
+          "kind": "memory",
+          "claim": "Ran 5k in 27 minutes.",
+          "raw_text": "5k run, 27 min",
+          "tags": [
+            "exercise",
+            "running"
+          ],
+          "happened_at": null,
+          "happened_precision": "",
+          "recorded_at": "2026-09-24T19:11:24.285824+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "explicit-decision",
+    "run": 2,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 11,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:20.933062+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "consulting scope"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:20.974659+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "I've decided to stop taking consulting work without a written scope",
+          "claim": "Hugo has decided to stop taking consulting work that doesn't have a written scope.",
+          "kind": "decision",
+          "tags": [
+            "work",
+            "consulting"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:24.452290+01:00\",\"saved\":[{\"id\":\"01a0d49d-768f-7773-ad50-bb8fe88ba8c2\",\"claim\":\"Hugo has decided to stop taking consulting work that doesn't have a written scope.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I've saved that in Memento as a decision: you'll stop taking consulting work that doesn't have a written scope. If you'd rather I didn't keep it, say so and I'll remove it.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49d-768f-7773-ad50-bb8fe88ba8c2",
+          "kind": "decision",
+          "claim": "Hugo has decided to stop taking consulting work that doesn't have a written scope.",
+          "raw_text": "I've decided to stop taking consulting work without a written scope",
+          "tags": [
+            "consulting",
+            "work"
+          ],
+          "happened_at": null,
+          "happened_precision": "",
+          "recorded_at": "2026-09-24T19:11:24.450222+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "reminder",
+    "run": 2,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 10,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:26.747411+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "remind me to book the physio on Monday",
+          "claim": "Book the physio on Monday 28 Sep 2026.",
+          "kind": "reminder",
+          "due_at": "2026-09-28T09:00:00+01:00",
+          "tags": [
+            "physio",
+            "health"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:28.879532+01:00\",\"saved\":[{\"id\":\"01a0d49d-87de-7436-836f-4b4e150463ad\",\"claim\":\"Book the physio on Monday 28 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I've saved a reminder in Memento to book the physio on Monday 28 Sep 2026. I set it for 9am because you didn't give a time, and I can change that if you want.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49d-87de-7436-836f-4b4e150463ad",
+          "kind": "reminder",
+          "claim": "Book the physio on Monday 28 Sep 2026.",
+          "raw_text": "remind me to book the physio on Monday",
+          "tags": [
+            "health",
+            "physio"
+          ],
+          "happened_at": null,
+          "happened_precision": "",
+          "recorded_at": "2026-09-24T19:11:28.878258+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": [],
+          "due_at": "2026-09-28T09:00:00+01:00",
+          "completed_at": null
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "question-only",
+    "run": 2,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 12,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [],
+    "final": "The **wrist extensor stretch** is the go-to stretch for tennis elbow (lateral epicondylitis):\n\n1. Straighten your affected arm out in front of you, palm facing down.\n2. With your other hand, gently bend the wrist down so your fingers point toward the floor.\n3. Stop at a mild, comfortable pull along the top of your forearm, not pain.\n4. Hold for 15\u201330 seconds and repeat 3\u20135 times, a few times a day.\n\nTo stretch a bit further, make a loose fist before you bend the wrist, or turn your hand slightly so the pinky side rotates outward.\n\n**Stretching alone usually isn't enough.** The approach with the best evidence is **eccentric strengthening**, especially the **Tyler twist** with a FlexBar, or wrist extensor lowers:\n\n- Rest your forearm on a table with your hand hanging off the edge, palm down, holding a light weight (0.5\u20131 kg or a water bottle).\n- Use your other hand to help lift the wrist up.\n- Lower it **slowly (3\u20135 seconds)** using only the affected arm.\n- Do 3 sets of 10\u201315 once or twice a day. Some discomfort is okay, but sharp pain isn't.\n\n**Also helpful:**\n- Cut back on whatever triggers it, like gripping, mouse use or backhands. You don't need to fully rest the arm.\n- Wear a counterforce strap just below the elbow during activity.\n- Be patient. It often takes 6\u201312 weeks to improve noticeably.\n\n**See a doctor or physio if you have** numbness or tingling, swelling, pain after an injury or fall, or no improvement after 6\u20138 weeks.\n\nIs this something you're dealing with right now? If so, I can note it in your Memento so you can track how it goes.",
+    "stored": {
+      "entries": [],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "task-with-aside",
+    "run": 2,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 15,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:35.685866+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "I'm exhausted today",
+          "claim": "Felt exhausted on 24 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "energy",
+            "mood"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:37.850351+01:00\",\"saved\":[{\"id\":\"01a0d49d-aae9-754a-9d44-8495422ed7d4\",\"claim\":\"Felt exhausted on 24 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I'm sorry you're wiped out today. I'll keep this as easy as I can.\n\nI couldn't find a Django project here. The working directory only has `mcp.json` and a `plugin/` folder, with no `manage.py` and no `migrations/` directories. To fix the error, I'll need one of these:\n\n1. **The error message.** Paste the full traceback from `python manage.py migrate` or `makemigrations`.\n2. **The project itself.** Give me the path if it's somewhere else on this machine, or put it in this directory.\n\nSome quick things to try while you're at it:\n- **`InconsistentMigrationHistory` or \"table already exists\":** run `python manage.py showmigrations` and paste the output.\n- **\"Conflicting migrations detected\":** `python manage.py makemigrations --merge` usually fixes it.\n- **\"No such column\" or \"no such table\":** usually a migration hasn't been applied or created yet. Run `makemigrations` and then `migrate`.\n\nI also saved \"Felt exhausted on 24 Sep 2026\" to Memento. Say if you'd rather I didn't keep it.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49d-aae9-754a-9d44-8495422ed7d4",
+          "kind": "memory",
+          "claim": "Felt exhausted on 24 Sep 2026.",
+          "raw_text": "I'm exhausted today",
+          "tags": [
+            "energy",
+            "mood"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:11:37.848243+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "drafting",
+    "run": 2,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 10,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [],
+    "final": "Here's a draft:\n\n---\n\n**Subject:** Out of office next week (Sept 28 \u2013 Oct 2)\n\nHi team,\n\nJust a heads-up that I'll be out all of next week, Monday 28 September to Friday 2 October, for a planned surgery. I'll be fully offline and won't be checking email or Slack.\n\nWhile I'm away:\n- **[Name]** will cover [project/area] and can make calls on anything urgent.\n- **[Name]** is the point of contact for [client/area].\n- Anything that can wait, please hold until I'm back on [return date].\n\nBefore I leave, I'll send a handover note covering open items and deadlines. If there's anything you need from me this week, please let me know by [day].\n\nThanks for covering while I'm out. I'll see you all soon.\n\nBest,\nHugo\n\n---\n\nFill in the names and your return date. I've kept the medical details vague, which is usually right for a team email. If you'd rather give more or less detail, or might need extra days to recover, I can change the wording.\n\nWant me to log the surgery in Memento?",
+    "stored": {
+      "entries": [],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "hypothetical",
+    "run": 2,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 28,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "recall",
+        "input": {
+          "query": "live OR moved OR home OR city OR tax OR job OR salary OR residency"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:38.239533+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "Porto OR Portugal OR Lisbon",
+          "view": "history"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:38.671208+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "live"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:40.286417+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "work"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:40.586872+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "tax"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:40.780805+01:00\",\"entries\":[]}"
+      }
+    ],
+    "final": "I can't give you a real before-and-after yet. Your saved memories don't say where you live now or how you earn your income. I searched for where you live, your work and tax, and found nothing. Here's what you'd face as a Portuguese tax resident. Check it with a Portuguese accountant before you decide anything.\n\n**When you'd become resident**\n- You become tax resident if you spend more than 183 days a year in Portugal, or if you have a home there that you clearly intend to live in.\n- Residents pay Portuguese tax on their worldwide income, not just what they earn in Portugal.\n- Your current country may still tax you in your first year, depending on its rules for leaving and on its tax treaty with Portugal.\n\n**Income tax (IRS)**\n- Rates are progressive, from about 12.5% up to 48%. Very high earners also pay a solidarity surcharge of 2.5% above \u20ac80k and 5% above \u20ac250k.\n- Employees pay 11% social security on top of that.\n- Interest, dividends and capital gains are generally taxed at a flat 28%. You can choose to have them taxed at your normal rates instead.\n- Crypto sold after holding it for at least a year is generally tax-free. Sold within a year, the gains are taxed at 28%.\n\n**Regimes that could help a lot**\n- **IFICI (the \"NHR 2.0\" regime):** the old Non-Habitual Resident scheme is closed to new applicants.\n  - Its replacement gives a flat 20% rate on Portuguese income from qualifying work, such as tech, research, startups and highly qualified roles.\n  - Most foreign income is exempt. Pensions are not.\n  - It lasts 10 years, and you must not have been a Portuguese resident in the previous 5 years.\n- **IRS Jovem:** if you're under 35, part of your work income is exempt for your first 10 years of work. The exemption starts at 100% and steps down to 25%, up to a yearly cap.\n\n**Porto-specific**\n- Income tax is national, so Porto itself changes little. Each municipality can give residents back part of a 5% share of their income tax, and Porto's refund differs from Lisbon's.\n- On property you'd pay:\n  - IMT when you buy (a transfer tax).\n  - IMI each year, a low property tax on your home.\n  - AIMI, an extra yearly tax, only if your Portuguese property is worth more than \u20ac600k in total.\n\nExact thresholds change with each budget, so check the current year's figures.\n\n**To estimate what changes for you, tell me:**\n1. Which country you're a tax resident in now\n2. How you earn: employed (and by a Portuguese or foreign company), self-employed, pension, or investments, with a rough annual amount\n3. Your age, and whether you've ever lived in Portugal\n4. Any property or large investments you hold\n\nOnce I have those, I can work through your numbers. I can also save them to Memento so I don't have to ask again.",
+    "stored": {
+      "entries": [],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "fiction",
+    "run": 2,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 24,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [],
+    "final": "# The Glass Wall\n\nMateo heard it before he felt it: a small, dry click, like a twig breaking under snow.\n\nIt was 5\u20135 in the third set of the club final. Under the lights, the ball had come off the back glass at a strange angle, low and spinning away. He'd twisted to reach it with a *bandeja* he had hit ten thousand times. The racket met the ball, and the ball floated over the net and died in the far corner. The small crowd along the fence cheered. His partner, \u00c1lvaro, shouted his name.\n\nMateo stood very still, watching his right hand like it belonged to someone else.\n\n\"You okay?\" \u00c1lvaro jogged over, still grinning.\n\n\"Fine.\" He switched the racket to his left hand. Something warm and electric was pulsing just below his thumb. \"Let's finish it.\"\n\nThey lost the next four points. He couldn't grip the handle properly, so his volleys came off the frame and his smashes landed in the net. The other team, two brothers in their fifties who had been playing together since before padel came to Spain's coastal towns, were too polite to celebrate much. One of them came around the net and looked at Mateo's wrist, which had started to swell.\n\n\"Scaphoid,\" the older brother said quietly. \"I did mine in '98. Don't be stupid about it.\"\n\n---\n\nMateo was stupid about it for three days.\n\nHe iced it. He wrapped it in tape. On the fourth morning he tried to lift a coffee cup, set it down again very carefully, and drove to the hospital with one hand.\n\nThe doctor put the X-ray up on the lightbox and tapped a thin grey line in a bone the size of a cashew. \"Eight weeks in a cast. Maybe twelve. This bone has a poor blood supply. It heals slowly, if you let it.\"\n\n\"And if I don't let it?\"\n\nThe doctor looked at him over her glasses. \"Then you'll be asking me that question again in a year, with a much worse answer.\"\n\n---\n\nThe first two weeks were the hardest. He drove past the club on his way to work and kept his eyes on the road. He muted the group chat after \u00c1lvaro started posting videos of new partners, then felt ashamed and unmuted it. At night the cast itched in places he couldn't reach, and he lay awake replaying the point: the angle off the glass, the twist, the click.\n\nIn the third week, \u00c1lvaro showed up at his door with two coffees and a folding chair.\n\n\"Come watch,\" he said.\n\n\"I don't want to watch.\"\n\n\"You're not watching for fun. You're coaching. I'm playing with In\u00e9s from the Tuesday group, and she keeps drifting to the middle on lobs. You see that stuff better than me.\"\n\nSo Mateo went. He sat on the folding chair behind the back glass with his cast resting on his knee. For the first set he said nothing. By the second set he was standing with his face almost against the wall, calling out *\"Stay wide! Wait for it off the glass, don't chase it!\"* In\u00e9s looked back at him, annoyed, and then stayed wide and won the point.\n\nHe had spent ten years inside that glass box and never really seen it from outside. From behind the wall the whole geometry was visible: how the ball rose and dropped off the corners, the gaps that opened when both players moved forward too early, how the brothers always stood a half-step deeper than everyone else. It wasn't luck or age that made them good. They were patient.\n\n---\n\nThe cast came off on a Thursday in late autumn. His wrist was pale and thin, and it barely bent. The physiotherapist gave him a rubber ball to squeeze and a list of exercises that felt insulting in their smallness: *rotate, flex, hold, release.*\n\nHe did them all anyway, every morning and every night, the way he had once drilled volleys.\n\nIn February he held a racket again. In March he hit soft balls with \u00c1lvaro, both of them standing at the net and saying nothing, just feeling the rhythm come back. In April he played his first real match. He lost it, and he didn't care.\n\n---\n\nThe next club final came around in June. Mateo and In\u00e9s reached the last game against, inevitably, the two brothers.\n\nAt deuce, the ball came off the back glass at a strange angle, low and spinning away.\n\nMateo didn't twist. He took one step back and waited. He let the ball come to him off the second wall, the way he'd watched it do a hundred times from a folding chair, and he lifted a slow, easy lob over both brothers into the corner.\n\nThe older brother watched it land, then turned and gave him a small nod.\n\n\"Better,\" he said. \"Much better.\"\n\nMateo flexed his wrist once, the way the physiotherapist had taught him, and walked back to the baseline to serve.",
+    "stored": {
+      "entries": [],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "others-private",
+    "run": 2,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 7,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [],
+    "final": "That's wonderful news, congratulations on becoming an aunt or uncle! It's lovely that Ana told you early.\n\nThe pregnancy is Ana's news and it isn't public yet, so I haven't saved it to Memento. Do you want me to keep a private note of it, maybe just that Ana told you on 24 Sep 2026? If not, I'll leave it out.",
+    "stored": {
+      "entries": [],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "change",
+    "run": 2,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 12,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:48.928544+01:00\",\"tags\":[{\"tag\":\"home\",\"mentions\":1},{\"tag\":\"place:lisbon\",\"mentions\":1}]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "live flat home moved apartment"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:49.087279+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "tags": [
+            "home"
+          ]
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:50.030411+01:00\",\"entries\":[{\"id\":\"01a0d49d-c2af-7341-8f00-ef3c8527acef\",\"kind\":\"memory\",\"claim\":\"Lives in Lisbon.\",\"raw_text\":\"I live in Lisbon\",\"tags\":[\"home\",\"place:lisbon\"],\"happened_at\":\"2023\",\"happened_precision\":\"year\",\"recorded_at\":\"2026-09-24T19:11:43.931892+01:00\",\"valid_until\":null,\"supersedes\":null,\"supersede_reason\":\"\",\"superseded_by\":null,\"cites\":[]}]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "Moved into the new flat in Porto last weekend!",
+          "claim": "Moved into a new flat in Porto on the weekend of 19 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-19",
+          "happened_precision": "day",
+          "tags": [
+            "home",
+            "place:porto"
+          ],
+          "supersedes": "01a0d49d-c2af-7341-8f00-ef3c8527acef",
+          "supersede_reason": "change",
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:52.950568+01:00\",\"saved\":[{\"id\":\"01a0d49d-e5e0-7087-be19-88b80f847ca7\",\"claim\":\"Moved into a new flat in Porto on the weekend of 19 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "Congratulations on the new place! I hope the first week in Porto has been good and the boxes are going down.\n\nI saved it in Memento: you moved into a new flat in Porto on the weekend of 19 Sep 2026. It replaces your old entry that said you live in Lisbon, which is still in your history. Say \"don't log that\" if you'd rather I remove it.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49d-e5e0-7087-be19-88b80f847ca7",
+          "kind": "memory",
+          "claim": "Moved into a new flat in Porto on the weekend of 19 Sep 2026.",
+          "raw_text": "Moved into the new flat in Porto last weekend!",
+          "tags": [
+            "home",
+            "place:porto"
+          ],
+          "happened_at": "2026-09-19",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:11:52.946815+01:00",
+          "valid_until": null,
+          "supersedes": "01a0d49d-c2af-7341-8f00-ef3c8527acef",
+          "supersede_reason": "change",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [
+        "01a0d49d-c2af-7341-8f00-ef3c8527acef"
+      ],
+      "captures": []
+    }
+  },
+  {
+    "case": "correction",
+    "run": 2,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 10,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "recall",
+        "input": {
+          "ids": [
+            "01a0d49d-cef7-76df-92f3-6c8e7f7b9e1f"
+          ]
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:51.698403+01:00\",\"entries\":[{\"id\":\"01a0d49d-cef7-76df-92f3-6c8e7f7b9e1f\",\"kind\":\"memory\",\"claim\":\"Played padel for 90 minutes with Fred.\",\"raw_text\":\"played padel yesterdy for 90 minutes with Fred\",\"tags\":[\"padel\",\"person:fred\"],\"happened_at\":\"2026-09-23\",\"happened_precision\":\"day\",\"recorded_at\":\"2026-09-24T19:11:47.085430+01:00\",\"valid_until\":null,\"supersedes\":null,\"supersede_reason\":\"\",\"superseded_by\":null,\"cites\":[]}],\"forgotten\":{}}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "actually it was 60 minutes not 90",
+          "claim": "Played padel for 60 minutes with Fred on 23 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-23",
+          "happened_precision": "day",
+          "tags": [
+            "padel",
+            "person:fred",
+            "exercise"
+          ],
+          "supersedes": "01a0d49d-cef7-76df-92f3-6c8e7f7b9e1f",
+          "supersede_reason": "correction",
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:11:54.799916+01:00\",\"saved\":[{\"id\":\"01a0d49d-ed21-73ac-a6c0-343399817e88\",\"claim\":\"Played padel for 60 minutes with Fred on 23 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I've corrected it in Memento: you played padel with Fred for 60 minutes on 23 Sep 2026. This new entry replaces the one that said 90 minutes.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49d-ed21-73ac-a6c0-343399817e88",
+          "kind": "memory",
+          "claim": "Played padel for 60 minutes with Fred on 23 Sep 2026.",
+          "raw_text": "actually it was 60 minutes not 90",
+          "tags": [
+            "exercise",
+            "padel",
+            "person:fred"
+          ],
+          "happened_at": "2026-09-23",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:11:54.797996+01:00",
+          "valid_until": null,
+          "supersedes": "01a0d49d-cef7-76df-92f3-6c8e7f7b9e1f",
+          "supersede_reason": "correction",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [
+        "01a0d49d-cef7-76df-92f3-6c8e7f7b9e1f"
+      ],
+      "captures": []
+    }
+  },
+  {
+    "case": "repeat",
+    "run": 2,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 6,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [],
+    "final": "That's already saved from ten minutes ago (entry `01a0d49d-f4b4-7238-a459-c904fb3724aa`), so I didn't add a duplicate. Glad you slept well! If you want to add anything, like how many hours you slept or what helped, I can put it in that entry.",
+    "stored": {
+      "entries": [],
+      "seeded_left": [
+        "01a0d49d-f4b4-7238-a459-c904fb3724aa"
+      ],
+      "captures": []
+    }
+  },
+  {
+    "case": "undo",
+    "run": 2,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 7,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "forget",
+        "input": {
+          "entry_id": "01a0d49d-fa0b-7397-b518-5470e96c13fb",
+          "confirm": true
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:02.071835+01:00\",\"deleted\":{\"entries\":[{\"id\":\"01a0d49d-fa0b-7397-b518-5470e96c13fb\",\"kind\":\"memory\",\"claim\":\"Had three glasses of wine.\",\"raw_text\":\"had three glasses of wine\",\"tags\":[\"alcohol\"],\"happened_at\":\"2026-09-24\",\"happened_precision\":\"day\",\"recorded_at\":\"2026-09-24T19:11:58.109531+01:00\",\"valid_until\":null,\"supersedes\":null,\"supersede_reason\":\"\",\"superseded_by\":null,\"cites\":[]}],\"voice_notes\":[]}}"
+      }
+    ],
+    "final": "I've deleted the note about the three glasses of wine from Memento. All that's left is a placeholder with the entry's ID and today's date. It only shows that something was removed, not what it said.",
+    "stored": {
+      "entries": [],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "low-mood",
+    "run": 2,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 2,
+    "model": "claude-opus-5-5",
+    "seconds": 15,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:05.507567+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "been feeling really low all week",
+          "claim": "Felt really low throughout the week leading up to 24 Sep 2026.",
+          "kind": "memory",
+          "tags": [
+            "mood",
+            "mental-health"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:09.532724+01:00\",\"saved\":[{\"id\":\"01a0d49e-26ad-7173-901f-cc0f40f4e5ef\",\"claim\":\"Felt really low throughout the week leading up to 24 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "not sleeping much",
+          "claim": "Was not sleeping much during the week leading up to 24 Sep 2026.",
+          "kind": "memory",
+          "tags": [
+            "sleep",
+            "mental-health"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:10.619425+01:00\",\"saved\":[{\"id\":\"01a0d49e-2aeb-719a-b389-f2839ca83be8\",\"claim\":\"Was not sleeping much during the week leading up to 24 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I'm sorry, that sounds really hard. A whole week of feeling low with hardly any sleep wears you down, and each one tends to make the other worse.\n\nDo you want to talk about it? I'm happy to listen if something's been weighing on you. If you'd rather just take the edge off tonight, a few simple things sometimes help:\n- Put screens away and dim the lights for a bit before bed.\n- If you can't sleep, get up and do something quiet for a while instead of lying there wrestling with it.\n- Tell someone you trust how you've been feeling this week.\n\nIf it keeps going, or gets heavier, it's worth talking to your GP. And if you ever feel unsafe or have thoughts of hurting yourself, please contact someone right away. In the UK you can call Samaritans any time on 116 123, or call 999 in an emergency.\n\nI've saved your low mood and poor sleep this week in Memento. Tell me if you'd rather I hadn't.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49e-2aeb-719a-b389-f2839ca83be8",
+          "kind": "memory",
+          "claim": "Was not sleeping much during the week leading up to 24 Sep 2026.",
+          "raw_text": "not sleeping much",
+          "tags": [
+            "mental-health",
+            "sleep"
+          ],
+          "happened_at": null,
+          "happened_precision": "",
+          "recorded_at": "2026-09-24T19:12:10.617671+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        },
+        {
+          "id": "01a0d49e-26ad-7173-901f-cc0f40f4e5ef",
+          "kind": "memory",
+          "claim": "Felt really low throughout the week leading up to 24 Sep 2026.",
+          "raw_text": "been feeling really low all week",
+          "tags": [
+            "mental-health",
+            "mood"
+          ],
+          "happened_at": null,
+          "happened_precision": "",
+          "recorded_at": "2026-09-24T19:12:09.530792+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "quoted-advice",
+    "run": 2,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 11,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:07.552846+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "arm physio"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:07.625726+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "physio said to rest the arm for two weeks",
+          "claim": "The user's physio advised them to rest their arm for two weeks.",
+          "kind": "memory",
+          "tags": [
+            "physio",
+            "arm",
+            "health"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:11.136909+01:00\",\"saved\":[{\"id\":\"01a0d49e-2cee-77e3-92de-6a7947afc6ac\",\"claim\":\"The user's physio advised them to rest their arm for two weeks.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I've saved that in Memento: your physio told you to rest your arm for two weeks.\n\nWhen did you see the physio? If it was today, the two weeks run to about 8 October, and I can add the date and set a reminder for when the rest period ends.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49e-2cee-77e3-92de-6a7947afc6ac",
+          "kind": "memory",
+          "claim": "The user's physio advised them to rest their arm for two weeks.",
+          "raw_text": "physio said to rest the arm for two weeks",
+          "tags": [
+            "arm",
+            "health",
+            "physio"
+          ],
+          "happened_at": null,
+          "happened_precision": "",
+          "recorded_at": "2026-09-24T19:12:11.135099+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "past-midnight",
+    "run": 2,
+    "skipped": "needs local time 00:00-04:00"
+  },
+  {
+    "case": "no-date-knowledge",
+    "run": 2,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 10,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:09.180261+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "dentist"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:09.269678+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "dentist appointment went fine this morning",
+          "claim": "Had a dentist appointment on the morning of 24 Sep 2026, and it went fine.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "dentist",
+            "health"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:11.437120+01:00\",\"saved\":[{\"id\":\"01a0d49e-2e18-75a6-96d4-d011263914e2\",\"claim\":\"Had a dentist appointment on the morning of 24 Sep 2026, and it went fine.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "Good to hear it went fine. I've saved it in Memento: \"Had a dentist appointment on the morning of 24 Sep 2026, and it went fine.\" Tell me if you'd rather I hadn't logged it.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49e-2e18-75a6-96d4-d011263914e2",
+          "kind": "memory",
+          "claim": "Had a dentist appointment on the morning of 24 Sep 2026, and it went fine.",
+          "raw_text": "dentist appointment went fine this morning",
+          "tags": [
+            "dentist",
+            "health"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:12:11.435257+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "weak-client-escape",
+    "run": 2,
+    "passed": true,
+    "fails": [],
+    "notes": [
+      "fixed the claim instead of using the inbox"
+    ],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 11,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:10.487420+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "new running shoes, felt great",
+          "claim": "Ran in new running shoes on 24 Sep 2026 and felt great.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "running",
+            "exercise",
+            "gear"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:13.855692+01:00\",\"saved\":[{\"id\":\"01a0d49e-3790-7526-94ea-57bfa8065d60\",\"claim\":\"Ran in new running shoes on 24 Sep 2026 and felt great.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I saved it to Memento: \"Ran in new running shoes on 24 Sep 2026 and felt great,\" tagged running, exercise and gear. Say \"don't log that\" if you want it removed.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49e-3790-7526-94ea-57bfa8065d60",
+          "kind": "memory",
+          "claim": "Ran in new running shoes on 24 Sep 2026 and felt great.",
+          "raw_text": "new running shoes, felt great",
+          "tags": [
+            "exercise",
+            "gear",
+            "running"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:12:13.854033+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "log-multi",
+    "run": 3,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 3,
+    "model": "claude-opus-5-5",
+    "seconds": 14,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:18.619784+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "tendonitis"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:18.681957+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "woke up this morning and tendonitis is bad",
+          "claim": "Woke up on 24 Sep 2026 with bad tendonitis.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "tendonitis",
+            "health"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:21.174458+01:00\",\"saved\":[{\"id\":\"01a0d49e-5426-744e-8dd2-42603c5045fa\",\"claim\":\"Woke up on 24 Sep 2026 with bad tendonitis.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "played padel yesterdy for 90 minutes with Fred",
+          "claim": "Played padel for 90 minutes with Fred on 23 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-23",
+          "happened_precision": "day",
+          "tags": [
+            "padel",
+            "exercise",
+            "person:fred"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:22.830228+01:00\",\"saved\":[{\"id\":\"01a0d49e-5aa0-76b0-8412-3da219059081\",\"claim\":\"Played padel for 90 minutes with Fred on 23 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "Good sleep",
+          "claim": "Slept well on the night to 24 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "sleep"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:24.124718+01:00\",\"saved\":[{\"id\":\"01a0d49e-5fac-7215-a8c0-a46991954164\",\"claim\":\"Slept well on the night to 24 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "Sorry the tendonitis is bad this morning. It flaring the day after 90 minutes of padel is probably not a coincidence, so it could be worth going easier on it for a few days.\n\nI saved three entries in Memento:\n- **Tendonitis:** woke up with it bad on 24 Sep 2026\n- **Padel:** played for 90 minutes with Fred on 23 Sep 2026\n- **Sleep:** slept well last night\n\nThis is the first tendonitis entry in Memento. If you keep logging flare-ups and padel sessions, I can check later whether they line up. Tell me if you'd rather I didn't keep any of these.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49e-5fac-7215-a8c0-a46991954164",
+          "kind": "memory",
+          "claim": "Slept well on the night to 24 Sep 2026.",
+          "raw_text": "Good sleep",
+          "tags": [
+            "sleep"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:12:24.123214+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        },
+        {
+          "id": "01a0d49e-5aa0-76b0-8412-3da219059081",
+          "kind": "memory",
+          "claim": "Played padel for 90 minutes with Fred on 23 Sep 2026.",
+          "raw_text": "played padel yesterdy for 90 minutes with Fred",
+          "tags": [
+            "exercise",
+            "padel",
+            "person:fred"
+          ],
+          "happened_at": "2026-09-23",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:12:22.828880+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        },
+        {
+          "id": "01a0d49e-5426-744e-8dd2-42603c5045fa",
+          "kind": "memory",
+          "claim": "Woke up on 24 Sep 2026 with bad tendonitis.",
+          "raw_text": "woke up this morning and tendonitis is bad",
+          "tags": [
+            "health",
+            "tendonitis"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:12:21.172760+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "log-terse",
+    "run": 3,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 2,
+    "model": "claude-opus-5-5",
+    "seconds": 14,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:19.715417+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "knee"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:19.777511+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "5k run, 27 min.",
+          "claim": "Ran 5k in 27 minutes.",
+          "kind": "memory",
+          "tags": [
+            "running",
+            "exercise"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:24.429412+01:00\",\"saved\":[{\"id\":\"01a0d49e-60de-76c8-9ac3-17e1d52bf20d\",\"claim\":\"Ran 5k in 27 minutes.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "knee fine",
+          "claim": "Knee felt fine on 24 Sep 2026, reported alongside a 5k run.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "knee",
+            "health"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:25.941327+01:00\",\"saved\":[{\"id\":\"01a0d49e-66bd-7648-bb9d-72b475daabf9\",\"claim\":\"Knee felt fine on 24 Sep 2026, reported alongside a 5k run.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "Nice, a 27-minute 5k is a good time. I saved two entries in Memento: the run (5k in 27 minutes) and your knee feeling fine today. You didn't say when the run was, so it has no date. Tell me the day and I'll add it, or say \"don't log that\" and I'll remove them.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49e-66bd-7648-bb9d-72b475daabf9",
+          "kind": "memory",
+          "claim": "Knee felt fine on 24 Sep 2026, reported alongside a 5k run.",
+          "raw_text": "knee fine",
+          "tags": [
+            "health",
+            "knee"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:12:25.939810+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        },
+        {
+          "id": "01a0d49e-60de-76c8-9ac3-17e1d52bf20d",
+          "kind": "memory",
+          "claim": "Ran 5k in 27 minutes.",
+          "raw_text": "5k run, 27 min.",
+          "tags": [
+            "exercise",
+            "running"
+          ],
+          "happened_at": null,
+          "happened_precision": "",
+          "recorded_at": "2026-09-24T19:12:24.427926+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "explicit-decision",
+    "run": 3,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 11,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:21.522929+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "consulting scope"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:21.591740+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "I've decided to stop taking consulting work without a written scope.",
+          "claim": "Hugo decided to stop taking on consulting work that doesn't have a written scope.",
+          "kind": "decision",
+          "tags": [
+            "work",
+            "consulting",
+            "decision"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:24.777341+01:00\",\"saved\":[{\"id\":\"01a0d49e-623b-7750-af59-4f0bcfb9c591\",\"claim\":\"Hugo decided to stop taking on consulting work that doesn't have a written scope.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I've saved this to Memento as a decision: you're no longer taking consulting work without a written scope. I left the date off because you didn't say when you decided. If you don't want it logged, tell me and I'll remove it.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49e-623b-7750-af59-4f0bcfb9c591",
+          "kind": "decision",
+          "claim": "Hugo decided to stop taking on consulting work that doesn't have a written scope.",
+          "raw_text": "I've decided to stop taking consulting work without a written scope.",
+          "tags": [
+            "consulting",
+            "decision",
+            "work"
+          ],
+          "happened_at": null,
+          "happened_precision": "",
+          "recorded_at": "2026-09-24T19:12:24.775600+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "reminder",
+    "run": 3,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 11,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:23.135046+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "physio"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:23.277166+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "remind me to book the physio on Monday",
+          "claim": "Book the physio on Monday 28 Sep 2026.",
+          "kind": "reminder",
+          "due_at": "2026-09-28T09:00:00+01:00",
+          "tags": [
+            "physio",
+            "health",
+            "appointments"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:25.404905+01:00\",\"saved\":[{\"id\":\"01a0d49e-64a1-7696-8338-a1135c24f3ae\",\"claim\":\"Book the physio on Monday 28 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I've set a reminder in Memento to book the physio on Monday 28 Sep at 9am. Tell me if you want a different time.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49e-64a1-7696-8338-a1135c24f3ae",
+          "kind": "reminder",
+          "claim": "Book the physio on Monday 28 Sep 2026.",
+          "raw_text": "remind me to book the physio on Monday",
+          "tags": [
+            "appointments",
+            "health",
+            "physio"
+          ],
+          "happened_at": null,
+          "happened_precision": "",
+          "recorded_at": "2026-09-24T19:12:25.402930+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": [],
+          "due_at": "2026-09-28T09:00:00+01:00",
+          "completed_at": null
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "question-only",
+    "run": 3,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 14,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [],
+    "final": "The most common stretch for tennis elbow is the **wrist extensor stretch**:\n\n1. Straighten your arm in front of you, palm facing down.\n2. With your other hand, gently bend the wrist down so your fingers point to the floor.\n3. Stop at a mild pull along the top of your forearm. It shouldn't hurt.\n4. Hold for 20\u201330 seconds and repeat 3 times. Do this a few times a day.\n\n**Stretching alone usually isn't enough.** Tennis elbow is a tendon overload problem, and tendons recover best when you gradually load them. The exercises with the strongest evidence are:\n\n- **Eccentric wrist extension:** Rest your forearm on a table with your hand hanging off the edge, palm down, holding a light weight (0.5\u20131 kg, or a can of soup). Use your other hand to lift the weight up, then lower it slowly with the sore arm over about 3\u20134 seconds. Do 3 sets of 15 once a day. Some discomfort is fine, but it should settle by the next day.\n- **Isometric holds:** Keep the same position, but hold the wrist still against resistance for 30\u201345 seconds. This is useful when the elbow is too irritable for movement.\n- **Tyler twist:** This uses a FlexBar (a rubber resistance bar). There's good evidence for it, and a physio can show you the technique quickly.\n\n**Also helpful:**\n- For a while, cut back on whatever sets it off, such as gripping, a mouse or your racquet.\n- A counterforce brace worn just below the elbow can help some people.\n- Improvement usually takes 6\u201312 weeks of steady work.\n\n**See a doctor or physio if** you have numbness or tingling, the elbow is swollen, the pain followed an injury, you can't straighten your arm, or it isn't getting better after a couple of months.\n\nIs this for your own elbow? If so, I can log it in Memento so you can track how it changes over time.",
+    "stored": {
+      "entries": [],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "task-with-aside",
+    "run": 3,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 14,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:34.297290+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "I'm exhausted today",
+          "claim": "Felt exhausted on 24 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "energy",
+            "mood"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:36.448686+01:00\",\"saved\":[{\"id\":\"01a0d49e-8fd3-733c-8f85-0113f2d912cd\",\"claim\":\"Felt exhausted on 24 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "Sorry you're wiped out. I'll keep this quick for you.\n\nI couldn't find a Django project in the working directory, so I need a bit more to go on. Please paste either of these:\n\n1. **The full error output**, including the traceback, from `python manage.py migrate` or `makemigrations`\n2. **Or the path to your project**, so I can look at the migrations myself\n\nIf you want to check first, these are the usual causes:\n- **`InconsistentMigrationHistory`**: a migration was applied before one it depends on.\n- **`Conflicting migrations detected`**: two leaf migrations in one app. `python manage.py makemigrations --merge` usually fixes this.\n- **`NodeNotFoundError`**: a dependency points to a migration file that was deleted or renamed.\n- **`table already exists`** or **`no such column`**: the database and the migration state don't match. `--fake` or `--fake-initial` can sometimes fix this, but check before using them.\n\nI also saved \"felt exhausted today, 24 Sep\" to Memento. Tell me if you'd rather I didn't keep it.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49e-8fd3-733c-8f85-0113f2d912cd",
+          "kind": "memory",
+          "claim": "Felt exhausted on 24 Sep 2026.",
+          "raw_text": "I'm exhausted today",
+          "tags": [
+            "energy",
+            "mood"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:12:36.447078+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "drafting",
+    "run": 3,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 10,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [],
+    "final": "Here's a draft:\n\n---\n\n**Subject:** Out of office next week\n\nHi team,\n\nI'll be out all of next week, Monday 28 September to Friday 2 October, while I have surgery and recover. I won't be checking email or Slack.\n\nWhile I'm away:\n- **Urgent matters:** please contact [Name] at [email/phone].\n- **[Project/area]:** [Name] will cover this.\n- **Anything else** can wait until I'm back, and I'll catch up then.\n\nBefore I go I'll hand off everything that's in progress. If you need something from me, please let me know by [day].\n\nThanks for covering for me. I'll be back on [return date].\n\nBest,\nHugo\n\n---\n\nI've assumed you'll be out the full week of 28 Sep to 2 Oct. Fill in the parts in brackets, or give me the names and dates and I'll add them. You don't have to say it's surgery. \"A planned medical procedure\" or just \"personal leave\" works too if you'd rather keep it private.\n\nDo you want me to save the surgery in Memento?",
+    "stored": {
+      "entries": [],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "hypothetical",
+    "run": 3,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 27,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "recall",
+        "input": {
+          "query": "live OR living OR moved OR home OR city OR residence"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:33.944755+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "tax OR income OR salary OR job OR freelance OR work"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:34.257507+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "Portugal OR Porto OR Lisbon OR move OR relocate",
+          "view": "history"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:35.752362+01:00\",\"entries\":[]}"
+      }
+    ],
+    "final": "I couldn't find anything in your Memento about where you live now or how you earn, so I can't compare your current taxes with Portugal's yet. Here's how Portugal taxes new residents in general. Rates change every year, so check the current figures with a Portuguese accountant before you decide.\n\n**When Portugal starts taxing you**\n- You become tax-resident if you spend more than 183 days a year there, or if you have a home there on 31 December that you clearly use as your main residence.\n- From then on, Portugal taxes your worldwide income. Double-tax treaties usually stop the same income being taxed twice, but your current country may still tax you in your first year, or charge an exit tax.\n\n**Main rates**\n- **Income tax (IRS):** progressive, from about 12.5% up to 48%, with the top rate starting around \u20ac80k. On top of that there's a solidarity surcharge of 2.5% above \u20ac80k and 5% above \u20ac250k.\n- **Social security:**\n  - Employees pay 11% and employers pay about 23.75%.\n  - Self-employed people pay 21.4% on 70% of their income.\n- **Self-employed \"simplified regime\":** for most professional services, only 75% of your gross income is taxed.\n- **Investments:** dividends, interest and capital gains are taxed at a flat 28%. Crypto held for more than a year is generally exempt.\n- **Property:**\n  - Buying: transfer tax (IMT) of up to about 7.5%, plus stamp duty.\n  - Owning: yearly municipal property tax (IMI) of 0.3\u20130.45% of the property's tax value, set by each town. Porto's rate is near the low end.\n- **Inheritance and gifts:** exempt between spouses, children and parents. Otherwise 10% stamp duty.\n- **Wealth tax:** none, except an extra property tax (AIMI) on property worth more than \u20ac600k.\n\n**Special regimes that could lower your bill**\n- **NHR is closed:** the old Non-Habitual Resident regime stopped taking new applicants in 2024.\n- **IFICI (sometimes called \"NHR 2.0\"):**\n  - Income from qualifying work in Portugal is taxed at a flat 20% for 10 years. Qualifying work is mainly tech, research, startups and some highly qualified jobs.\n  - Most foreign income is exempt, but pensions are not.\n  - You can only apply if you haven't been tax-resident in Portugal in the previous 5 years.\n- **IRS Jovem (under 35):**\n  - Part of your work income is tax-free for up to 10 years: 100% in year 1, then 75%, 50% and 25%.\n  - The exemption is capped at roughly \u20ac28\u201329k a year.\n\n**What I need to estimate your change**\n1. Which country you live in now.\n2. How you earn: a salary, self-employment, or remote work for a foreign company, and roughly how much.\n3. Your age, and whether you've ever been tax-resident in Portugal.\n4. Any big investments, rental property or a pension.\n\nWith those I can work through the numbers side by side. I can also save your plan to move to Porto in Memento if you'd like.",
+    "stored": {
+      "entries": [],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "fiction",
+    "run": 3,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 27,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [],
+    "final": "# The Bandeja\n\nMateo had hit the shot ten thousand times. That was the stupid part.\n\nIt was the third set on a Thursday night at the club in Poblenou. The floodlights buzzed. Rafa and old I\u00f1aki were up 5\u20134 across the net, and I\u00f1aki had just floated a lob so high it seemed to hang in the damp October air. Mateo backpedalled, turned his shoulder, and set up for the bandeja: the flat, sliced overhead that keeps you in control of the net without trying to end the point. It was his shot. People at the club called him *el Bandejas*, half as a compliment and half to tease him for never trying anything else.\n\nHe misjudged it by half a step. The ball dropped closer to the glass than he expected, so he reached, and at the moment of contact he snapped his wrist to save the angle.\n\nHe felt the crack in his forearm before he heard it, a hot white line from the base of his thumb to his elbow. The ball hit the net and dropped. His racket clattered onto the artificial grass.\n\n\"Mate?\" His partner Luc\u00eda was already walking over. \"You okay?\"\n\n\"Fine,\" he said, the way men say *fine* when they are clearly not. He picked up the racket with his left hand. His right hand would not close around the grip. His fingers trembled like they belonged to someone else.\n\n---\n\nThe doctor at the mutua was young and brisk. She turned the X-ray toward him as if showing off a holiday photo.\n\n\"No fracture. But you've irritated the TFCC, the cartilage on the pinky side of the wrist. And you have tendinitis here,\" she said, tapping the screen, \"which I'd guess has been building for months.\"\n\nMateo thought about the mornings when opening a jar hurt, and the ibuprofen he had started keeping in his padel bag the way other people kept sweatbands.\n\n\"How long?\"\n\n\"Six weeks of rest, then physio. Maybe eight before you play again.\"\n\n\"Eight *weeks*?\" The club tournament was in five. He and Luc\u00eda had been seeded second.\n\nThe doctor shrugged. \"Or you can play in five and be out for a year. Your wrist, your choice.\"\n\n---\n\nThe first week was the worst. He wore the brace to work, and everyone asked about it, so he had to repeat the story: *I snapped my wrist on a bandeja.* Nobody outside padel knew what a bandeja was, so he started saying *I hurt it playing tennis*. That felt like a small betrayal.\n\nIn the second week he went to the club anyway and sat on the bench behind the glass to watch Luc\u00eda play with a substitute, a tall kid named Dani who smashed everything as hard as he could. They lost 6\u20132, 6\u20133. Afterward Luc\u00eda sat next to him, sweating and annoyed.\n\n\"He doesn't know how to wait,\" she said. \"Every ball is a winner in his head.\"\n\n\"He's twenty,\" said Mateo.\n\n\"You were never like that.\"\n\n\"No,\" he said. \"I was worse. I just hid it better.\"\n\nShe looked at him, and he surprised himself by continuing. \"That shot on Thursday. I didn't need to save it. I could have let it go past me, played it off the glass, and reset. I just didn't want to look like I'd misread it.\"\n\nLuc\u00eda laughed. \"So you broke your wrist out of vanity.\"\n\n\"It's not broken.\"\n\n\"Your *pride* is broken.\"\n\n---\n\nPhysio started in week six. The physiotherapist, Marta, had forearms like a rower's and no patience for his impatience. She gave him a rubber bar to twist, a two-kilo dumbbell, and a list of exercises so boring he wanted to cry.\n\n\"Your wrist was doing the work your legs and shoulder should do,\" she told him. \"You get lazy with your feet, you arrive late, and the wrist rescues you. Rescue a hundred times and eventually the rescuer quits.\"\n\nSo he relearned the bandeja from the ground up. He practised in his living room with a broom handle, without a ball, working on footwork. He took three small steps back, turned side-on, kept the elbow high and the wrist firm and *quiet*, and let the shoulder carry the swing. His downstairs neighbour complained about the shuffling at night.\n\n---\n\nHe missed the tournament. Luc\u00eda played it with Dani, and they reached the quarterfinals, which was better than anyone expected. Mateo watched from the bench with his brace on the last Saturday he needed it, and when Dani hit a bandeja instead of trying to smash a lob, Mateo stood up and clapped louder than was reasonable.\n\n\"Did you tell him to do that?\" Luc\u00eda asked after the match.\n\n\"I might have mentioned it.\"\n\n---\n\nHe came back in week nine, on a cold Tuesday in December. For the first twenty minutes his wrist was fine, but his head wasn't. Every overhead made him flinch.\n\nThen I\u00f1aki, naturally, put up another lob, high and floating, dropping toward the back glass.\n\nMateo felt the old urge to reach and snap his wrist. He didn't give in to it. He let the ball drop, turned, and let it bounce off the glass. Then he played a soft, boring, perfectly placed lob right back over I\u00f1aki's head.\n\nI\u00f1aki scrambled and missed.\n\n\"Look at that,\" I\u00f1aki panted. \"El Bandejas learned a second shot.\"\n\nMateo flexed his right hand under the lights. There was no pain, just a faint reminder that it was there.\n\n\"Took me eight weeks,\" he said, walking back to the service line. \"Worth it.\"",
+    "stored": {
+      "entries": [],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "others-private",
+    "run": 3,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 6,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [],
+    "final": "That's lovely news, congratulations on becoming an aunt or uncle! It must be nice that Ana told you before telling everyone else.\n\nThis is Ana's news and she hasn't made it public, so I haven't saved it to Memento. Would you like me to? If so, I can keep it to what's useful to you, such as the date Ana told you.",
+    "stored": {
+      "entries": [],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "change",
+    "run": 3,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 13,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:48.033861+01:00\",\"tags\":[{\"tag\":\"home\",\"mentions\":1},{\"tag\":\"place:lisbon\",\"mentions\":1}]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "live flat home moved apartment"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:48.141012+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "tags": [
+            "home"
+          ]
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:49.427070+01:00\",\"entries\":[{\"id\":\"01a0d49e-a7b5-7794-b73e-f967ada9846c\",\"kind\":\"memory\",\"claim\":\"Lives in Lisbon.\",\"raw_text\":\"I live in Lisbon\",\"tags\":[\"home\",\"place:lisbon\"],\"happened_at\":\"2023\",\"happened_precision\":\"year\",\"recorded_at\":\"2026-09-24T19:12:42.561891+01:00\",\"valid_until\":null,\"supersedes\":null,\"supersede_reason\":\"\",\"superseded_by\":null,\"cites\":[]}]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "Moved into the new flat in Porto last weekend!",
+          "claim": "Moved into a new flat in Porto on the weekend of 19 Sep 2026, leaving Lisbon.",
+          "kind": "memory",
+          "happened_at": "2026-09-19",
+          "happened_precision": "day",
+          "tags": [
+            "home",
+            "place:porto"
+          ],
+          "supersedes": "01a0d49e-a7b5-7794-b73e-f967ada9846c",
+          "supersede_reason": "change",
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:52.253970+01:00\",\"saved\":[{\"id\":\"01a0d49e-cd8b-7415-9e0e-f52e877f4af1\",\"claim\":\"Moved into a new flat in Porto on the weekend of 19 Sep 2026, leaving Lisbon.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "Congratulations on the new flat! I hope the move went smoothly and you're settling in well.\n\nI've saved it in Memento: you moved into the Porto flat on the weekend of 19 September 2026. It replaces the old \"Lives in Lisbon\" entry, so that one now shows as true until the move. Say if you'd rather I hadn't logged it.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49e-cd8b-7415-9e0e-f52e877f4af1",
+          "kind": "memory",
+          "claim": "Moved into a new flat in Porto on the weekend of 19 Sep 2026, leaving Lisbon.",
+          "raw_text": "Moved into the new flat in Porto last weekend!",
+          "tags": [
+            "home",
+            "place:porto"
+          ],
+          "happened_at": "2026-09-19",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:12:52.250020+01:00",
+          "valid_until": null,
+          "supersedes": "01a0d49e-a7b5-7794-b73e-f967ada9846c",
+          "supersede_reason": "change",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [
+        "01a0d49e-a7b5-7794-b73e-f967ada9846c"
+      ],
+      "captures": []
+    }
+  },
+  {
+    "case": "correction",
+    "run": 3,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 11,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:53.643654+01:00\",\"tags\":[{\"tag\":\"padel\",\"mentions\":1},{\"tag\":\"person:fred\",\"mentions\":1}]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "actually it was 60 minutes not 90",
+          "claim": "Played padel for 60 minutes with Fred on 23 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-23",
+          "happened_precision": "day",
+          "tags": [
+            "padel",
+            "person:fred",
+            "exercise"
+          ],
+          "supersedes": "01a0d49e-beee-7231-b17d-7b3f3b8802ee",
+          "supersede_reason": "correction",
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:12:56.593210+01:00\",\"saved\":[{\"id\":\"01a0d49e-de82-72b8-ba74-e8ec368df895\",\"claim\":\"Played padel for 60 minutes with Fred on 23 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I've corrected it in Memento. It now says you played padel with Fred for 60 minutes on 23 Sep 2026, and this replaces the 90-minute entry.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49e-de82-72b8-ba74-e8ec368df895",
+          "kind": "memory",
+          "claim": "Played padel for 60 minutes with Fred on 23 Sep 2026.",
+          "raw_text": "actually it was 60 minutes not 90",
+          "tags": [
+            "exercise",
+            "padel",
+            "person:fred"
+          ],
+          "happened_at": "2026-09-23",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:12:56.591199+01:00",
+          "valid_until": null,
+          "supersedes": "01a0d49e-beee-7231-b17d-7b3f3b8802ee",
+          "supersede_reason": "correction",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [
+        "01a0d49e-beee-7231-b17d-7b3f3b8802ee"
+      ],
+      "captures": []
+    }
+  },
+  {
+    "case": "repeat",
+    "run": 3,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 5,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [],
+    "final": "I already saved that one ten minutes ago as entry `01a0d49e-db36-7057-973a-e1d05b0f40ff`, so I haven't added it again. Glad you slept well!",
+    "stored": {
+      "entries": [],
+      "seeded_left": [
+        "01a0d49e-db36-7057-973a-e1d05b0f40ff"
+      ],
+      "captures": []
+    }
+  },
+  {
+    "case": "undo",
+    "run": 3,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 0,
+    "model": "claude-opus-5-5",
+    "seconds": 7,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "forget",
+        "input": {
+          "entry_id": "01a0d49e-e163-71d5-abaa-54c21a02fa98",
+          "confirm": true
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:13:01.793359+01:00\",\"deleted\":{\"entries\":[{\"id\":\"01a0d49e-e163-71d5-abaa-54c21a02fa98\",\"kind\":\"memory\",\"claim\":\"Had three glasses of wine.\",\"raw_text\":\"had three glasses of wine\",\"tags\":[\"alcohol\"],\"happened_at\":\"2026-09-24\",\"happened_precision\":\"day\",\"recorded_at\":\"2026-09-24T19:12:57.332223+01:00\",\"valid_until\":null,\"supersedes\":null,\"supersede_reason\":\"\",\"superseded_by\":null,\"cites\":[]}],\"voice_notes\":[]}}"
+      }
+    ],
+    "final": "I've deleted the entry about the three glasses of wine from Memento. Memento only keeps a bare record with the entry's ID and the date, which shows that something was deleted. The text itself is gone.",
+    "stored": {
+      "entries": [],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "low-mood",
+    "run": 3,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 2,
+    "model": "claude-opus-5-5",
+    "seconds": 16,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:13:04.366881+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "been feeling really low all week",
+          "claim": "Felt really low all week, in the week up to 24 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "mood",
+            "mental-health"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:13:08.484830+01:00\",\"saved\":[{\"id\":\"01a0d49f-0cf8-7393-ba2d-260ff3e347b7\",\"claim\":\"Felt really low all week, in the week up to 24 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "not sleeping much",
+          "claim": "Not sleeping much during the week up to 24 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "sleep",
+            "mental-health"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:13:09.871602+01:00\",\"saved\":[{\"id\":\"01a0d49f-1261-77d5-872c-92436c42cd29\",\"claim\":\"Not sleeping much during the week up to 24 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I'm sorry you've had such a hard week. Feeling low and not sleeping tend to make each other worse, and a whole week of it is exhausting.\n\nIf you want to talk about it, I'm here. Do you know what's been weighing on you, or has it just been a heavy week for no clear reason? Either way is okay.\n\nA few things that might help:\n- **Tell someone you trust** how you've been feeling, even if it's just a text.\n- **Small things help with sleep:** getting some daylight in the morning, not lying in bed awake for too long, and going easy on caffeine and screens late at night.\n- **Talk to your GP if this keeps going**, especially if it lasts past another week or two, or if it's getting harder to get through the day. Low mood together with poor sleep is worth getting checked.\n\nIf it ever turns into feeling hopeless or unsafe, please contact someone right away. In the UK you can call Samaritans for free at **116 123**, day or night. If you're in another country, tell me and I'll find the right number.\n\nI've saved \"feeling low all week\" and \"not sleeping much\" in Memento. Say if you'd rather I didn't keep them.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49f-1261-77d5-872c-92436c42cd29",
+          "kind": "memory",
+          "claim": "Not sleeping much during the week up to 24 Sep 2026.",
+          "raw_text": "not sleeping much",
+          "tags": [
+            "mental-health",
+            "sleep"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:13:09.870060+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        },
+        {
+          "id": "01a0d49f-0cf8-7393-ba2d-260ff3e347b7",
+          "kind": "memory",
+          "claim": "Felt really low all week, in the week up to 24 Sep 2026.",
+          "raw_text": "been feeling really low all week",
+          "tags": [
+            "mental-health",
+            "mood"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:13:08.483159+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "quoted-advice",
+    "run": 3,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 11,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:13:05.397875+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "arm physio"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:13:05.441727+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "physio said to rest the arm for two weeks",
+          "claim": "The user's physio advised them to rest their arm for two weeks (mentioned on 24 Sep 2026).",
+          "kind": "memory",
+          "tags": [
+            "physio",
+            "arm",
+            "health"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:13:08.848447+01:00\",\"saved\":[{\"id\":\"01a0d49f-0e62-72cd-8bc6-fd6f245d1161\",\"claim\":\"The user's physio advised them to rest their arm for two weeks (mentioned on 24 Sep 2026).\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I saved the physio's advice to rest your arm for two weeks in Memento, tagged physio, arm and health. I didn't add a date because you didn't say when the appointment was. If you tell me the day, I can set when the two weeks end, or add a reminder for then. Say \"don't log that\" if you'd rather I didn't keep it.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49f-0e62-72cd-8bc6-fd6f245d1161",
+          "kind": "memory",
+          "claim": "The user's physio advised them to rest their arm for two weeks (mentioned on 24 Sep 2026).",
+          "raw_text": "physio said to rest the arm for two weeks",
+          "tags": [
+            "arm",
+            "health",
+            "physio"
+          ],
+          "happened_at": null,
+          "happened_precision": "",
+          "recorded_at": "2026-09-24T19:13:08.846660+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "past-midnight",
+    "run": 3,
+    "skipped": "needs local time 00:00-04:00"
+  },
+  {
+    "case": "no-date-knowledge",
+    "run": 3,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 10,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:13:10.214222+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "dentist"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:13:10.351306+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "dentist appointment went fine this morning",
+          "claim": "Had a dentist appointment on the morning of 24 Sep 2026, and it went fine.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "dentist",
+            "health",
+            "appointment"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:13:12.682828+01:00\",\"saved\":[{\"id\":\"01a0d49f-1d5b-739e-99c6-9a1f7d76fcca\",\"claim\":\"Had a dentist appointment on the morning of 24 Sep 2026, and it went fine.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "Good to hear it went fine. I saved it in Memento: your dentist appointment on the morning of 24 Sep 2026 went fine. If you don't want it logged, just say so and I'll remove it.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49f-1d5b-739e-99c6-9a1f7d76fcca",
+          "kind": "memory",
+          "claim": "Had a dentist appointment on the morning of 24 Sep 2026, and it went fine.",
+          "raw_text": "dentist appointment went fine this morning",
+          "tags": [
+            "appointment",
+            "dentist",
+            "health"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-24T19:13:12.681048+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "weak-client-escape",
+    "run": 3,
+    "passed": true,
+    "fails": [],
+    "notes": [
+      "fixed the claim instead of using the inbox"
+    ],
+    "saves": 1,
+    "model": "claude-opus-5-5",
+    "seconds": 12,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:13:11.384568+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "new running shoes, felt great",
+          "claim": "Hugo logged on 24 Sep 2026 that they have new running shoes, which felt great.",
+          "kind": "memory",
+          "tags": [
+            "running",
+            "exercise",
+            "gear"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-24T19:13:15.407728+01:00\",\"saved\":[{\"id\":\"01a0d49f-2803-77f3-817e-27eaa2dce1de\",\"claim\":\"Hugo logged on 24 Sep 2026 that they have new running shoes, which felt great.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I've saved it to Memento: you logged new running shoes on 24 Sep 2026, and they felt great. It's tagged running, exercise and gear. If you'd rather I hadn't logged it, tell me and I'll remove it.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d49f-2803-77f3-817e-27eaa2dce1de",
+          "kind": "memory",
+          "claim": "Hugo logged on 24 Sep 2026 that they have new running shoes, which felt great.",
+          "raw_text": "new running shoes, felt great",
+          "tags": [
+            "exercise",
+            "gear",
+            "running"
+          ],
+          "happened_at": null,
+          "happened_precision": "",
+          "recorded_at": "2026-09-24T19:13:15.406153+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  }
+]
