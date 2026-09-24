@@ -12,6 +12,7 @@ import json
 from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import Annotated, Any, Literal
+from zoneinfo import ZoneInfo
 
 from asgiref.sync import sync_to_async
 from django.conf import settings
@@ -26,7 +27,7 @@ from mcp.types import ToolAnnotations
 from pydantic import Field
 
 from . import services
-from .models import Capture, Client, Entry, Kind, Precision, Scope
+from .models import Capture, Client, ClientMode, Entry, Kind, Precision, Scope
 
 # --- descriptions: exactly as in docs/mcp-tools.md ---------------------------
 
@@ -110,15 +111,16 @@ COMPLETE_REMINDER = (
 )
 
 INBOX = (
-    "List voice notes waiting to be turned into entries, oldest first. Each has the transcript, "
-    "when it was recorded, Pocket's own summary as a hint, and any entries already created from "
-    "it. The result also lists the user's most recent current entries, so you can update one "
-    "instead of duplicating it.\n"
+    "List notes waiting to be turned into entries, oldest first: voice notes from Pocket, and "
+    "words saved with `raw_text` alone. Each has the transcript, when it was recorded, any hints "
+    "(Pocket's summary, or the fields the saving client suggested), and any entries already "
+    "created from it. The result also lists the user's most recent current entries, so you can "
+    "update one instead of duplicating it.\n"
     "\n"
     "For each note: split it into separate entries (one per memory, thought, decision or "
     "reminder), each with an exact excerpt as `raw_text` and `capture` set. Don't recreate "
-    "entries that already exist; if one's claim is wrong, supersede it. Treat Pocket's summary "
-    "as another model's reading: useful for orientation, never a source of facts. Then call "
+    "entries that already exist; if one's claim is wrong, supersede it. Treat hints as another "
+    "model's reading: useful for orientation, never a source of facts. Then call "
     "`close_capture`.\n"
     "\n"
     "Transcription errors are common with names. If you're unsure what a word was, ask the user "
@@ -157,6 +159,19 @@ FORGET = (
 current_client: contextvars.ContextVar[Client | None] = contextvars.ContextVar(
     "memento_client", default=None
 )
+_call_tz: contextvars.ContextVar[ZoneInfo | None] = contextvars.ContextVar(
+    "memento_tz", default=None
+)
+
+
+def _tz() -> ZoneInfo:
+    """The calling user's time zone, looked up once per tool call."""
+    tz = _call_tz.get()
+    if tz is None:
+        tz = services.user_timezone(current_client.get().owner)
+        _call_tz.set(tz)
+    return tz
+
 
 SCOPE_VERBS = {
     Scope.READ: "read the user's memory",
@@ -186,15 +201,26 @@ def _fresh_connection():
         close_old_connections()
 
 
-async def _run(fn: Callable[[], Any]) -> Any:
-    """Run a sync service call off the event loop, turning validation into teaching errors."""
+INBOX_WAY_OUT = (
+    " If you can't fix this, call remember again with raw_text alone: the user's words go to "
+    "the inbox and are structured later, so nothing is lost."
+)
+
+
+async def _run(fn: Callable[[], dict[str, Any]], *, way_out: str = "") -> dict[str, Any]:
+    """
+    Run a sync service call off the event loop, turning validation into teaching
+    errors, and stamp every result with `now` in the user's time zone (0013).
+    """
 
     def call():
         _fresh_connection()
+        _call_tz.set(None)
         try:
-            return fn()
+            result = fn()
         except ValidationError as e:
-            raise ToolError(" ".join(e.messages)) from e
+            raise ToolError(" ".join(e.messages) + way_out) from e
+        return {"now": timezone.localtime(timezone.now(), _tz()).isoformat(), **result}
 
     return await sync_to_async(call)()
 
@@ -205,19 +231,23 @@ ISO_HINT = "Use ISO 8601, such as 2026-09-10 or 2026-09-10T08:30:00+01:00."
 
 
 def _when(value: str | None, field: str) -> tuple[datetime | None, bool]:
-    """An aware datetime, and whether only a date was given."""
+    """
+    An aware datetime, and whether only a date was given. A date or time without
+    a zone is read in the user's time zone, not the server's.
+    """
     if not value:
         return None, False
+    tz = _tz()
     try:
         if len(value.strip()) == 10 and (day := parse_date(value.strip())):
-            return timezone.make_aware(datetime.combine(day, datetime.min.time())), True
+            return timezone.make_aware(datetime.combine(day, datetime.min.time()), tz), True
         parsed = parse_datetime(value.strip())
     except ValueError:
         parsed = None
     if parsed is None:
         raise ValidationError(f"{field} isn't a date I can read: {value!r}. {ISO_HINT}")
     if timezone.is_naive(parsed):
-        parsed = timezone.make_aware(parsed)
+        parsed = timezone.make_aware(parsed, tz)
     return parsed, False
 
 
@@ -231,7 +261,7 @@ def _at(value: str | None, field: str) -> datetime | None:
 def _happened(entry: Entry) -> str | None:
     if entry.happened_at is None:
         return None
-    at = timezone.localtime(entry.happened_at)
+    at = timezone.localtime(entry.happened_at, _tz())
     return {
         Precision.DAY: at.date().isoformat(),
         Precision.MONTH: at.strftime("%Y-%m"),
@@ -240,7 +270,9 @@ def _happened(entry: Entry) -> str | None:
 
 
 def _iso(value: datetime | None) -> str | None:
-    return value.isoformat() if value else None
+    if not value:
+        return None
+    return timezone.localtime(value, _tz()).isoformat()
 
 
 def entry_dict(entry: Entry) -> dict:
@@ -273,12 +305,28 @@ def entry_dict(entry: Entry) -> dict:
 
 
 def _receipt(entry: Entry) -> dict:
-    return {
+    result = {
         "saved": [{"id": str(entry.pk), "claim": entry.claim}],
         "duplicate": entry.was_duplicate,
         "say": (
             'Tell the user in one line what you saved. If they say "don\'t log that", call '
             "forget with this id and confirm: true."
+        ),
+    }
+    if entry.warnings:
+        result["warnings"] = entry.warnings
+    return result
+
+
+def _inbox_receipt(capture: Capture) -> dict:
+    return {
+        "saved": [],
+        "inbox": {"id": str(capture.pk), "text": capture.text},
+        "duplicate": capture.was_duplicate,
+        "say": (
+            "Tell the user in one line that their words are kept in Memento's inbox and will be "
+            'structured later. If they say "don\'t log that", call forget with this id as '
+            "capture_id and confirm: true."
         ),
     }
 
@@ -330,21 +378,21 @@ async def remember(
         ),
     ],
     claim: Annotated[
-        str,
+        str | None,
         Field(
-            max_length=280,
-            description='One standalone sentence with names and real dates ("yesterday" becomes '
-            '"10 Sep 2026"). Fix typos here, not in raw_text.',
+            description="One standalone sentence, at most 280 characters, with names and real "
+            'dates ("yesterday" becomes "10 Sep 2026"). Fix typos here, not in raw_text. Omit '
+            "claim and kind to send raw_text alone to the inbox, to be structured later."
         ),
-    ],
+    ] = None,
     kind: Annotated[
-        Literal["memory", "thought", "decision", "reminder"],
+        Literal["memory", "thought", "decision", "reminder"] | None,
         Field(
             description="memory: something that happened or a state, like a symptom, sleep or "
             "activity. thought: an idea or opinion. decision: a choice made. reminder: something "
             "to act on, needs due_at."
         ),
-    ],
+    ] = None,
     tags: Annotated[
         list[str] | None,
         Field(
@@ -387,6 +435,29 @@ async def remember(
 ) -> dict[str, Any]:
     def call():
         client = _client(Scope.WRITE)
+        derived = {
+            "claim": claim, "kind": kind, "tags": tags, "happened_at": happened_at,
+            "happened_precision": happened_precision, "due_at": due_at, "supersedes": supersedes,
+            "supersede_reason": supersede_reason, "valid_until": valid_until, "capture": capture,
+        }  # fmt: skip
+        derived = {k: v for k, v in derived.items() if v}
+        if client.mode == ClientMode.INBOX or not derived:
+            # 0013: inbox-mode clients always, and anyone sending raw_text alone.
+            return _inbox_receipt(
+                services.capture_text(
+                    client.owner,
+                    raw_text=raw_text,
+                    client_name=client.name,
+                    model_name=model_name or "",
+                    fields=derived,
+                )
+            )
+        if not (claim and kind):
+            raise ValidationError(
+                "Send claim and kind together, or raw_text alone to keep the words in the inbox."
+            )
+        if len(claim) > 280:
+            raise ValidationError(f"claim is {len(claim)} characters; keep it to 280 or fewer.")
         when, date_only = _when(happened_at, "happened_at")
         precision = happened_precision or ""
         if when and not precision:
@@ -411,7 +482,7 @@ async def remember(
         )
         return _receipt(entry)
 
-    return await _run(call)
+    return await _run(call, way_out=INBOX_WAY_OUT)
 
 
 @mcp.tool(description=SAVE_DIGEST, annotations=WRITE)

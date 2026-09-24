@@ -38,7 +38,7 @@ Field guidance lives in each parameter's schema description, so it survives desc
 | Field | Type | Required | Schema description |
 |---|---|---|---|
 | `raw_text` | string | yes | The user's own words for this one observation, copied exactly, typos included. Never paraphrase. |
-| `claim` | string, ≤280 | yes, unless sending `raw_text` alone to the inbox | One standalone sentence with names and real dates ("yesterday" becomes "10 Sep 2026"). Fix typos here, not in raw_text. |
+| `claim` | string, ≤280 | yes, unless sending `raw_text` alone to the inbox | One standalone sentence, at most 280 characters, with names and real dates ("yesterday" becomes "10 Sep 2026"). Fix typos here, not in raw_text. Omit claim and kind to send raw_text alone to the inbox, to be structured later. |
 | `kind` | `memory` \| `thought` \| `decision` \| `reminder` | yes, unless sending `raw_text` alone to the inbox | memory: something that happened or a state, like a symptom, sleep or activity. thought: an idea or opinion. decision: a choice made. reminder: something to act on, needs due_at. |
 | `tags` | string[] | no | 2 to 6, reusing tags from list_tags. Prefix people person:, projects project:, places place:, organisations org:. |
 | `happened_at` | ISO 8601 | no | When it happened, not now. "This morning" is today. Omit if unknown; never guess. |
@@ -60,7 +60,20 @@ The result carries the receipt and the undo path, which every client passes back
 }
 ```
 
-If the same observation arrives twice (same words, kind and day), the server returns the existing entry with `"duplicate": true` instead of storing it again.
+If the same observation arrives twice (same words, kind and day), the server returns the existing entry with `"duplicate": true` instead of storing it again. A new tag that is one edit from an existing tag, or its plural, is saved and reported in `"warnings"`.
+
+Sent with `raw_text` alone, or from a client in `inbox` mode, the words are kept as a chat capture in the inbox, and the result says so instead of listing saved entries:
+
+```json
+{
+  "saved": [],
+  "inbox": {"id": "0192…", "text": "Knee feels odd after the run"},
+  "duplicate": false,
+  "say": "Tell the user in one line that their words are kept in Memento's inbox…"
+}
+```
+
+Every result from every tool also carries `now`: the current time in the user's time zone.
 
 ## save_digest
 
@@ -107,9 +120,9 @@ Parameters: `since`, `until`, `bucket` (`week` \| `month` \| `quarter`), `tag_pr
 
 ## inbox
 
-> List voice notes waiting to be turned into entries, oldest first. Each has the transcript, when it was recorded, Pocket's own summary as a hint, and any entries already created from it. The result also lists the user's most recent current entries, so you can update one instead of duplicating it.
+> List notes waiting to be turned into entries, oldest first: voice notes from Pocket, and words saved with `raw_text` alone. Each has the transcript, when it was recorded, any hints (Pocket's summary, or the fields the saving client suggested), and any entries already created from it. The result also lists the user's most recent current entries, so you can update one instead of duplicating it.
 >
-> For each note: split it into separate entries (one per memory, thought, decision or reminder), each with an exact excerpt as `raw_text` and `capture` set. Don't recreate entries that already exist; if one's claim is wrong, supersede it. Treat Pocket's summary as another model's reading: useful for orientation, never a source of facts. Then call `close_capture`.
+> For each note: split it into separate entries (one per memory, thought, decision or reminder), each with an exact excerpt as `raw_text` and `capture` set. Don't recreate entries that already exist; if one's claim is wrong, supersede it. Treat hints as another model's reading: useful for orientation, never a source of facts. Then call `close_capture`.
 >
 > Transcription errors are common with names. If you're unsure what a word was, ask the user rather than guessing.
 

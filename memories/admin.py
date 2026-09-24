@@ -5,7 +5,7 @@ must go through services.forget(), which cascades and leaves a tombstone.
 
 from django.contrib import admin
 
-from .models import Capture, Client, Entry, IngestLog, PocketLink, Tombstone
+from .models import Capture, Client, Entry, IngestLog, PocketLink, Profile, Tombstone
 
 
 class NoDeleteAdmin(admin.ModelAdmin):
@@ -62,7 +62,7 @@ class CaptureAdmin(NoDeleteAdmin):
 
 @admin.register(PocketLink)
 class PocketLinkAdmin(admin.ModelAdmin):
-    list_display = ("owner", "pocket_user_id", "speaker_label", "timezone")
+    list_display = ("owner", "pocket_user_id", "speaker_label")
 
 
 @admin.register(IngestLog)
@@ -86,3 +86,8 @@ class ClientAdmin(NoDeleteAdmin):
 
     def has_add_permission(self, request):
         return False
+
+
+@admin.register(Profile)
+class ProfileAdmin(NoDeleteAdmin):
+    list_display = ("owner", "timezone")

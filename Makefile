@@ -15,7 +15,7 @@ migrate:      ## Apply migrations
 	uv run python manage.py migrate
 
 run:          ## Development server on http://localhost:8000, with /mcp (ASGI, reloads on change)
-	uv run uvicorn config.asgi:application --reload --port 8000
+	uv run uvicorn config.asgi:application --reload --port 8000 --timeout-graceful-shutdown 3
 
 serve:        ## ASGI, exactly as Render runs it. Needs collectstatic first.
 	uv run gunicorn config.asgi:application \

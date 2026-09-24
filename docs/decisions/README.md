@@ -20,3 +20,4 @@ Short records of decisions that shape behaviour: context, decision, consequences
 | [0014](0014-what-you-said.md) | Memento records what you said, not everything that happened |
 | [0015](0015-ignore-pocket-action-items.md) | Pocket's action items are ignored |
 | [0016](0016-mcp-transport-and-clients.md) | The MCP endpoint: stateless HTTP beside Django, one token per client |
+| [0017](0017-contract-choices.md) | How the contract is enforced |

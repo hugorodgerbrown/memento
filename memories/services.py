@@ -9,11 +9,12 @@ import re
 import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.core import signing
 from django.core.exceptions import ValidationError
-from django.db import connection, transaction
+from django.db import IntegrityError, connection, transaction
 from django.db.models import Q
 from django.utils import timezone
 
@@ -25,6 +26,7 @@ from .models import (
     ClientMode,
     Entry,
     Kind,
+    Profile,
     Scope,
     SupersedeReason,
     Tombstone,
@@ -70,6 +72,93 @@ def _squash(text: str) -> str:
     return " ".join(text.split())
 
 
+# --- time: the server is the arbiter (0013) ---------------------------------
+
+
+def user_timezone(owner) -> ZoneInfo:
+    name = Profile.objects.filter(owner=owner).values_list("timezone", flat=True).first()
+    return ZoneInfo(name or "UTC")
+
+
+def local_now(owner) -> datetime:
+    return timezone.localtime(timezone.now(), user_timezone(owner))
+
+
+def today_is(owner) -> str:
+    """What every time error tells the model, e.g. Today is Friday 25 Sep 2026 (Europe/London)."""
+    now = local_now(owner)
+    return f"Today is {now:%A} {now.day} {now:%b %Y} ({now.tzinfo})."
+
+
+RELATIVE_TIME = re.compile(
+    r"\b(today|tonight|yesterday|tomorrow|recently|"
+    r"this (?:morning|afternoon|evening|week|weekend|month|year)|"
+    r"last (?:night|week|weekend|month|year)|next (?:week|weekend|month|year)|"
+    r"(?:a|one|two|three|four|five|six|several|few|\d+) (?:days?|weeks?|months?|years?) ago)\b",
+    re.IGNORECASE,
+)
+FUTURE_TOLERANCE = timedelta(minutes=5)
+
+
+def _check_time(
+    owner, kind: str, claim: str, happened_at: datetime | None, supersede_reason: str
+) -> None:
+    found = RELATIVE_TIME.search(claim)
+    if found:
+        raise ValidationError(
+            f'claim says "{found.group(0)}", which will mean nothing later. Write the date '
+            f"instead. {today_is(owner)}"
+        )
+    # A scheduled change ("moving to Porto in December") may be dated ahead: 0009 shows
+    # both entries until it happens. Any other memory dated in the future is a mistake.
+    future = happened_at and happened_at > timezone.now() + FUTURE_TOLERANCE
+    if kind == Kind.MEMORY and future and supersede_reason != SupersedeReason.CHANGE:
+        raise ValidationError(
+            "A memory is something that has happened, but happened_at is in the future. "
+            f"{today_is(owner)} For something planned, use kind thought or reminder."
+        )
+
+
+# --- tags ------------------------------------------------------------------
+
+
+def _one_edit_apart(a: str, b: str) -> bool:
+    if abs(len(a) - len(b)) > 1 or a == b:
+        return False
+    if len(a) == len(b):
+        return sum(x != y for x, y in zip(a, b, strict=True)) == 1
+    short, long_ = sorted((a, b), key=len)
+    return any(long_[:i] + long_[i + 1 :] == short for i in range(len(long_)))
+
+
+def _plural_pair(a: str, b: str) -> bool:
+    return any(a + end == b or b + end == a for end in ("s", "es"))
+
+
+def tag_warnings(owner, tags: list[str]) -> list[str]:
+    """
+    New tags that look like existing ones: one edit apart, or singular and plural.
+    A warning, not a rejection: "run" and "rum" can both be right.
+    """
+    existing = {tag for tag, _ in list_tags(owner)}
+    warnings = []
+    for tag in tags:
+        if tag in existing:
+            continue
+        near = sorted(
+            old
+            for old in existing
+            if _plural_pair(tag, old)
+            or (min(len(tag), len(old)) >= 4 and _one_edit_apart(tag, old))
+        )
+        if near:
+            warnings.append(
+                f'New tag "{tag}" looks like existing {", ".join(repr(n) for n in near)}. '
+                "If they mean the same, use the existing tag from now on."
+            )
+    return warnings
+
+
 def is_excerpt(raw_text: str, capture: Capture) -> bool:
     """Exact words, whitespace-insensitive, from the transcript or any later revision."""
     needle = _squash(raw_text)
@@ -107,6 +196,7 @@ def remember(
         raise ValidationError("A digest must cite the entries it was built from.")
     if kind != Kind.DIGEST and sources:
         raise ValidationError("Only digests cite sources.")
+    _check_time(owner, kind, claim, happened_at, supersede_reason)
     if kind == Kind.REMINDER and not due_at:
         raise ValidationError("A reminder needs due_at: when to remind the user.")
     if kind != Kind.REMINDER and due_at:
@@ -150,14 +240,17 @@ def remember(
         duplicate = _find_duplicate(owner, kind, raw_text, happened_at, source_capture)
         if duplicate:
             duplicate.was_duplicate = True
+            duplicate.warnings = []
             return duplicate
 
+    tags = normalise_tags(tags or [])
+    warnings = tag_warnings(owner, tags)
     entry = Entry(
         owner=owner,
         kind=kind,
         raw_text=raw_text,
         claim=claim.strip(),
-        tags=normalise_tags(tags or []),
+        tags=tags,
         happened_at=happened_at,
         happened_precision=happened_precision,
         due_at=due_at,
@@ -174,6 +267,7 @@ def remember(
     entry.full_clean(exclude=["search"])
     entry.save()
     entry.was_duplicate = False
+    entry.warnings = warnings
 
     if sources:
         cited = _owned(owner, sources)
@@ -379,6 +473,43 @@ def inbox(owner, *, limit: int = 10):
     )
 
 
+def capture_text(
+    owner, *, raw_text: str, client_name: str, model_name: str = "", fields: dict | None = None
+) -> Capture:
+    """
+    The inbox fallback (0013): the user's words kept whole, for a client or the
+    distiller to structure later. Used when a client sends raw_text alone, and
+    always for clients in inbox mode, whose derived fields become hints.
+
+    The same words on the same day (in the user's time zone) are one capture:
+    the external id is derived from them, so a retry hits the unique constraint.
+    """
+    if not raw_text.strip():
+        raise ValidationError("raw_text is required: the user's own words, verbatim.")
+    day = local_now(owner).date().isoformat()
+    digest = hashlib.sha256(_squash(raw_text).casefold().encode()).hexdigest()[:32]
+    external_id = f"{day}:{digest}"
+    hints = {"client": client_name, "model": model_name}
+    if fields:
+        hints["fields"] = fields
+    try:
+        with transaction.atomic():
+            capture = Capture.objects.create(
+                owner=owner,
+                source="chat",
+                external_id=external_id,
+                segments=[{"text": raw_text}],
+                text=raw_text,
+                captured_at=timezone.now(),
+                hints=hints,
+            )
+        capture.was_duplicate = False
+    except IntegrityError:
+        capture = Capture.objects.get(owner=owner, source="chat", external_id=external_id)
+        capture.was_duplicate = True
+    return capture
+
+
 INBOX_CONTEXT_LIMIT = 25
 
 
@@ -478,8 +609,13 @@ UNDO_WINDOW = timedelta(minutes=15)
 def is_simple_undo(plan: ForgetPlan) -> bool:
     """
     "Don't log that", straight after a save, may skip the preview: one entry,
-    recorded moments ago, from no voice note, that nothing cites or supersedes.
+    recorded moments ago, from no voice note, that nothing cites or supersedes;
+    or one note saved to the inbox moments ago with raw_text alone, and nothing
+    made from it yet.
     """
+    if not plan.entries and len(plan.captures) == 1:
+        (capture,) = plan.captures
+        return capture.source == "chat" and capture.received_at >= timezone.now() - UNDO_WINDOW
     if len(plan.entries) != 1 or plan.captures:
         return False
     (entry,) = plan.entries
