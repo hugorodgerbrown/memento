@@ -464,13 +464,16 @@ def due_reminders(now: datetime | None = None):
 # --- inbox ---------------------------------------------------------------
 
 
-def inbox(owner, *, limit: int = 10):
-    """Voice notes waiting to be distilled, oldest first, with what already came of them."""
-    return (
-        Capture.objects.filter(owner=owner, status=CaptureStatus.INBOX)
-        .prefetch_related("entries")
-        .order_by("captured_at")[: min(limit, 50)]
-    )
+def inbox(owner, *, limit: int = 10, received_since: datetime | None = None):
+    """
+    Voice notes waiting to be distilled, oldest first, with what already came of them.
+    `received_since` narrows it to recent arrivals, so notes the distiller leaves for
+    the user never crowd out new ones (0019).
+    """
+    qs = Capture.objects.filter(owner=owner, status=CaptureStatus.INBOX)
+    if received_since:
+        qs = qs.filter(received_at__gte=received_since)
+    return qs.prefetch_related("entries").order_by("captured_at")[: min(limit, 50)]
 
 
 def capture_text(

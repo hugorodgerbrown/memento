@@ -91,6 +91,21 @@ uv run python manage.py dbshell
 Widening the allow list is a deliberate act. The brief is explicit that the
 operator can read the data; that is not a reason to let anyone else try.
 
+## The distiller (M7)
+
+`memento-distiller` is a Render cron job, every 15 minutes, that turns the inbox into entries (ADR 0019). It is a separate client: it has its own environment (`distiller/`), its own token, and the model provider's key, none of which the web service has. After the web service is up:
+
+1. On the web service's **Shell** tab, create the distiller's token. The default scopes are read and write; it never gets forget.
+
+   ```bash
+   uv run python manage.py create_client <your username> distiller
+   ```
+
+2. In the cron job's **Environment**, set `MEMENTO_URL` to `https://memento-staging.onrender.com/mcp`, and set `MEMENTO_TOKEN` and `ANTHROPIC_API_KEY`. `DISTILLER_MODEL` is `claude-sonnet-5` in the blueprint.
+3. Trigger a run from the dashboard and read its log. There is one line per note (processed, dismissed or left, and why), with token counts.
+
+After an outage, run it once by hand over the missed period: `uv run python distil.py --since 2026-09-24T06:00:00+01:00`.
+
 ## Known log noise
 
 WhiteNoise serves static files through a synchronous iterator, so Django logs

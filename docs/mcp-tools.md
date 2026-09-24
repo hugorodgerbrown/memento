@@ -126,6 +126,8 @@ Parameters: `since`, `until`, `bucket` (`week` \| `month` \| `quarter`), `tag_pr
 >
 > Transcription errors are common with names. If you're unsure what a word was, ask the user rather than guessing.
 
+Parameters: `limit` (default 10, max 50), `received_since` (only notes that reached Memento at or after this time; 0019). Each note carries `captured_at` (when it was said) and `received_at` (when it arrived). `waiting` always counts the whole inbox.
+
 ## close_capture
 
 > Mark a voice note as `processed` once you've saved its entries, or `dismissed` if nothing in it is worth keeping. Its transcript stays stored either way.

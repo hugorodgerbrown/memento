@@ -307,6 +307,24 @@ class InboxTests(MCPTestCase):
         self.assertEqual([e["id"] for e in result["current_entries"]], [existing])
         self.assertEqual(result["current_entries_held_back"], 0)
 
+    def test_inbox_can_look_only_at_recent_arrivals(self):
+        """0019: notes left for the user must not hide new ones from the distiller."""
+        Capture.objects.filter(pk=self.capture.pk).update(
+            received_at=datetime(2026, 9, 15, 9, 30, tzinfo=UTC)
+        )
+        recent = Capture.objects.create(
+            owner=self.me,
+            external_id="rec_2",
+            segments=[{"speaker": "Sam", "text": "Slept well."}],
+            text="Slept well.",
+            captured_at=datetime(2026, 9, 1, 8, 0, tzinfo=UTC),  # recorded long before
+        )
+        result = self.ok("inbox", received_since="2026-09-20T00:00:00+00:00")
+        self.assertEqual([c["id"] for c in result["captures"]], [str(recent.pk)])
+        self.assertEqual(result["waiting"], 2)  # the count is still the whole inbox
+        self.assertTrue(result["captures"][0]["received_at"])
+        self.assertEqual(len(self.ok("inbox")["captures"]), 2)
+
     def test_distil_and_close(self):
         self.ok(
             "remember",
