@@ -25,6 +25,7 @@ Each principle is enforced in code and covered by tests. If a task seems to need
 | `memories/models.py` | `Entry`, `Citation`, `Capture`, `PocketLink`, `IngestLog`, `Tombstone`. Constraints live here. |
 | `memories/services.py` | All behaviour. MCP tools and views must be thin wrappers around these functions. |
 | `memories/pocket.py` | Pocket webhook: signature check, solo-voice rule. Action items are ignored (0015). |
+| `memories/mcp_server.py` | The nine MCP tools, bearer auth and the `/mcp` app. Descriptions must match `docs/mcp-tools.md`. |
 | `memories/views.py` | `/ingest/pocket/`, `/healthz`. |
 | `memories/tests/` | One file per area; tests are named for the principle or decision they protect. |
 | `docs/decisions/` | Architecture decision records. Add one for any decision that changes behaviour. |
@@ -42,7 +43,8 @@ make db        # local Postgres 16 via Docker
 make migrate
 make test      # full suite (needs Postgres; SQLite is not supported)
 make check     # everything CI runs: lint, format, migrations check, tests
-make run       # development server
+make run       # development server, with /mcp (uvicorn, reloads)
+make client USER=hugo NAME=claude-code   # MCP client + bearer token, shown once
 make serve     # ASGI, exactly as Render runs it (collectstatic first)
 ```
 
@@ -62,7 +64,7 @@ Copy `.env.example` to `.env` first. Python 3.14 (for `uuid.uuid7`), Django 6.1,
 
 ## Status
 
-Phases 1 to 3 (interrogate, define, model) are done: the data model, services, Pocket ingest and tool spec, with 52 tests passing. The MCP server, auth and deployment are not built yet. Phase 4 (designing the morning email and web timeline) hasn't started; the build plan says where it slots in. Cross-model consistency (0013: contract, skill, inbox fallback, distiller) is planned across M3, M6 and M7.
+Phases 1 to 3 (interrogate, define, model) are done: the data model, services, Pocket ingest and tool spec. M2 is built: the MCP server at `/mcp` with per-client bearer tokens (0016). Staging (M1) is described but not yet applied, and OAuth is M8. Phase 4 (designing the morning email and web timeline) hasn't started; the build plan says where it slots in. Cross-model consistency (0013: contract, skill, inbox fallback, distiller) is planned across M3, M6 and M7.
 
 ## Verify before relying on these
 

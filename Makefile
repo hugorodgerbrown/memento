@@ -2,7 +2,7 @@
 include $(wildcard .env)
 export
 
-.PHONY: setup db migrate run serve test lint fmt check superuser
+.PHONY: setup db migrate run serve test lint fmt check superuser client
 
 setup:        ## Install dependencies and git hooks
 	uv sync
@@ -14,8 +14,8 @@ db:           ## Start local Postgres and wait until it's ready
 migrate:      ## Apply migrations
 	uv run python manage.py migrate
 
-run:          ## Development server on http://localhost:8000
-	uv run python manage.py runserver
+run:          ## Development server on http://localhost:8000, with /mcp (ASGI, reloads on change)
+	uv run uvicorn config.asgi:application --reload --port 8000
 
 serve:        ## ASGI, exactly as Render runs it. Needs collectstatic first.
 	uv run gunicorn config.asgi:application \
@@ -39,3 +39,6 @@ check: lint   ## Everything CI runs
 
 superuser:    ## Create an admin user
 	uv run python manage.py createsuperuser
+
+client:       ## Create an MCP client: make client USER=hugo NAME=claude-code [SCOPES=...]
+	uv run python manage.py create_client $(USER) $(NAME) $(if $(SCOPES),--scopes $(SCOPES))

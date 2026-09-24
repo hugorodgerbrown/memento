@@ -28,6 +28,8 @@ Render, create the superuser, and confirm the deployed health check and admin.
 
 **Done when:** contract tests call every tool through the MCP layer; a test fails if `remember`'s description exceeds 500 characters; Claude Code can log and recall against staging.
 
+Built (0016): `/mcp` serves the nine tools, stateless, with per-client bearer tokens from `manage.py create_client`. Contract tests cover every tool in-process and over HTTP, and a test compares each description with `docs/mcp-tools.md`. Outstanding: Claude Code against staging, which needs M1's deploy.
+
 ## M3. The contract (0013, part 1)
 
 - Move the time zone from `PocketLink` to a per-user profile, with a data migration.

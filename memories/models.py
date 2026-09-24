@@ -320,3 +320,47 @@ class Tombstone(models.Model):
 
     def __str__(self):
         return f"{self.object_type} {self.object_id} forgotten {self.forgotten_at:%Y-%m-%d}"
+
+
+class Scope(models.TextChoices):
+    READ = "memento:read", "Read entries and the inbox"
+    WRITE = "memento:write", "Save entries and close captures"
+    FORGET = "memento:forget", "Permanently delete"
+
+
+class ClientMode(models.TextChoices):
+    DIRECT = "direct", "Direct: the client structures its own entries"
+    INBOX = "inbox", "Inbox: every save goes to the inbox for the distiller (M3)"
+
+
+def default_scopes() -> list[str]:
+    return [Scope.READ, Scope.WRITE]
+
+
+class Client(models.Model):
+    """
+    An MCP client allowed to reach one owner's memory: Claude Code, the
+    distiller, and later OAuth clients (M8). Its name is what provenance records
+    as client_name. Only a hash of the bearer token is stored; the token itself
+    is shown once, when the client is created.
+    """
+
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="clients"
+    )
+    name = models.CharField(max_length=64)
+    token_hash = models.CharField(max_length=64, unique=True, editable=False)
+    token_prefix = models.CharField(max_length=12, editable=False)  # to recognise a token
+    scopes = ArrayField(models.CharField(max_length=32, choices=Scope), default=default_scopes)
+    mode = models.CharField(max_length=8, choices=ClientMode, default=ClientMode.DIRECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_used_at = models.DateTimeField(null=True, blank=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["owner", "name"], name="unique_client_name"),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.owner})"

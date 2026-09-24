@@ -4,17 +4,31 @@ these functions. Nothing here generates text: it validates, stores, searches,
 counts, schedules and deletes.
 """
 
+import hashlib
 import re
+import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from django.contrib.postgres.search import SearchQuery, SearchRank
+from django.core import signing
 from django.core.exceptions import ValidationError
 from django.db import connection, transaction
 from django.db.models import Q
 from django.utils import timezone
 
-from .models import Capture, CaptureStatus, Citation, Entry, Kind, SupersedeReason, Tombstone
+from .models import (
+    Capture,
+    CaptureStatus,
+    Citation,
+    Client,
+    ClientMode,
+    Entry,
+    Kind,
+    Scope,
+    SupersedeReason,
+    Tombstone,
+)
 
 # "hiring", "person:alice", "project:memento", "place:lisbon"
 TAG_RE = re.compile(r"^(?:(person|project|place|org):)?[a-z0-9][a-z0-9-]{0,47}$")
@@ -93,6 +107,10 @@ def remember(
         raise ValidationError("A digest must cite the entries it was built from.")
     if kind != Kind.DIGEST and sources:
         raise ValidationError("Only digests cite sources.")
+    if kind == Kind.REMINDER and not due_at:
+        raise ValidationError("A reminder needs due_at: when to remind the user.")
+    if kind != Kind.REMINDER and due_at:
+        raise ValidationError("Only reminders have due_at. Leave it out, or use kind reminder.")
 
     source_capture = None
     if capture:
@@ -361,6 +379,20 @@ def inbox(owner, *, limit: int = 10):
     )
 
 
+INBOX_CONTEXT_LIMIT = 25
+
+
+def inbox_context(owner, *, limit: int = INBOX_CONTEXT_LIMIT) -> tuple[list[Entry], int]:
+    """
+    The owner's most recent current entries, handed over with the inbox so a
+    client can supersede an existing entry instead of duplicating it (0014).
+    Bounded, and it says how many it held back.
+    """
+    qs = visible(owner).exclude(kind=Kind.DIGEST).order_by("-recorded_at")
+    shown = list(qs.prefetch_related("citations")[:limit])
+    return shown, max(qs.count() - len(shown), 0)
+
+
 def inbox_count(owner) -> int:
     return Capture.objects.filter(owner=owner, status=CaptureStatus.INBOX).count()
 
@@ -487,6 +519,35 @@ def forget(
     return plan
 
 
+FORGET_TOKEN_SALT = "memento.forget"
+FORGET_TOKEN_MAX_AGE = timedelta(hours=1)
+
+
+def _plan_ids(owner, plan: ForgetPlan) -> dict:
+    return {
+        "owner": owner.pk,
+        "entries": sorted(str(e.pk) for e in plan.entries),
+        "captures": sorted(str(c.pk) for c in plan.captures),
+    }
+
+
+def forget_token(owner, plan: ForgetPlan) -> str:
+    """
+    Proof that this exact plan was previewed. A confirm must carry it, so what is
+    deleted is what the user was shown: if anything joins the plan in between,
+    such as a new digest citing the entry, the token no longer matches.
+    """
+    return signing.dumps(_plan_ids(owner, plan), salt=FORGET_TOKEN_SALT)
+
+
+def forget_token_matches(owner, plan: ForgetPlan, token: str) -> bool:
+    try:
+        signed = signing.loads(token, salt=FORGET_TOKEN_SALT, max_age=FORGET_TOKEN_MAX_AGE)
+    except signing.BadSignature:
+        return False
+    return signed == _plan_ids(owner, plan)
+
+
 def forgotten(owner, ids: list[str]) -> dict:
     """Which of these ids were deliberately forgotten, and when."""
     return dict(
@@ -498,3 +559,62 @@ def forgotten(owner, ids: list[str]) -> dict:
 
 def is_forgotten_ref(owner, external_ref: str) -> bool:
     return Tombstone.objects.filter(owner=owner, external_ref=external_ref).exists()
+
+
+# --- clients ---------------------------------------------------------------
+
+TOKEN_PREFIX = "mem_"
+LAST_USED_RESOLUTION = timedelta(minutes=5)
+
+
+def _token_hash(token: str) -> str:
+    # The token is 256 random bits, so a fast hash is enough: there is nothing to brute-force.
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def create_client(
+    owner, name: str, *, scopes: list[str] | None = None, mode: str = ClientMode.DIRECT
+) -> tuple[Client, str]:
+    """A new client and its bearer token. The token is returned once and never stored."""
+    scopes = sorted(set(scopes or [Scope.READ, Scope.WRITE]))
+    unknown = set(scopes) - set(Scope.values)
+    if unknown:
+        raise ValidationError(f"Unknown scopes {sorted(unknown)}. Use {', '.join(Scope.values)}.")
+    if mode not in ClientMode.values:
+        raise ValidationError("mode must be direct or inbox.")
+    token = TOKEN_PREFIX + secrets.token_urlsafe(32)
+    client = Client(
+        owner=owner,
+        name=name.strip(),
+        token_hash=_token_hash(token),
+        token_prefix=token[:12],
+        scopes=scopes,
+        mode=mode,
+    )
+    client.full_clean()
+    client.save()
+    return client, token
+
+
+def authenticate(token: str) -> Client | None:
+    """The live client this bearer token belongs to, or None."""
+    if not token.startswith(TOKEN_PREFIX):
+        return None
+    client = (
+        Client.objects.select_related("owner")
+        .filter(token_hash=_token_hash(token), revoked_at__isnull=True, owner__is_active=True)
+        .first()
+    )
+    if client is None:
+        return None
+    now = timezone.now()
+    if client.last_used_at is None or now - client.last_used_at > LAST_USED_RESOLUTION:
+        client.last_used_at = now
+        client.save(update_fields=["last_used_at"])
+    return client
+
+
+def revoke_client(client: Client) -> Client:
+    client.revoked_at = client.revoked_at or timezone.now()
+    client.save(update_fields=["revoked_at"])
+    return client
