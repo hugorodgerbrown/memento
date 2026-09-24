@@ -40,8 +40,10 @@ check: lint   ## Everything CI runs
 superuser:    ## Create an admin user
 	uv run python manage.py createsuperuser
 
-eval:         ## Capture evals against Claude Code, on a separate database: make eval [RUNS=3] [CASE=id]
-	uv run python evals/capture.py --runs $(or $(RUNS),3) $(if $(CASE),--case $(CASE))
+eval:         ## Capture evals against Claude Code, on a separate database: make eval [RUNS=3] [CASE=id] [SKILL=1] [MODEL=id]
+	uv run python evals/capture.py --runs $(or $(RUNS),3) $(if $(CASE),--case $(CASE)) \
+		$(if $(MODEL),--model $(MODEL)) \
+		$(if $(SKILL),--skill --label claude-code-skill)
 
 client:       ## Create an MCP client: make client USER=hugo NAME=claude-code [SCOPES=...]
 	uv run python manage.py create_client $(USER) $(NAME) $(if $(SCOPES),--scopes $(SCOPES))

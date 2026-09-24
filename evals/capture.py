@@ -6,11 +6,16 @@ It drives the server through its CLI (to create a throwaway user per run) and
 through MCP (to seed each case's context and to read back what was stored).
 
 Each case runs Claude Code headless, isolated from the operator's own setup: no
-settings, hooks, plugins, CLAUDE.md or skills, and only the Memento MCP server.
-The server is a separate instance on its own database, so evals never touch
-real entries.
+settings, hooks, plugins, CLAUDE.md or skills of theirs, and only the Memento MCP
+server. The server is a separate instance on its own database, so evals never
+touch real entries.
+
+With --skill, the Memento skill (skill/memento) is loaded as a plugin; without
+it, the run is the control. Everything else is identical, including Claude
+Code's own built-in skills, so a comparison between the two measures the skill.
 
     uv run python evals/capture.py --runs 3
+    uv run python evals/capture.py --runs 3 --skill --label claude-code-skill
 """
 
 import argparse
@@ -35,6 +40,7 @@ from mcp.client.streamable_http import streamable_http_client
 
 ROOT = Path(__file__).resolve().parents[1]
 CASES = ROOT / "docs" / "evals" / "capture-policy.json"
+SKILL = ROOT / "skill" / "memento"
 RESULTS = ROOT / "docs" / "evals" / "results"
 TZ = ZoneInfo("Europe/London")
 PORT = int(os.environ.get("EVAL_PORT", "8001"))
@@ -157,7 +163,16 @@ def seed(case: dict, tokens: dict) -> dict:
     return ids
 
 
-def run_claude(case: dict, tokens: dict, ids: dict) -> dict:
+def plugin(work: Path) -> Path:
+    """The skill wrapped as a local plugin, which is how --plugin-dir loads a skill."""
+    root = work / "plugin"
+    (root / ".claude-plugin").mkdir(parents=True)
+    (root / ".claude-plugin" / "plugin.json").write_text(json.dumps({"name": "memento"}))
+    shutil.copytree(SKILL, root / "skills" / "memento")
+    return root
+
+
+def run_claude(case: dict, tokens: dict, ids: dict, skill: bool, model: str | None) -> dict:
     work = Path(tempfile.mkdtemp(prefix="memento-eval-"))
     try:
         mcp_json = {
@@ -174,10 +189,14 @@ def run_claude(case: dict, tokens: dict, ids: dict) -> dict:
             "claude", "-p", case["message"],
             "--setting-sources", "",
             "--strict-mcp-config", "--mcp-config", "mcp.json",
-            "--disable-slash-commands", "--no-session-persistence",
+            "--no-session-persistence",
             "--allowedTools", "mcp__memento__*",
             "--output-format", "stream-json", "--verbose",
         ]  # fmt: skip
+        if model:
+            cmd += ["--model", model]
+        if skill:
+            cmd += ["--plugin-dir", str(plugin(work))]
         if case.get("conversation"):
             cmd += ["--append-system-prompt", case["conversation"].format(**ids)]
         if case.get("no_date"):
@@ -190,7 +209,7 @@ def run_claude(case: dict, tokens: dict, ids: dict) -> dict:
 
 
 def parse_stream(stdout: str) -> dict:
-    calls, pending, model, final = [], {}, "", ""
+    calls, pending, model, final, skills = [], {}, "", "", []
     for line in stdout.splitlines():
         try:
             event = json.loads(line)
@@ -199,6 +218,7 @@ def parse_stream(stdout: str) -> dict:
         kind = event.get("type")
         if kind == "system" and event.get("subtype") == "init":
             model = event.get("model", "")
+            skills = event.get("skills", [])
         elif kind == "assistant":
             for block in event["message"]["content"]:
                 if block.get("type") == "tool_use" and block["name"].startswith("mcp__memento__"):
@@ -215,7 +235,7 @@ def parse_stream(stdout: str) -> dict:
                     call["output"] = text if isinstance(text, str) else json.dumps(text)
         elif kind == "result":
             final = event.get("result", "")
-    return {"model": model, "calls": calls, "final": final}
+    return {"model": model, "calls": calls, "final": final, "skills": skills}
 
 
 def stored(tokens: dict, seeded: set[str]) -> dict:
@@ -348,15 +368,15 @@ def grade(case: dict, run: dict, state: dict, today: date) -> dict:
     }
 
 
-def run_one(case: dict, n: int, run_id: str) -> dict:
+def run_one(case: dict, n: int, run_id: str, skill: bool, model: str | None) -> dict:
     try:
-        return _run_one(case, n, run_id)
+        return _run_one(case, n, run_id, skill, model)
     except Exception as e:  # one broken run must not lose the others
         return {"case": case["id"], "run": n, "passed": False, "model": "", "calls": [],
                 "fails": [{"category": "harness", "detail": repr(e)}], "notes": []}  # fmt: skip
 
 
-def _run_one(case: dict, n: int, run_id: str) -> dict:
+def _run_one(case: dict, n: int, run_id: str, skill: bool, model: str | None) -> dict:
     if case.get("requires_local_time"):
         lo, hi = case["requires_local_time"]
         if not (lo <= datetime.now(TZ).strftime("%H:%M") < hi):
@@ -364,12 +384,12 @@ def _run_one(case: dict, n: int, run_id: str) -> dict:
     tokens = new_user(f"eval-{run_id}-{case['id']}-{n}")
     ids = seed(case, tokens)
     today = datetime.now(TZ).date()
-    run = run_claude(case, tokens, ids)
+    run = run_claude(case, tokens, ids, skill, model)
     state = stored(tokens, set(ids.values()))
     result = grade(case, run, state, today)
     return {"case": case["id"], "run": n, **result, "model": run["model"],
-            "seconds": run["seconds"], "calls": run["calls"], "final": run["final"],
-            "stored": state}  # fmt: skip
+            "seconds": run["seconds"], "skills": run["skills"], "calls": run["calls"],
+            "final": run["final"], "stored": state}  # fmt: skip
 
 
 # --- report --------------------------------------------------------------------------
@@ -416,6 +436,8 @@ def main():
     parser.add_argument("--runs", type=int, default=1)
     parser.add_argument("--case", action="append", help="Only these case ids.")
     parser.add_argument("--parallel", type=int, default=4)
+    parser.add_argument("--skill", action="store_true", help="Load skill/memento as a plugin.")
+    parser.add_argument("--model", help="Claude Code's --model. Pin it when comparing runs.")
     parser.add_argument("--label", default="claude-code-no-skill")
     parser.add_argument("--regrade", type=Path, help="Re-score a results file; no model calls.")
     args = parser.parse_args()
@@ -441,7 +463,9 @@ def main():
     try:
         jobs = [(c, n) for n in range(1, args.runs + 1) for c in cases]
         with ThreadPoolExecutor(args.parallel) as pool:
-            results = list(pool.map(lambda j: run_one(j[0], j[1], run_id), jobs))
+            results = list(
+                pool.map(lambda j: run_one(j[0], j[1], run_id, args.skill, args.model), jobs)
+            )
     finally:
         server.terminate()
     RESULTS.mkdir(parents=True, exist_ok=True)
