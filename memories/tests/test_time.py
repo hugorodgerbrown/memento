@@ -166,13 +166,3 @@ class Tombstones(TestCase):
         self.assertEqual(pocket.ingest(copy.deepcopy(SOLO)), "ignored")
         self.assertFalse(Capture.objects.exists())
         self.assertFalse(Entry.objects.exists())
-
-    def test_forgotten_reminder_is_not_recreated(self):
-        pocket.ingest(copy.deepcopy(SOLO))
-        reminder = Entry.objects.get(kind="reminder")
-        s.forget(self.me, str(reminder.pk))
-        again = copy.deepcopy(SOLO)
-        again["event"] = "action_items.updated"
-        pocket.ingest(again)
-        self.assertFalse(Entry.objects.filter(kind="reminder").exists())
-        self.assertEqual(Capture.objects.count(), 1)  # the note itself stays

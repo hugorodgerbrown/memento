@@ -42,7 +42,7 @@ Render, create the superuser, and confirm the deployed health check and admin.
 ## M4. Pocket live on staging
 
 - Point a personal Pocket webhook at staging `/ingest/pocket/`.
-- Record real deliveries (with personal content redacted) as test fixtures: a solo note with a dated reminder, a conversation, a transcript edit, a label change, a deletion.
+- Record real deliveries (with personal content redacted) as test fixtures: a solo note, a conversation, a transcript edit, a label change, a deletion.
 - Resolve every Pocket item under "Verify before relying" in `CLAUDE.md`, and update `pocket.py` and its tests to match reality.
 - Decide push versus pull now that Pocket ships an MCP server with a recency mode (`docs/first-recordings.md`). Push stays the plan unless the unknowns above bite.
 

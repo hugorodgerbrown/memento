@@ -154,76 +154,17 @@ class PocketIngestTests(TestCase):
         pocket.ingest(payload())
         self.assertEqual(pocket.ingest(payload()), "duplicate")
         self.assertEqual(Capture.objects.count(), 1)
-        self.assertEqual(Entry.objects.filter(kind="reminder").count(), 1)
 
-    # Reminders at once, without breaking "raw is sacred"
-    def test_dated_action_item_becomes_reminder_with_your_words_as_raw(self):
+    # Action items are Pocket's to-do list, not memories (0015)
+    def test_action_items_are_ignored(self):
         pocket.ingest(payload())
-        r = Entry.objects.get(kind="reminder")
-        self.assertEqual(r.claim, "Renew memento.app domain")
-        self.assertIn("remind me to renew the memento dot app domain", r.raw_text)
-        self.assertEqual((r.client_name, r.model_name), ("pocket", "gpt5"))
-        self.assertEqual(r.due_at, datetime(2026, 9, 19, 23, 0, tzinfo=UTC))  # BST midnight
-        self.assertEqual(r.capture.external_id, "rec_1")
+        self.assertFalse(Entry.objects.exists())
+        self.assertNotIn("action_items", Capture.objects.get().hints)
 
-    def test_undated_action_item_stays_a_hint(self):
+    def test_action_item_events_store_nothing(self):
         pocket.ingest(payload())
-        self.assertFalse(Entry.objects.filter(claim="Think about pricing").exists())
-
-    def test_ticking_off_in_pocket_completes_the_reminder(self):
-        pocket.ingest(payload())
-        ticked = payload(event="action_items.updated")
-        ticked["summarizations"]["sum_1"]["v2"]["actionItems"]["actionItems"][0]["isCompleted"] = (
-            True
-        )
-        self.assertEqual(pocket.ingest(ticked), "updated")
-        self.assertIsNotNone(Entry.objects.get(kind="reminder").completed_at)
-
-    def test_ticking_off_completes_the_version_that_stands(self):
-        """A client sharpens Pocket's claim; external_ref stays on the row it replaced."""
-        pocket.ingest(payload())
-        theirs = Entry.objects.get(kind="reminder")
-        mine = s.remember(
-            self.me,
-            client_name="claude",
-            kind="reminder",
-            raw_text="remind me to renew the memento dot app domain",
-            claim="Renew the memento.app domain before it lapses.",
-            due_at=theirs.due_at,
-            capture=str(theirs.capture_id),
-            supersedes=str(theirs.pk),
-            supersede_reason="correction",
-        )
-        self.assertEqual(pocket.ingest(self._ticked()), "updated")
-        mine.refresh_from_db()
-        theirs.refresh_from_db()
-        self.assertIsNotNone(mine.completed_at)  # the one that would have kept firing
-        self.assertIsNone(theirs.completed_at)  # the replaced row is left as it was
-
-    def test_ticking_off_a_reminder_replaced_by_a_memory_completes_nothing(self):
-        """ "I've done it" may arrive as a memory. Nothing to complete, and no crash."""
-        pocket.ingest(payload())
-        theirs = Entry.objects.get(kind="reminder")
-        s.remember(
-            self.me,
-            client_name="claude",
-            kind="memory",
-            raw_text="remind me to renew the memento dot app domain",
-            claim="Renewed the memento.app domain.",
-            capture=str(theirs.capture_id),
-            supersedes=str(theirs.pk),
-            supersede_reason="change",
-            happened_at=datetime(2026, 9, 12, 9, 0, tzinfo=UTC),
-            happened_precision="day",
-        )
-        self.assertEqual(pocket.ingest(self._ticked()), "updated")
-        theirs.refresh_from_db()
-        self.assertIsNone(theirs.completed_at)
-
-    def _ticked(self):
-        p = payload(event="action_items.updated")
-        p["summarizations"]["sum_1"]["v2"]["actionItems"]["actionItems"][0]["isCompleted"] = True
-        return p
+        self.assertEqual(pocket.ingest(payload(event="action_items.updated")), "ignored")
+        self.assertFalse(Entry.objects.exists())
 
     # Pocket deletion doesn't reach Memento
     def test_deleting_in_pocket_keeps_the_memory(self):
@@ -305,8 +246,9 @@ class DistillingTests(TestCase):
         self.distil("renew memento.app")
 
     def test_inbox_shows_what_already_came_of_a_note(self):
+        self.distil("we should hire slower next quarter")
         (c,) = s.inbox(self.me)
-        self.assertEqual([e.kind for e in c.entries.all()], ["reminder"])
+        self.assertEqual([e.kind for e in c.entries.all()], ["thought"])
         s.close_capture(self.me, str(c.pk), "processed")
         self.assertEqual(s.inbox_count(self.me), 0)
 
@@ -332,6 +274,6 @@ class DistillingTests(TestCase):
             covers_to=datetime(2026, 9, 30, tzinfo=UTC),
         )
         plan = s.forget(self.me, str(e.pk), scope="source")
-        self.assertEqual(len(plan.entries), 3)  # thought, Pocket reminder, digest
+        self.assertEqual(len(plan.entries), 2)  # thought, digest
         self.assertFalse(Capture.objects.exists())
         self.assertEqual(list(Entry.objects.values_list("pk", flat=True)), [other.pk])

@@ -1,6 +1,6 @@
 # 0007. Pocket's dated action items become reminders at once
 
-Status: accepted, September 2026
+Status: superseded by [0015](0015-ignore-pocket-action-items.md), September 2026
 
 ## Context
 
