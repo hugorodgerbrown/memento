@@ -25,7 +25,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from contextlib import nullcontext
-from datetime import datetime
+from datetime import UTC, datetime
 
 from django.db import IntegrityError, transaction
 from django.utils import timezone
@@ -246,7 +246,9 @@ class PocketAPI:
             with urllib.request.urlopen(request, timeout=self.timeout) as response:
                 return json.load(response)
         except urllib.error.HTTPError as e:
-            raise PocketAPIError(e.code, e.reason) from e
+            # Pocket's own words say which parameter it refused; keep them.
+            body = e.read().decode("utf-8", "replace").strip()[:300]
+            raise PocketAPIError(e.code, f"{e.reason}: {body}" if body else e.reason) from e
 
 
 def _unwrap(body: dict):
@@ -255,9 +257,12 @@ def _unwrap(body: dict):
 
 
 def _recording_ids(api, since: datetime):
+    # Pocket filters by the day, as YYYY-MM-DD, and answers 400 to a full time.
+    # The day is taken in UTC, which starts no later than `since`; repeats are silent.
+    start_date = since.astimezone(UTC).date().isoformat()
     page = 1
     while True:
-        body = api.get("/recordings", {"start_date": since.isoformat(), "page": page, "limit": 100})
+        body = api.get("/recordings", {"start_date": start_date, "page": page, "limit": 100})
         rows = _unwrap(body)
         if isinstance(rows, dict):
             rows = rows.get("recordings", [])
