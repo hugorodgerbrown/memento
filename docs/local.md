@@ -12,6 +12,8 @@ Claude Desktop ──mcp-remote──▶ 127.0.0.1:8000/mcp ──▶ Postgres (
 
 You need Docker Desktop (set to start at login), [uv](https://docs.astral.sh/uv/), and Node (for `npx`, which Claude Desktop uses to connect).
 
+If `make db` fails with **port is already allocated**, another Postgres is using 5432. Either stop it, or give Memento its own port. In `.env`, set `MEMENTO_DB_PORT=5433` and change `5432` to `5433` in `DATABASE_URL`, then run `make db migrate` again. `lsof -nP -iTCP:5432 -sTCP:LISTEN` shows what holds the port.
+
 Keep the repository outside `~/Documents`, `~/Desktop` and `~/Downloads`, for example in `~/Code/memento`. macOS blocks launchd jobs from those folders unless you grant Full Disk Access.
 
 ```bash
