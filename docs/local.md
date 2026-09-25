@@ -89,6 +89,8 @@ A scheduled job pulls your recordings from Pocket's API every 15 minutes (0021),
 
 1. In the Pocket app, create a key: **Settings > Developer > API Keys**. Put it in `.env` as `POCKET_API_KEY=pk_...`.
 2. In the admin, add a **Pocket link** for your user. The **speaker label** is your name as Pocket's voice print labels you (on your own recordings it shows your first name). The Pocket user id is only used by the webhook; any unique value will do for the pull.
+
+   Tick **One unnamed speaker is me**. Pocket's API labels speakers `SPEAKER_00`, not by name, so without it every recording is skipped (0022). Conversations, where two or more people speak, are still skipped.
 3. **Dry run first.** Pocket's API documentation couldn't be read while this was built, so check what it would do before storing anything:
 
    ```bash
