@@ -20,6 +20,7 @@ on one Mac that Pocket can't reach, a scheduled pull from Pocket's REST API
 import hashlib
 import hmac
 import json
+import re
 import time
 import urllib.error
 import urllib.parse
@@ -88,7 +89,10 @@ def _hints(payload: dict, summary: dict) -> dict:
     }
 
 
-def _solo_verdict(segments: list[dict], my_label: str) -> tuple[bool, str]:
+UNNAMED = re.compile(r"speaker[ _-]?\d+", re.IGNORECASE)  # Pocket's placeholder: SPEAKER_00
+
+
+def _solo_verdict(segments: list[dict], link: PocketLink) -> tuple[bool, str]:
     speakers = {(seg.get("speaker") or "").strip() for seg in segments}
     speakers.discard("")
     if not segments or not "".join(seg.get("text", "") for seg in segments).strip():
@@ -98,9 +102,13 @@ def _solo_verdict(segments: list[dict], my_label: str) -> tuple[bool, str]:
     if len(speakers) != 1:
         return False, f"{len(speakers)} speakers"
     (only,) = speakers
-    if only.casefold() != my_label.casefold():
-        return False, "single speaker not labelled as you yet"
-    return True, "solo, your voice"
+    if only.casefold() == link.speaker_label.casefold():
+        return True, "solo, your voice"
+    if UNNAMED.fullmatch(only):
+        if link.one_unnamed_speaker_is_me:
+            return True, "solo, one unnamed speaker (0022)"
+        return False, "one unnamed speaker; to keep these, tick 'one unnamed speaker is me'"
+    return False, "single speaker not labelled as you yet"
 
 
 def _log(event, external_id, decision, reason=""):
@@ -151,7 +159,7 @@ def ingest(payload: dict) -> str:
     if services.is_forgotten_ref(link.owner, f"pocket:{rec_id}"):
         return _log(event, rec_id, Decision.IGNORED, "forgotten in Memento; not re-stored")
 
-    solo, reason = _solo_verdict(segments, link.speaker_label)
+    solo, reason = _solo_verdict(segments, link)
     if not solo:
         return _log(event, rec_id, Decision.SKIPPED, reason)
 
@@ -203,7 +211,7 @@ def _append_revision(event, link, capture, segments, rec_id) -> str | None:
     voice (Principle 8): an edit or relabel can't bring someone else's words in.
     The refusal is logged once, without content.
     """
-    solo, reason = _solo_verdict(segments, link.speaker_label)
+    solo, reason = _solo_verdict(segments, link)
     if not solo:
         reason = f"revision not kept: {reason}"
         seen = IngestLog.objects.filter(
@@ -278,9 +286,10 @@ def _recording_ids(api, since: datetime):
 
 def pull(link: PocketLink, api, *, since: datetime, dry_run: bool = False) -> list[tuple[str, str]]:
     """
-    Ingest Pocket recordings made since `since`, by the webhook's rules. Returns what
-    happened to each recording that changed anything; repeats return nothing and log
-    nothing, so pulling every 15 minutes over a long window stays quiet.
+    Ingest Pocket recordings made since `since`, by the webhook's rules. Returns
+    (id, decision, reason) for each recording that changed anything; repeats return
+    nothing and log nothing, so pulling every 15 minutes over a long window stays quiet.
+    A dry run rolls the log back, so the reason is read before it goes.
     """
     results = []
     with transaction.atomic() if dry_run else nullcontext():
@@ -291,10 +300,15 @@ def pull(link: PocketLink, api, *, since: datetime, dry_run: bool = False) -> li
                 continue
             with transaction.atomic():
                 if decision := _pull_one(link, recording):
-                    results.append((rec_id, decision))
+                    results.append((rec_id, decision, _last_reason(rec_id)))
         if dry_run:
             transaction.set_rollback(True)
     return results
+
+
+def _last_reason(rec_id: str) -> str:
+    log = IngestLog.objects.filter(event=PULL, external_id=rec_id).order_by("-received_at", "-pk")
+    return log.values_list("reason", flat=True).first() or ""
 
 
 def _before(recording: dict, since: datetime) -> bool:
@@ -348,7 +362,7 @@ def _pull_one(link: PocketLink, recording: dict) -> str | None:
         return _append_revision(PULL, link, capture, segments, rec_id)
     if services.is_forgotten_ref(link.owner, f"pocket:{rec_id}"):
         return None
-    solo, reason = _solo_verdict(segments, link.speaker_label)
+    solo, reason = _solo_verdict(segments, link)
     if not solo:
         seen = IngestLog.objects.filter(
             event=PULL, external_id=rec_id, decision=Decision.SKIPPED, reason=reason

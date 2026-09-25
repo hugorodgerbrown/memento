@@ -1,6 +1,6 @@
 # 0021. Pocket by pull, while Memento lives on one Mac
 
-Status: accepted, September 2026. Follows from 0020; revisits the transport in 0006, not its rules. **Temporary:** it lasts only as long as 0020.
+Status: accepted, September 2026; amended by 0022 (speaker labels on the pull). Follows from 0020; revisits the transport in 0006, not its rules. **Temporary:** it lasts only as long as 0020.
 
 ## Context
 

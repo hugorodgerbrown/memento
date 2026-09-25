@@ -412,7 +412,7 @@ class PullTestCase(TestCase):
         api = FakePocket(list(recordings))
         kw.setdefault("since", datetime(2026, 9, 14, tzinfo=UTC))
         results = pocket.pull(self.link, api, **kw)
-        return api, results
+        return api, [(rec_id, decision) for rec_id, decision, _ in results]
 
 
 class PocketPullTests(PullTestCase):
@@ -525,6 +525,48 @@ class PocketPullTests(PullTestCase):
         self.assertNotIn("Book physio", json.dumps(c.hints))  # action items ignored (0015)
         self.assertFalse(Entry.objects.exists())
 
+    def test_one_unnamed_speaker_is_skipped_unless_you_say_it_is_you(self):
+        """0022: the REST transcript says SPEAKER_00, never your name."""
+        unnamed = [dict(seg, speaker="SPEAKER_00") for seg in PULLED["transcript"]]
+        _, results = self.pull(pulled(transcript=unnamed), dry_run=True)
+        self.assertEqual(results, [("rec_9", "skipped")])
+        self.link.one_unnamed_speaker_is_me = True
+        self.link.save()
+        _, results = self.pull(pulled(transcript=unnamed))
+        self.assertEqual(results, [("rec_9", "stored")])
+        self.assertEqual(IngestLog.objects.get().reason, "solo, one unnamed speaker (0022)")
+
+    def test_unnamed_speakers_are_never_enough_when_there_are_two(self):
+        """Principle 8 still holds: two voices, named or not, keep nothing."""
+        self.link.one_unnamed_speaker_is_me = True
+        self.link.save()
+        two = [
+            {"speaker": "SPEAKER_00", "text": "PF is fine on left foot,", "start": 0, "end": 3},
+            {"speaker": "SPEAKER_01", "text": "That's my private news.", "start": 3, "end": 6},
+        ]
+        _, results = self.pull(pulled(transcript=two))
+        self.assertEqual(results, [("rec_9", "skipped")])
+        self.assertFalse(Capture.objects.exists())
+
+    def test_someone_pocket_has_named_is_not_you(self):
+        """Only Pocket's placeholder counts: a single speaker it calls Priya is Priya."""
+        self.link.one_unnamed_speaker_is_me = True
+        self.link.save()
+        priya = [dict(seg, speaker="Priya") for seg in PULLED["transcript"]]
+        _, results = self.pull(pulled(transcript=priya))
+        self.assertEqual(results, [("rec_9", "skipped")])
+        self.assertEqual(IngestLog.objects.get().reason, "single speaker not labelled as you yet")
+
+    def test_a_second_unnamed_voice_in_a_revision_is_not_kept(self):
+        self.link.one_unnamed_speaker_is_me = True
+        self.link.save()
+        unnamed = [dict(seg, speaker="SPEAKER_00") for seg in PULLED["transcript"]]
+        self.pull(pulled(transcript=unnamed))
+        added = [*unnamed, {"speaker": "SPEAKER_01", "text": "Private.", "start": 6, "end": 7}]
+        _, results = self.pull(pulled(transcript=added))
+        self.assertEqual(results, [("rec_9", "skipped")])
+        self.assertEqual(Capture.objects.get().revisions, [])
+
     def test_pockets_own_error_is_kept(self):
         """A 400 names the parameter Pocket refused; the owner sees it, not just "Bad Request"."""
         body = io.BytesIO(b'{"error":"bad start_date"}')
@@ -570,13 +612,22 @@ class PocketPullCommandTests(TestCase):
         after = timezone.now() - timedelta(hours=36)
         days = {before.astimezone(UTC).date().isoformat(), after.astimezone(UTC).date().isoformat()}
         self.assertIn(api.calls[0][1]["start_date"], days)
-        self.assertIn("rec_9: stored", out)
+        self.assertIn("rec_9: stored (solo, your voice)", out)
 
     @override_settings(POCKET_API_KEY="pk_test")
     def test_dry_run_says_what_it_would_do(self):
         with patch.object(pocket, "PocketAPI", return_value=FakePocket([pulled()])):
             out = self.run_pull("--dry-run", "--since", "2026-09-14T00:00:00+01:00")
         self.assertIn("Would have 1 change(s)", out)
+
+    @override_settings(POCKET_API_KEY="pk_test")
+    def test_a_dry_run_says_why_each_was_skipped(self):
+        """The first real dry run said "skipped" 35 times and nothing else."""
+        rec = pulled(transcript=[{"speaker": "Speaker 1", "text": "Hello.", "start": 0, "end": 1}])
+        with patch.object(pocket, "PocketAPI", return_value=FakePocket([rec])):
+            out = self.run_pull("--dry-run", "--since", "2026-09-14")
+        self.assertIn("rec_9: skipped (one unnamed speaker; to keep these, tick", out)
+        self.assertFalse(IngestLog.objects.exists())
         self.assertFalse(Capture.objects.exists())
 
     @override_settings(POCKET_API_KEY="pk_test")
@@ -631,4 +682,4 @@ class PocketRevisionTests(PullTestCase):
 
         api = BareList([pulled()])
         results = pocket.pull(self.link, api, since=datetime(2026, 9, 14, tzinfo=UTC))
-        self.assertEqual(results, [("rec_9", "stored")])
+        self.assertEqual(results, [("rec_9", "stored", "solo, your voice")])
