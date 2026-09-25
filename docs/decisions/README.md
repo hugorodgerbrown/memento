@@ -23,3 +23,4 @@ Short records of decisions that shape behaviour: context, decision, consequences
 | [0017](0017-contract-choices.md) | How the contract is enforced |
 | [0018](0018-partial-dates.md) | `happened_at` accepts a month or a year on its own |
 | [0019](0019-the-distiller.md) | The distiller: a stateless window over the inbox, and what it leaves for you |
+| [0020](0020-one-mac.md) | One person, one Mac: deployment is parked |

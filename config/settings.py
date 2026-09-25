@@ -28,6 +28,16 @@ def env_list(name: str, default: str = "") -> list[str]:
     return [item.strip() for item in env(name, default).split(",") if item.strip()]
 
 
+# Principle 2 and 0013: the server never holds a model-provider key. On one Mac
+# (0020) the distiller's key lives nearby, so refuse to start if it leaks in.
+MODEL_KEYS = ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY", "GOOGLE_API_KEY")
+if leaked := [name for name in MODEL_KEYS if os.environ.get(name)]:
+    raise ImproperlyConfigured(
+        f"{', '.join(leaked)} is set, but the server never holds a model-provider key "
+        "(Principle 2). Keep it in distiller/.env, which only the distiller reads, and "
+        "unset it here."
+    )
+
 DEBUG = env_bool("DJANGO_DEBUG")
 SECRET_KEY = env("DJANGO_SECRET_KEY", "dev-only-insecure-key" if DEBUG else None)
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1" if DEBUG else "")

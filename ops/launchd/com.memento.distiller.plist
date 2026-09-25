@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Memento's distiller on this Mac (0019, 0020): every 15 minutes, while the Mac is awake.
+  Installed by `make launchd-install LAUNCHD_JOBS=distiller`. It runs `make distil`,
+  which reads distiller/.env; the model key never reaches the server.
+  A run missed while the Mac slept is caught up by the next one: each run looks back
+  35 minutes, and `make distil SINCE=...` covers anything older.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.memento.distiller</string>
+  <key>ProgramArguments</key>
+  <array><string>/usr/bin/make</string><string>-C</string><string>@REPO@</string><string>distil</string></array>
+  <key>WorkingDirectory</key><string>@REPO@</string>
+  <key>EnvironmentVariables</key>
+  <dict><key>PATH</key><string>@PATH@</string></dict>
+  <key>StartInterval</key><integer>900</integer>
+  <key>StandardOutPath</key><string>@LOGS@/distiller.log</string>
+  <key>StandardErrorPath</key><string>@LOGS@/distiller.log</string>
+</dict>
+</plist>

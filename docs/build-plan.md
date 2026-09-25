@@ -2,7 +2,11 @@
 
 Each milestone ends in something usable and a green CI. Don't start a milestone until the previous one meets its acceptance criteria. Decisions referenced as 00NN are in `docs/decisions/`.
 
-## M1. Deployable skeleton on Render (staging)
+## Now: one Mac (0020)
+
+Memento runs on the owner's Mac while it has one user, and deployment is parked until the owner says otherwise. `docs/local.md` has the setup: launchd keeps the server running, Claude Desktop connects through `mcp-remote`, backups are manual, and the distiller runs locally once it has a key. **M1 and M8 are parked; M4 becomes a pull from Pocket (0021).** The milestones below are unchanged otherwise.
+
+## M1. Deployable skeleton on Render (staging) (parked, 0020)
 
 - Web service and Render Postgres 16, configured from environment variables.
 - Migrations run before each deploy; `collectstatic` runs at build.
@@ -43,7 +47,7 @@ Built (0016): `/mcp` serves the nine tools, stateless, with per-client bearer to
 
 Built (0017), ahead of M1's deploy by choice: `Profile` holds the time zone; every result carries `now`; `remember` rejects relative time in claims and memories dated ahead (a scheduled `change` excepted, per 0009), warns on near-duplicate tags, and keeps raw-only saves and inbox-mode clients' words as chat captures. Tests are in `memories/tests/test_contract.py`. The tool-text changes have not had an eval run.
 
-## M4. Pocket live on staging
+## M4. Pocket live (on the Mac, by pull: 0020, 0021)
 
 - Point a personal Pocket webhook at staging `/ingest/pocket/`.
 - Record real deliveries (with personal content redacted) as test fixtures: a solo note, a conversation, a transcript edit, a label change, a deletion.
@@ -84,7 +88,7 @@ Skill built and measured (24 Sep 2026): `skill/memento` passes 54 of 54 runs on 
 
 Built (0019), not yet measured: `distiller/distil.py` runs the skill on `claude-sonnet-5` through the Tool Runner, over notes received in the last 35 minutes. It leaves for the user what it would ask about, and it is offered only six tools, never `forget`. `inbox` gained `received_since`. `render.yaml` describes the cron job. `make distil-eval` runs the capture-policy cases as inbox notes; its plumbing is verified against the real server with a scripted model. Outstanding: a real eval run (it needs `ANTHROPIC_API_KEY`), and the cron job going live with M1.
 
-## M8. OAuth 2.1 for claude.ai and ChatGPT
+## M8. OAuth 2.1 for claude.ai and ChatGPT (parked with deployment, 0020)
 
 - Authorisation server via django-oauth-toolkit: authorisation code + PKCE, protected-resource metadata, authorisation-server metadata, dynamic client registration. Client ID metadata documents when both clients support them.
 - OAuth clients become `Client` rows, with scopes `memento:read`, `memento:write` and `memento:forget`.

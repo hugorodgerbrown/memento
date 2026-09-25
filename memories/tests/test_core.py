@@ -1,6 +1,9 @@
 """Each test maps to a principle in the brief."""
 
+import os
 import re
+import subprocess
+import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -200,3 +203,14 @@ class ServerNeverGeneratesTests(SimpleTestCase):
                 imports = re.findall(r"^\s*(?:from|import)\s+([\w.]+)", path.read_text(), re.M)
                 roots = {i.split(".")[0] for i in imports}
                 self.assertFalse(roots & {"anthropic", "openai", "distil"}, path)
+
+    def test_server_refuses_to_start_holding_a_model_key(self):
+        """0013/0020: on one Mac the distiller's key sits nearby; the server must never load it."""
+        env = {**os.environ, "DJANGO_SETTINGS_MODULE": "config.settings",
+               "DJANGO_DEBUG": "1", "ANTHROPIC_API_KEY": "sk-test"}  # fmt: skip
+        result = subprocess.run(
+            [sys.executable, "-c", "import django; django.setup()"],
+            cwd=self.ROOT, env=env, capture_output=True, text=True,
+        )  # fmt: skip
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("distiller/.env", result.stderr)

@@ -1,5 +1,7 @@
 # Deploying to Render
 
+**Parked (ADR 0020).** Memento runs on the owner's Mac for now; see [`local.md`](local.md). This page is kept for when deployment resumes.
+
 Staging is described entirely by [`render.yaml`](../render.yaml), so the service and
 its database can be recreated from the repository. This is milestone M1 of the
 [build plan](build-plan.md).
