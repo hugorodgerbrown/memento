@@ -33,6 +33,11 @@ class SkillTests(SimpleTestCase):
         self.assertEqual(meta.get("name"), SKILL.name)
         self.assertTrue(0 < len(meta.get("description", "")) <= 1024)
 
+    def test_skill_can_be_uploaded_to_claude_desktop(self):
+        """Claude Desktop's skill upload takes a description of at most 200 characters."""
+        meta = frontmatter((SKILL / "SKILL.md").read_text())
+        self.assertLessEqual(len(meta["description"]), 200)
+
     def test_skill_links_only_to_files_that_exist(self):
         for ref in re.findall(r"`(references/[\w.-]+)`", (SKILL / "SKILL.md").read_text()):
             self.assertTrue((SKILL / ref).is_file(), ref)
