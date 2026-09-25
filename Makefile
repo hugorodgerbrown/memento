@@ -73,15 +73,23 @@ local-server: ## Memento as launchd runs it: Postgres up, migrations applied, /m
 	uv run python manage.py migrate --no-input
 	uv run uvicorn config.asgi:application --host 127.0.0.1 --port 8000 --timeout-graceful-shutdown 5
 
+# A backup is written to a temporary file, checked, and only then given its name, so a
+# failed or interrupted dump never leaves a file that looks usable.
 backup:       ## Dump everything to "$(BACKUP_DIR)" (make backup BACKUP_DIR=...)
 	@mkdir -p "$(BACKUP_DIR)"
-	@out="$(BACKUP_DIR)/memento-$$(date +%Y-%m-%d-%H%M%S).dump"; \
-	$(PGCMD) pg_dump -U memento -Fc memento > "$$out" && echo "Backed up to $$out"
+	@out="$(BACKUP_DIR)/memento-$$(date +%Y-%m-%d-%H%M%S).dump"; tmp="$$out.partial"; \
+	if $(PGCMD) pg_dump -U memento -Fc memento > "$$tmp" && $(PGCMD) pg_restore --list < "$$tmp" > /dev/null; \
+	then mv "$$tmp" "$$out" && echo "Backed up to $$out"; \
+	else rm -f "$$tmp"; echo "Backup failed; nothing was written."; exit 1; fi
 
+# One transaction: if anything in the archive fails, nothing in the live database changes.
+# Without it, a damaged archive can drop tables (and the immutability triggers) and stop.
 restore:      ## Replace the database with a backup: make restore FILE=... CONFIRM=yes
 	@test -f "$(FILE)" || { echo "Say which backup: make restore FILE=path/to/memento-....dump CONFIRM=yes"; exit 2; }
 	@test "$(CONFIRM)" = yes || { echo "This replaces everything in Memento with $(FILE), including anything forgotten since it was taken. Add CONFIRM=yes to go ahead."; exit 2; }
-	$(PGCMD) pg_restore -U memento -d memento --clean --if-exists --no-owner < "$(FILE)"
+	@$(PGCMD) pg_restore --list < "$(FILE)" > /dev/null || { echo "$(FILE) isn't a readable backup. Nothing was changed."; exit 1; }
+	@$(PGCMD) pg_restore -U memento -d memento --clean --if-exists --no-owner --single-transaction --exit-on-error < "$(FILE)" \
+	  || { echo "The restore failed and was rolled back. Memento is as it was."; exit 1; }
 	@echo "Restored from $(FILE)"
 
 launchd-install: ## Keep Memento running on this Mac: make launchd-install [LAUNCHD_JOBS="server pocket distiller"]
