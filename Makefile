@@ -3,7 +3,7 @@ include $(wildcard .env)
 export
 
 .PHONY: setup db migrate run serve test lint fmt check superuser client eval distil distil-eval \
-	local-server backup restore launchd-install launchd-uninstall launchd-status
+	pocket-pull local-server backup restore launchd-install launchd-uninstall launchd-status
 
 setup:        ## Install dependencies and git hooks
 	uv sync
@@ -65,6 +65,9 @@ LAUNCHD_JOBS ?= server
 LAUNCH_AGENTS := $(HOME)/Library/LaunchAgents
 LOG_DIR := $(HOME)/Library/Logs/Memento
 
+pocket-pull:  ## Pull the last 36 hours of Pocket recordings (0021): make pocket-pull [SINCE=2026-09-14] [DRY=1]
+	uv run python manage.py pocket_pull $(if $(SINCE),--since $(SINCE)) $(if $(DRY),--dry-run)
+
 local-server: ## Memento as launchd runs it: Postgres up, migrations applied, /mcp on 127.0.0.1:8000
 	docker compose up -d --wait db
 	uv run python manage.py migrate --no-input
@@ -89,7 +92,7 @@ restore:      ## Replace the database with a backup: make restore FILE=... CONFI
 	  || { echo "The restore failed and was rolled back. Memento is as it was."; exit 1; }
 	@echo "Restored from $(FILE)"
 
-launchd-install: ## Keep Memento running on this Mac: make launchd-install [LAUNCHD_JOBS="server distiller"]
+launchd-install: ## Keep Memento running on this Mac: make launchd-install [LAUNCHD_JOBS="server pocket distiller"]
 	@mkdir -p "$(LAUNCH_AGENTS)" "$(LOG_DIR)"
 	@for job in $(LAUNCHD_JOBS); do \
 	  plist="$(LAUNCH_AGENTS)/com.memento.$$job.plist"; \

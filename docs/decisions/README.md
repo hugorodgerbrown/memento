@@ -24,3 +24,4 @@ Short records of decisions that shape behaviour: context, decision, consequences
 | [0018](0018-partial-dates.md) | `happened_at` accepts a month or a year on its own |
 | [0019](0019-the-distiller.md) | The distiller: a stateless window over the inbox, and what it leaves for you |
 | [0020](0020-one-mac.md) | One person, one Mac: deployment is parked |
+| [0021](0021-pocket-pull.md) | Pocket by pull, while Memento lives on one Mac |

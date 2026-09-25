@@ -11,11 +11,21 @@ Decisions (Phase 3 addendum):
 - Deleting a recording in Pocket does not delete it here. Memento is the
   permanent record; forgetting happens in Memento, deliberately, and leaves a
   tombstone so Pocket can't re-deliver what you forgot.
+
+Two ways in, one set of rules: Pocket's signed webhook, and, while Memento runs
+on one Mac that Pocket can't reach, a scheduled pull from Pocket's REST API
+(0020, 0021). Both store through `_store`, so the rules above hold for both.
 """
 
 import hashlib
 import hmac
+import json
 import time
+import urllib.error
+import urllib.parse
+import urllib.request
+from contextlib import nullcontext
+from datetime import datetime
 
 from django.db import IntegrityError, transaction
 from django.utils import timezone
@@ -121,7 +131,7 @@ def ingest(payload: dict) -> str:
     capture = Capture.objects.filter(owner=link.owner, source="pocket", external_id=rec_id).first()
 
     if event == "transcript.edited":
-        return _record_edit(event, capture, payload, rec_id)
+        return _record_edit(event, link, capture, payload, rec_id)
 
     if event not in TRANSCRIPT_EVENTS:
         return _log(event, rec_id, Decision.IGNORED, "event not used")
@@ -143,33 +153,176 @@ def ingest(payload: dict) -> str:
     if not solo:
         return _log(event, rec_id, Decision.SKIPPED, reason)
 
+    return _store(
+        link, event, rec_id, segments,
+        captured_at=parse_datetime(recording.get("createdAt") or ""),
+        title=recording.get("title"), hints=_hints(payload, summary),
+        duration=recording.get("duration"), language=recording.get("language"),
+        reason=reason,
+    )  # fmt: skip
+
+
+def _store(link, event, rec_id, segments, *, captured_at, title, hints, duration, language, reason):
     try:
         with transaction.atomic():
-            capture = Capture.objects.create(
+            Capture.objects.create(
                 owner=link.owner,
                 external_id=rec_id,
                 segments=segments,
-                text=" ".join(seg["text"].strip() for seg in segments if seg.get("text")),
-                captured_at=parse_datetime(recording.get("createdAt") or "") or timezone.now(),
-                title=(recording.get("title") or "")[:255],
-                hints=_hints(payload, summary),
-                duration_seconds=recording.get("duration"),
-                language=recording.get("language") or "",
+                text=_text(segments),
+                captured_at=captured_at or timezone.now(),
+                title=(title or "")[:255],
+                hints=hints,
+                duration_seconds=duration,
+                language=language or "",
             )
     except IntegrityError:  # a concurrent retry won the race
         return _log(event, rec_id, Decision.DUPLICATE, "concurrent delivery")
-
     return _log(event, rec_id, Decision.STORED, reason)
 
 
-def _record_edit(event, capture, payload, rec_id) -> str:
+def _text(segments: list[dict]) -> str:
+    return " ".join(seg["text"].strip() for seg in segments if seg.get("text"))
+
+
+def _record_edit(event, link, capture, payload, rec_id) -> str:
     if not capture:
         return _log(event, rec_id, Decision.IGNORED, "no stored capture")
-    text = " ".join(
-        seg["text"].strip() for seg in payload.get("transcript") or [] if seg.get("text")
-    )
+    segments = payload.get("transcript") or []
+    text = _text(segments)
     if not text or text == capture.texts()[-1]:
         return _log(event, rec_id, Decision.IGNORED, "no text change")
+    return _append_revision(event, link, capture, segments, rec_id) or Decision.SKIPPED
+
+
+def _append_revision(event, link, capture, segments, rec_id) -> str | None:
+    """
+    A later version of a stored recording is kept only if it is still solo in your
+    voice (Principle 8): an edit or relabel can't bring someone else's words in.
+    The refusal is logged once, without content.
+    """
+    solo, reason = _solo_verdict(segments, link.speaker_label)
+    if not solo:
+        reason = f"revision not kept: {reason}"
+        seen = IngestLog.objects.filter(
+            external_id=rec_id, decision=Decision.SKIPPED, reason=reason
+        )
+        return None if seen.exists() else _log(event, rec_id, Decision.SKIPPED, reason)
+    text = _text(segments)
     capture.revisions = [*capture.revisions, {"at": timezone.now().isoformat(), "text": text}]
     capture.save(update_fields=["revisions"])
     return _log(event, rec_id, Decision.UPDATED, f"revision {len(capture.revisions)} appended")
+
+
+# --- the pull (0021) -------------------------------------------------------------
+
+PULL = "pull"
+
+
+class PocketAPIError(Exception):
+    HELP = {
+        401: "Pocket rejected POCKET_API_KEY. Create a key in Pocket > Settings > Developer > "
+        "API Keys and put it in .env.",
+        403: "Pocket refused access. Check the key belongs to your account and your plan "
+        "includes the API.",
+        429: "Pocket is rate-limiting the pull. It will try again on the next run.",
+    }
+
+    def __init__(self, status: int, detail: str = ""):
+        self.status = status
+        super().__init__(self.HELP.get(status, f"Pocket's API answered {status}. {detail}".strip()))
+
+
+class PocketAPI:
+    """Pocket's REST API, read-only, with a personal key (pk_...)."""
+
+    def __init__(self, key: str, base_url: str, timeout: int = 30):
+        self.key, self.base_url, self.timeout = key, base_url.rstrip("/"), timeout
+
+    def get(self, path: str, params: dict | None = None) -> dict:
+        url = self.base_url + path + ("?" + urllib.parse.urlencode(params) if params else "")
+        request = urllib.request.Request(url, headers={"Authorization": f"Bearer {self.key}"})
+        try:
+            with urllib.request.urlopen(request, timeout=self.timeout) as response:
+                return json.load(response)
+        except urllib.error.HTTPError as e:
+            raise PocketAPIError(e.code, e.reason) from e
+
+
+def _unwrap(body: dict):
+    """Pocket wraps results in `data`; tolerate a bare object or list too."""
+    return body.get("data", body) if isinstance(body, dict) else body
+
+
+def _recording_ids(api, since: datetime):
+    page = 1
+    while True:
+        body = api.get("/recordings", {"start_date": since.isoformat(), "page": page, "limit": 100})
+        rows = _unwrap(body)
+        if isinstance(rows, dict):
+            rows = rows.get("recordings", [])
+        yield from (row["id"] for row in rows)
+        pagination = (body.get("pagination") or body) if isinstance(body, dict) else {}
+        if not rows or not pagination.get("has_more"):
+            return
+        page += 1
+
+
+def pull(link: PocketLink, api, *, since: datetime, dry_run: bool = False) -> list[tuple[str, str]]:
+    """
+    Ingest Pocket recordings made since `since`, by the webhook's rules. Returns what
+    happened to each recording that changed anything; repeats return nothing and log
+    nothing, so pulling every 15 minutes over a long window stays quiet.
+    """
+    results = []
+    with transaction.atomic() if dry_run else nullcontext():
+        for rec_id in _recording_ids(api, since):
+            params = {"include_transcript": "true", "include_summarizations": "true"}
+            recording = _unwrap(api.get(f"/recordings/{rec_id}", params))
+            with transaction.atomic():
+                if decision := _pull_one(link, recording):
+                    results.append((rec_id, decision))
+        if dry_run:
+            transaction.set_rollback(True)
+    return results
+
+
+def _refresh(capture: Capture, recording: dict) -> None:
+    """Hints and title are derived, and Pocket may finish them later. The transcript doesn't."""
+    summary = _latest_summary(recording)
+    hints = _hints(recording, summary) if summary else capture.hints
+    title = (recording.get("title") or capture.title)[:255]
+    if (hints, title) != (capture.hints, capture.title):
+        capture.hints, capture.title = hints, title
+        capture.save(update_fields=["hints", "title"])
+
+
+def _pull_one(link: PocketLink, recording: dict) -> str | None:
+    rec_id = recording["id"]
+    segments = [
+        {k: seg.get(k) for k in ("speaker", "text", "start", "end")}
+        for seg in recording.get("transcript") or []
+    ]
+    capture = Capture.objects.filter(owner=link.owner, source="pocket", external_id=rec_id).first()
+    if capture:
+        _refresh(capture, recording)
+        text = _text(segments)
+        if not text or text == capture.texts()[-1]:
+            return None
+        return _append_revision(PULL, link, capture, segments, rec_id)
+    if services.is_forgotten_ref(link.owner, f"pocket:{rec_id}"):
+        return None
+    solo, reason = _solo_verdict(segments, link.speaker_label)
+    if not solo:
+        seen = IngestLog.objects.filter(
+            event=PULL, external_id=rec_id, decision=Decision.SKIPPED, reason=reason
+        )
+        return None if seen.exists() else _log(PULL, rec_id, Decision.SKIPPED, reason)
+    spoken = recording.get("recording_at") or recording.get("created_at") or ""
+    return _store(
+        link, PULL, rec_id, segments,
+        captured_at=parse_datetime(spoken),
+        title=recording.get("title"), hints=_hints(recording, _latest_summary(recording)),
+        duration=recording.get("duration"), language=recording.get("language"),
+        reason=reason,
+    )  # fmt: skip
