@@ -525,20 +525,20 @@ class PocketPullTests(PullTestCase):
         self.assertNotIn("Book physio", json.dumps(c.hints))  # action items ignored (0015)
         self.assertFalse(Entry.objects.exists())
 
-    def test_one_unnamed_speaker_is_skipped_unless_you_say_it_is_you(self):
+    def test_one_speaker_is_skipped_unless_you_say_it_is_you(self):
         """0022: the REST transcript says SPEAKER_00, never your name."""
         unnamed = [dict(seg, speaker="SPEAKER_00") for seg in PULLED["transcript"]]
         _, results = self.pull(pulled(transcript=unnamed), dry_run=True)
         self.assertEqual(results, [("rec_9", "skipped")])
-        self.link.one_unnamed_speaker_is_me = True
+        self.link.one_speaker_is_me = True
         self.link.save()
         _, results = self.pull(pulled(transcript=unnamed))
         self.assertEqual(results, [("rec_9", "stored")])
-        self.assertEqual(IngestLog.objects.get().reason, "solo, one unnamed speaker (0022)")
+        self.assertEqual(IngestLog.objects.get().reason, "solo, one speaker (0022)")
 
     def test_unnamed_speakers_are_never_enough_when_there_are_two(self):
         """Principle 8 still holds: two voices, named or not, keep nothing."""
-        self.link.one_unnamed_speaker_is_me = True
+        self.link.one_speaker_is_me = True
         self.link.save()
         two = [
             {"speaker": "SPEAKER_00", "text": "PF is fine on left foot,", "start": 0, "end": 3},
@@ -548,17 +548,18 @@ class PocketPullTests(PullTestCase):
         self.assertEqual(results, [("rec_9", "skipped")])
         self.assertFalse(Capture.objects.exists())
 
-    def test_someone_pocket_has_named_is_not_you(self):
-        """Only Pocket's placeholder counts: a single speaker it calls Priya is Priya."""
-        self.link.one_unnamed_speaker_is_me = True
+    def test_one_speaker_is_you_whatever_pocket_calls_them(self):
+        """0022, widened by the owner: Pocket's voice print doesn't reliably tag them."""
+        self.link.one_speaker_is_me = True
         self.link.save()
-        priya = [dict(seg, speaker="Priya") for seg in PULLED["transcript"]]
-        _, results = self.pull(pulled(transcript=priya))
-        self.assertEqual(results, [("rec_9", "skipped")])
-        self.assertEqual(IngestLog.objects.get().reason, "single speaker not labelled as you yet")
+        for label in ("USER_SPEAKER_3c5723d9-09dc-4d3f-9245-afb101de378e", "Priya"):
+            with self.subTest(label=label):
+                solo = [dict(seg, speaker=label) for seg in PULLED["transcript"]]
+                _, results = self.pull(pulled(transcript=solo), dry_run=True)
+                self.assertEqual(results, [("rec_9", "stored")])
 
     def test_a_second_unnamed_voice_in_a_revision_is_not_kept(self):
-        self.link.one_unnamed_speaker_is_me = True
+        self.link.one_speaker_is_me = True
         self.link.save()
         unnamed = [dict(seg, speaker="SPEAKER_00") for seg in PULLED["transcript"]]
         self.pull(pulled(transcript=unnamed))
@@ -626,7 +627,7 @@ class PocketPullCommandTests(TestCase):
         rec = pulled(transcript=[{"speaker": "Speaker 1", "text": "Hello.", "start": 0, "end": 1}])
         with patch.object(pocket, "PocketAPI", return_value=FakePocket([rec])):
             out = self.run_pull("--dry-run", "--since", "2026-09-14")
-        self.assertIn("rec_9: skipped (one unnamed speaker; to keep these, tick", out)
+        self.assertIn("rec_9: skipped (one speaker, not labelled as you; to keep these, tick", out)
         self.assertFalse(IngestLog.objects.exists())
         self.assertFalse(Capture.objects.exists())
 

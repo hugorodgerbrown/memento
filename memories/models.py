@@ -285,14 +285,13 @@ class PocketLink(models.Model):
     speaker_label = models.CharField(
         max_length=128, help_text="Your name as Pocket's voice print labels you."
     )
-    # 0022: Pocket's REST transcript labels speakers SPEAKER_00, SPEAKER_01, never by
-    # name, so on the pull your voice can't be told from anyone else's by its label.
-    one_unnamed_speaker_is_me = models.BooleanField(
+    # 0022: Pocket's REST transcript labels speakers SPEAKER_00 or by voice-print id
+    # (USER_SPEAKER_...), and its voice print doesn't reliably tag the owner, so on the
+    # pull your voice can't be told from anyone else's by its label.
+    one_speaker_is_me = models.BooleanField(
         default=False,
-        help_text="Keep recordings with exactly one speaker whom Pocket hasn't named "
-        "(SPEAKER_00). You wear the Pocket, so that is almost always you; anything "
-        "else you can forget. Two or more speakers, or someone Pocket has named, are "
-        "still skipped.",
+        help_text="Keep every recording with exactly one speaker, whatever Pocket calls "
+        "them. Two or more speakers, or no speaker labels, are still skipped.",
     )
 
     def __str__(self):

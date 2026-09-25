@@ -62,7 +62,7 @@ class CaptureAdmin(NoDeleteAdmin):
 
 @admin.register(PocketLink)
 class PocketLinkAdmin(admin.ModelAdmin):
-    list_display = ("owner", "pocket_user_id", "speaker_label", "one_unnamed_speaker_is_me")
+    list_display = ("owner", "pocket_user_id", "speaker_label", "one_speaker_is_me")
 
 
 @admin.register(IngestLog)

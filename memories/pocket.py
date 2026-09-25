@@ -20,7 +20,6 @@ on one Mac that Pocket can't reach, a scheduled pull from Pocket's REST API
 import hashlib
 import hmac
 import json
-import re
 import time
 import urllib.error
 import urllib.parse
@@ -89,9 +88,6 @@ def _hints(payload: dict, summary: dict) -> dict:
     }
 
 
-UNNAMED = re.compile(r"speaker[ _-]?\d+", re.IGNORECASE)  # Pocket's placeholder: SPEAKER_00
-
-
 def _solo_verdict(segments: list[dict], link: PocketLink) -> tuple[bool, str]:
     speakers = {(seg.get("speaker") or "").strip() for seg in segments}
     speakers.discard("")
@@ -104,11 +100,9 @@ def _solo_verdict(segments: list[dict], link: PocketLink) -> tuple[bool, str]:
     (only,) = speakers
     if only.casefold() == link.speaker_label.casefold():
         return True, "solo, your voice"
-    if UNNAMED.fullmatch(only):
-        if link.one_unnamed_speaker_is_me:
-            return True, "solo, one unnamed speaker (0022)"
-        return False, "one unnamed speaker; to keep these, tick 'one unnamed speaker is me'"
-    return False, "single speaker not labelled as you yet"
+    if link.one_speaker_is_me:
+        return True, "solo, one speaker (0022)"
+    return False, "one speaker, not labelled as you; to keep these, tick 'one speaker is me'"
 
 
 def _log(event, external_id, decision, reason=""):
