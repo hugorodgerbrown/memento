@@ -412,7 +412,7 @@ class PullTestCase(TestCase):
         api = FakePocket(list(recordings))
         kw.setdefault("since", datetime(2026, 9, 14, tzinfo=UTC))
         results = pocket.pull(self.link, api, **kw)
-        return api, results
+        return api, [(rec_id, decision) for rec_id, decision, _ in results]
 
 
 class PocketPullTests(PullTestCase):
@@ -570,13 +570,22 @@ class PocketPullCommandTests(TestCase):
         after = timezone.now() - timedelta(hours=36)
         days = {before.astimezone(UTC).date().isoformat(), after.astimezone(UTC).date().isoformat()}
         self.assertIn(api.calls[0][1]["start_date"], days)
-        self.assertIn("rec_9: stored", out)
+        self.assertIn("rec_9: stored (solo, your voice)", out)
 
     @override_settings(POCKET_API_KEY="pk_test")
     def test_dry_run_says_what_it_would_do(self):
         with patch.object(pocket, "PocketAPI", return_value=FakePocket([pulled()])):
             out = self.run_pull("--dry-run", "--since", "2026-09-14T00:00:00+01:00")
         self.assertIn("Would have 1 change(s)", out)
+
+    @override_settings(POCKET_API_KEY="pk_test")
+    def test_a_dry_run_says_why_each_was_skipped(self):
+        """The first real dry run said "skipped" 35 times and nothing else."""
+        rec = pulled(transcript=[{"speaker": "Speaker 1", "text": "Hello.", "start": 0, "end": 1}])
+        with patch.object(pocket, "PocketAPI", return_value=FakePocket([rec])):
+            out = self.run_pull("--dry-run", "--since", "2026-09-14")
+        self.assertIn("rec_9: skipped (single speaker not labelled as you yet)", out)
+        self.assertFalse(IngestLog.objects.exists())
         self.assertFalse(Capture.objects.exists())
 
     @override_settings(POCKET_API_KEY="pk_test")
@@ -631,4 +640,4 @@ class PocketRevisionTests(PullTestCase):
 
         api = BareList([pulled()])
         results = pocket.pull(self.link, api, since=datetime(2026, 9, 14, tzinfo=UTC))
-        self.assertEqual(results, [("rec_9", "stored")])
+        self.assertEqual(results, [("rec_9", "stored", "solo, your voice")])

@@ -278,9 +278,10 @@ def _recording_ids(api, since: datetime):
 
 def pull(link: PocketLink, api, *, since: datetime, dry_run: bool = False) -> list[tuple[str, str]]:
     """
-    Ingest Pocket recordings made since `since`, by the webhook's rules. Returns what
-    happened to each recording that changed anything; repeats return nothing and log
-    nothing, so pulling every 15 minutes over a long window stays quiet.
+    Ingest Pocket recordings made since `since`, by the webhook's rules. Returns
+    (id, decision, reason) for each recording that changed anything; repeats return
+    nothing and log nothing, so pulling every 15 minutes over a long window stays quiet.
+    A dry run rolls the log back, so the reason is read before it goes.
     """
     results = []
     with transaction.atomic() if dry_run else nullcontext():
@@ -291,10 +292,15 @@ def pull(link: PocketLink, api, *, since: datetime, dry_run: bool = False) -> li
                 continue
             with transaction.atomic():
                 if decision := _pull_one(link, recording):
-                    results.append((rec_id, decision))
+                    results.append((rec_id, decision, _last_reason(rec_id)))
         if dry_run:
             transaction.set_rollback(True)
     return results
+
+
+def _last_reason(rec_id: str) -> str:
+    log = IngestLog.objects.filter(event=PULL, external_id=rec_id).order_by("-received_at", "-pk")
+    return log.values_list("reason", flat=True).first() or ""
 
 
 def _before(recording: dict, since: datetime) -> bool:

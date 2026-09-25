@@ -54,8 +54,8 @@ class Command(BaseCommand):
         except pocket.PocketAPIError as e:
             raise CommandError(str(e)) from e
         verb = "Would have" if dry_run else "Pulled"
-        for rec_id, decision in results:
-            self.stdout.write(f"{rec_id}: {decision}")
+        for rec_id, decision, reason in results:
+            self.stdout.write(f"{rec_id}: {decision}" + (f" ({reason})" if reason else ""))
         self.stdout.write(f"{verb} {len(results)} change(s) since {start:%Y-%m-%d %H:%M %Z}.")
 
 
