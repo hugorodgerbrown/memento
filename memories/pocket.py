@@ -93,6 +93,8 @@ def _solo_verdict(segments: list[dict], my_label: str) -> tuple[bool, str]:
     speakers.discard("")
     if not segments or not "".join(seg.get("text", "") for seg in segments).strip():
         return False, "empty transcript"
+    if not speakers:
+        return False, "no speaker labels"
     if len(speakers) != 1:
         return False, f"{len(speakers)} speakers"
     (only,) = speakers
@@ -315,12 +317,28 @@ def _refresh(capture: Capture, recording: dict) -> None:
         capture.save(update_fields=["hints", "title"])
 
 
+def _pulled_segments(recording: dict) -> list[dict]:
+    """
+    The REST transcript comes as {text, segments}, a bare list of segments, or plain
+    text (as pocket-laravel reads it). Plain text has no speaker labels, so the
+    solo-voice rule skips it: without labels there's no telling whose words they are.
+    """
+    transcript = recording.get("transcript") or recording.get("raw_transcript") or []
+    if isinstance(transcript, dict):
+        text = transcript.get("text") or ""
+        transcript = transcript.get("segments") or ([{"text": text}] if text.strip() else [])
+    elif isinstance(transcript, str):
+        transcript = [{"text": transcript}] if transcript.strip() else []
+    return [
+        {k: seg.get(k) for k in ("speaker", "text", "start", "end")}
+        for seg in transcript
+        if isinstance(seg, dict)
+    ]
+
+
 def _pull_one(link: PocketLink, recording: dict) -> str | None:
     rec_id = recording["id"]
-    segments = [
-        {k: seg.get(k) for k in ("speaker", "text", "start", "end")}
-        for seg in recording.get("transcript") or []
-    ]
+    segments = _pulled_segments(recording)
     capture = Capture.objects.filter(owner=link.owner, source="pocket", external_id=rec_id).first()
     if capture:
         _refresh(capture, recording)

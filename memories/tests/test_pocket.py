@@ -415,6 +415,25 @@ class PocketPullTests(PullTestCase):
         self.assertEqual(results, [("rec_on_time", "stored")])
         self.assertEqual(Capture.objects.get().external_id, "rec_on_time")
 
+    def test_a_transcript_wrapped_with_its_text_is_read(self):
+        """The first real dry run: the transcript came as {text, segments}, not a bare list."""
+        wrapped = pulled(transcript={"text": PULLED_TEXT, "segments": PULLED["transcript"]})
+        _, results = self.pull(wrapped)
+        self.assertEqual(results, [("rec_9", "stored")])
+        self.assertEqual(Capture.objects.get().text, PULLED_TEXT)
+
+    def test_a_transcript_without_speaker_labels_is_skipped(self):
+        """Principle 8: plain text can't say whose words they are, so nothing is kept."""
+        for transcript in (PULLED_TEXT, {"text": PULLED_TEXT}):
+            with self.subTest(transcript=type(transcript).__name__):
+                _, results = self.pull(pulled(transcript=transcript))
+                self.assertEqual(results, [("rec_9", "skipped")])
+                self.assertFalse(Capture.objects.exists())
+                log = IngestLog.objects.get()
+                self.assertEqual(log.reason, "no speaker labels")
+                self.assertNotIn("foot", str(log.__dict__))
+                IngestLog.objects.all().delete()
+
     def test_pockets_own_error_is_kept(self):
         """A 400 names the parameter Pocket refused; the owner sees it, not just "Bad Request"."""
         body = io.BytesIO(b'{"error":"bad start_date"}')
