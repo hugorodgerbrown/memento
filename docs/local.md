@@ -73,7 +73,13 @@ Two things are not yet known for Claude Desktop, so the capture policy stays in 
 
 ### The skill
 
-Claude Desktop accepts uploaded skills: in **Customize > Skills**, choose **+**, then **Upload a skill**. Code execution must be on. But an uploaded skill's description is limited to 200 characters, and `skill/memento`'s is longer. The long description is what made the skill trigger in Claude Code's evals. A shorter one is a behaviour change, so it needs its own eval run before it ships. Until then, Claude Desktop works from the tool descriptions alone. Claude Code without the skill scored 45 of 54 on the same cases.
+The Memento skill teaches Claude when to save, how to date things and when to look something up first. Without it, Claude Code scored 45 of 54 on the capture evals; with it, 54 of 54.
+
+```bash
+make skill-zip          # writes dist/memento-skill.zip
+```
+
+In Claude Desktop, go to **Customize > Skills**, choose **+**, then **Upload a skill**, and pick that file. Code execution must be on. Upload it again whenever `skill/` changes.
 
 ## Pocket
 

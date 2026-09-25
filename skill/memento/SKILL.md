@@ -1,6 +1,6 @@
 ---
 name: memento
-description: Keeps the user's personal memory in Memento, through its MCP tools (remember, recall, timeline, list_tags, inbox, forget). Use whenever the user mentions anything about their own life, even in passing or in the middle of another task - health, symptoms, sleep, exercise, food, mood and feelings, work, people they saw, places, decisions, plans, reminders - and whenever something they say may change a fact already saved (they moved, changed job, a symptom got better or worse). Also use when they ask about their own past, patterns or trends, want a summary of a period, say "don't log that", ask to forget something, or ask to process their Memento inbox.
+description: The user's memory. Use whenever they mention their own life (health, mood, sleep, work, people, plans), even in passing or mid-task, or change a saved fact; and to recall, forget or sort the inbox.
 ---
 
 # Memento

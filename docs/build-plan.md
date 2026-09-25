@@ -77,7 +77,7 @@ Baseline recorded (24 Sep 2026): `evals/capture.py` (`make eval`) runs every cas
 
 **Done when:** the skill measurably beats the baseline on Claude Code, and the with/without results are recorded.
 
-Skill built and measured (24 Sep 2026): `skill/memento` passes 54 of 54 runs on Claude Code against 45 of 54 for a same-day control, fixing every M5 failure category with no regressions (`docs/evals/results/2026-09-24-claude-code-skill-findings.md`). `make eval SKILL=1 MODEL=…` runs it. Outstanding: packaging as a Claude plugin and an OpenAI plugin.
+Skill built and measured (24 Sep 2026): `skill/memento` passes 54 of 54 runs on Claude Code against 45 of 54 for a same-day control, fixing every M5 failure category with no regressions (`docs/evals/results/2026-09-24-claude-code-skill-findings.md`). `make eval SKILL=1 MODEL=…` runs it. Its description was shortened to 197 characters to fit Claude Desktop's skill upload, with no loss on Claude Code (54/54 each, 25 Sep; `make skill-zip`). Outstanding: packaging as a Claude plugin and an OpenAI plugin.
 
 ## M7. The distiller (0013, part 3)
 

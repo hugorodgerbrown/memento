@@ -55,6 +55,7 @@ make local-server   # as launchd runs it on the Mac: 127.0.0.1:8000, migrations 
 make launchd-install [LAUNCHD_JOBS="server distiller"]   # keep it running (macOS)
 make backup / make restore FILE=... CONFIRM=yes          # pg_dump to ~/Memento backups
 make pocket-pull [SINCE=2026-09-14] [DRY=1]             # Pocket recordings, by pull (0021)
+make skill-zip      # dist/memento-skill.zip, for Claude Desktop's skill upload
 ```
 
 Copy `.env.example` to `.env` first. Python 3.14 (for `uuid.uuid7`), Django 6.1, Postgres 16, managed by uv.
@@ -74,12 +75,12 @@ Copy `.env.example` to `.env` first. Python 3.14 (for `uuid.uuid7`), Django 6.1,
 
 ## Status
 
-Phases 1 to 3 (interrogate, define, model) are done: the data model, services, Pocket ingest and tool spec. M2 is built: the MCP server at `/mcp` with per-client bearer tokens (0016). M3, the contract, is built too (0017), ahead of M1's deploy. M6, the skill, is built and beats a same-day control on Claude Code (54/54 against 45/54); plugin packaging is outstanding. **Deployment is parked (0020):** Memento runs on the owner's Mac with Claude Desktop as the client, M1 and M8 wait, and Pocket comes in by a scheduled pull (0021), awaiting its first dry run against the real account. The pull is temporary: once a server Pocket can reach exists, the webhook is the mechanism and the pull is kept for backfills only. Phase 4 (designing the morning email and web timeline) hasn't started; the build plan says where it slots in. Cross-model consistency (0013: contract, skill, inbox fallback, distiller) is built for M3 and M6; the distiller (M7, 0019) is built and awaits its eval run.
+Phases 1 to 3 (interrogate, define, model) are done: the data model, services, Pocket ingest and tool spec. M2 is built: the MCP server at `/mcp` with per-client bearer tokens (0016). M3, the contract, is built too (0017), ahead of M1's deploy. M6, the skill, is built and beats a same-day control on Claude Code (54/54 against 45/54). Its description fits Claude Desktop's 200-character upload limit (`make skill-zip`); plugin packaging is outstanding. **Deployment is parked (0020):** Memento runs on the owner's Mac with Claude Desktop as the client, M1 and M8 wait, and Pocket comes in by a scheduled pull (0021), awaiting its first dry run against the real account. The pull is temporary: once a server Pocket can reach exists, the webhook is the mechanism and the pull is kept for backfills only. Phase 4 (designing the morning email and web timeline) hasn't started; the build plan says where it slots in. Cross-model consistency (0013: contract, skill, inbox fallback, distiller) is built for M3 and M6; the distiller (M7, 0019) is built and awaits its eval run.
 
 ## Verify before relying on these
 
 These were researched or inferred, not confirmed against live systems:
 
 - **Pocket payloads.** The REST pull's envelope and field names come from a third-party SDK (pocket-laravel), not Pocket's docs, which were unreachable; `make pocket-pull DRY=1` on the Mac is the first real check. Whether `updated_at` changes on edits, and the rate limits, are unknown. For the webhook: whether `speakers.labeled` carries the full transcript. Milestone 4 records real responses as fixtures.
-- **Client behaviour.** claude.ai ignores MCP server `instructions` and truncates tool descriptions at ~500 characters (anthropics/claude-ai-mcp#93, open). For Claude Desktop neither is confirmed either way (checked Sep 2026), and uploaded skills are limited to a 200-character description. Re-check; it decides where guidance must live.
+- **Client behaviour.** claude.ai ignores MCP server `instructions` and truncates tool descriptions at ~500 characters (anthropics/claude-ai-mcp#93, open). For Claude Desktop neither is confirmed either way (checked Sep 2026), and uploaded skills are limited to a 200-character description (the skill's fits: 197, measured equal to the long one on Claude Code, 25 Sep). Re-check; it decides where guidance must live.
 - **MCP authorisation spec** details (protected-resource metadata, dynamic client registration, client ID metadata documents) and what claude.ai and ChatGPT currently require.
