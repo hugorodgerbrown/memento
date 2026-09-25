@@ -167,16 +167,16 @@ def seed(case: dict, tokens: dict) -> dict:
     return ids
 
 
-def plugin(work: Path) -> Path:
+def plugin(work: Path, skill_dir: Path = SKILL) -> Path:
     """The skill wrapped as a local plugin, which is how --plugin-dir loads a skill."""
     root = work / "plugin"
     (root / ".claude-plugin").mkdir(parents=True)
     (root / ".claude-plugin" / "plugin.json").write_text(json.dumps({"name": "memento"}))
-    shutil.copytree(SKILL, root / "skills" / "memento")
+    shutil.copytree(skill_dir, root / "skills" / "memento")
     return root
 
 
-def run_claude(case: dict, tokens: dict, ids: dict, skill: bool, model: str | None) -> dict:
+def run_claude(case: dict, tokens: dict, ids: dict, skill: Path | None, model: str | None) -> dict:
     work = Path(tempfile.mkdtemp(prefix="memento-eval-"))
     try:
         mcp_json = {
@@ -200,7 +200,7 @@ def run_claude(case: dict, tokens: dict, ids: dict, skill: bool, model: str | No
         if model:
             cmd += ["--model", model]
         if skill:
-            cmd += ["--plugin-dir", str(plugin(work))]
+            cmd += ["--plugin-dir", str(plugin(work, skill))]
         if case.get("conversation"):
             cmd += ["--append-system-prompt", case["conversation"].format(**ids)]
         if case.get("no_date"):
@@ -387,7 +387,7 @@ def grade(case: dict, run: dict, state: dict, today: date, receipts: bool = True
     }
 
 
-def run_one(case: dict, n: int, run_id: str, skill: bool, model: str | None) -> dict:
+def run_one(case: dict, n: int, run_id: str, skill: Path | None, model: str | None) -> dict:
     try:
         return _run_one(case, n, run_id, skill, model)
     except Exception as e:  # one broken run must not lose the others
@@ -395,7 +395,7 @@ def run_one(case: dict, n: int, run_id: str, skill: bool, model: str | None) -> 
                 "fails": [{"category": "harness", "detail": repr(e)}], "notes": []}  # fmt: skip
 
 
-def _run_one(case: dict, n: int, run_id: str, skill: bool, model: str | None) -> dict:
+def _run_one(case: dict, n: int, run_id: str, skill: Path | None, model: str | None) -> dict:
     if case.get("requires_local_time"):
         lo, hi = case["requires_local_time"]
         if not (lo <= datetime.now(TZ).strftime("%H:%M") < hi):
@@ -456,6 +456,11 @@ def main():
     parser.add_argument("--case", action="append", help="Only these case ids.")
     parser.add_argument("--parallel", type=int, default=4)
     parser.add_argument("--skill", action="store_true", help="Load skill/memento as a plugin.")
+    parser.add_argument(
+        "--skill-dir",
+        type=Path,
+        help="Load this skill folder instead; implies --skill.",
+    )
     parser.add_argument("--model", help="Claude Code's --model. Pin it when comparing runs.")
     parser.add_argument("--label", default="claude-code-no-skill")
     parser.add_argument("--regrade", type=Path, help="Re-score a results file; no model calls.")
@@ -482,13 +487,12 @@ def main():
     if args.case:
         cases = [c for c in cases if c["id"] in args.case]
     run_id = uuid.uuid4().hex[:6]
+    skill = args.skill_dir or (SKILL if args.skill else None)
     server = start_server()
     try:
         jobs = [(c, n) for n in range(1, args.runs + 1) for c in cases]
         with ThreadPoolExecutor(args.parallel) as pool:
-            results = list(
-                pool.map(lambda j: run_one(j[0], j[1], run_id, args.skill, args.model), jobs)
-            )
+            results = list(pool.map(lambda j: run_one(j[0], j[1], run_id, skill, args.model), jobs))
     finally:
         server.terminate()
     RESULTS.mkdir(parents=True, exist_ok=True)
