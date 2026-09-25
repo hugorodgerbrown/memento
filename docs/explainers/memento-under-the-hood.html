@@ -186,7 +186,7 @@ footer { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--ru
   <div class="head">
     <span class="eyebrow">The map</span>
     <h2 id="map">Four parts, one rule about who thinks</h2>
-    <p>Only two parts contain an AI: the app you chat in (the client) and the optional distiller. They decide what your words mean. Memento itself checks, stores, searches, counts and forgets. Both reach your data through the same nine MCP actions. Pocket voice notes are the one exception: they arrive as plain transcripts in the inbox, to be sorted later.</p>
+    <p>Only two parts contain an AI: the app you chat in (the client) and the optional distiller. They decide what your words mean. Memento itself checks, stores, searches, counts and forgets. Both reach your data through the same MCP endpoint, but not with the same reach. Claude Desktop's key allows all nine actions, including forget. The distiller is offered only six (it never sees <code>forget</code>, <code>save_digest</code> or <code>inbox</code>), and its key can't delete. Pocket voice notes are the one exception: they arrive as plain transcripts in the inbox, to be sorted later.</p>
   </div>
   <div class="diagram" role="img" aria-label="Architecture: Claude Desktop and Claude Code call Memento's MCP endpoint on your Mac. The Pocket pull brings voice notes into the inbox. The distiller reads the inbox through MCP and saves entries, using Sonnet 5 through the Anthropic API. Everything is stored in Postgres.">
     <svg viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg">
@@ -243,7 +243,7 @@ footer { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--ru
       <text class="t" x="768" y="86">Distiller</text>
       <text class="s" x="768" y="108">launchd, every 15 min</text>
       <text class="s" x="768" y="126">Sonnet 5 + the skill</text>
-      <text class="s" x="768" y="144">structures the inbox</text>
+      <text class="s" x="768" y="144">6 of 9 tools · can't delete</text>
       <text class="m" x="768" y="176">key: distiller/.env</text>
       <rect class="box-out" x="752" y="250" width="190" height="56" rx="8"/>
       <text class="t" x="768" y="276">Anthropic API</text>
@@ -392,7 +392,7 @@ footer { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--ru
       <tbody>
         <tr><td class="who"><i class="sw code"></i>Memento server</td><td>Nothing about meaning. It refuses what breaks the contract: relative dates, future memories, paraphrased voice notes.</td><td>Its own rules and tests</td><td>None, and it won't start with a model key</td></tr>
         <tr><td class="who"><i class="sw model"></i>Clients</td><td>What to save or skip, how to split and date it, when to ask; how to answer from what's stored</td><td>Tool descriptions and the Memento skill</td><td>Whatever the client runs</td></tr>
-        <tr><td class="who"><i class="sw model"></i>Distiller</td><td>How to turn inbox notes into entries; what to leave for you</td><td>The skill, verbatim</td><td>Sonnet 5, key in <code>distiller/.env</code></td></tr>
+        <tr><td class="who"><i class="sw model"></i>Distiller</td><td>How to turn inbox notes into entries; what to leave for you. It can save and close notes, never delete.</td><td>The skill, verbatim</td><td>Sonnet 5, key in <code>distiller/.env</code></td></tr>
         <tr><td class="who"><i class="sw outside"></i>Pocket</td><td>Transcription and who was speaking</td><td>Its own models</td><td>Its summaries are kept only as hints</td></tr>
       </tbody>
     </table>
@@ -425,8 +425,8 @@ footer { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--ru
   </div>
   <div class="jobs">
     <div class="job"><span class="when">at login</span><b>Server</b><span class="muted">/mcp on 127.0.0.1:8000, Postgres in Docker</span></div>
-    <div class="job"><span class="when">every 15 min</span><b>Pocket pull</b><span class="muted">last 36 hours, silent on repeats</span></div>
-    <div class="job off"><span class="when">optional · 15 min</span><b>Distiller</b><span class="muted">or ask Claude Desktop to process the inbox</span></div>
+    <div class="job"><span class="when">every 15 min awake</span><b>Pocket pull</b><span class="muted">last 36 hours, so a night asleep loses nothing</span></div>
+    <div class="job off"><span class="when">optional · 15 min awake</span><b>Distiller</b><span class="muted">or ask Claude Desktop to process the inbox</span></div>
     <div class="job off"><span class="when">by hand</span><b>Backup</b><span class="muted"><code>make backup</code>; keep a copy elsewhere</span></div>
   </div>
   <p class="parked"><b>Parked until you're ready:</b> hosting on Render, OAuth for claude.ai and ChatGPT, and Pocket's webhook, which replaces the pull once a server Pocket can reach exists.</p>

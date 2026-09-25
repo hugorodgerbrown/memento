@@ -34,10 +34,10 @@ Logs are in `~/Library/Logs/Memento/`. `make launchd-uninstall` stops the server
 
 ## Connect Claude Desktop
 
-1. Create a token for Claude Desktop. It is shown once.
+1. Create a token for Claude Desktop. It is shown once. Include the forget scope: without it, "don't log that" and "forget …" are refused, and there's no other way to delete. Forgetting still always shows you what will go and waits for your yes.
 
    ```bash
-   make client USER=<your username> NAME=claude-desktop
+   make client USER=<your username> NAME=claude-desktop SCOPES=memento:read,memento:write,memento:forget
    ```
 
 2. Put it in a file that only you can read, so it never appears in a process list:

@@ -178,7 +178,7 @@ footer { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--ru
   <ol class="day">
     <li><span class="clock">08:10</span><div><b>You tell Claude:</b> “slept badly, knee sore after padel last night”<br><span class="muted">Claude saves two notes, one about sleep and one about your knee, dated today and last night, and replies: “Saved: poor sleep, and a sore knee after padel on 24 Sep.”</span></div></li>
     <li><span class="clock">08:11</span><div><b>You:</b> “actually, don't log the sleep bit”<br><span class="muted">Claude removes it straight away. Nothing is ever saved without you being told, and one sentence undoes it.</span></div></li>
-    <li><span class="clock">13:40</span><div><b>On a walk, you speak into Pocket:</b> “Decided to stop running until the knee settles.”<br><span class="muted">Within 15 minutes the recording arrives in Memento's <b>inbox</b>, as your exact words, not yet sorted into notes.</span></div></li>
+    <li><span class="clock">13:40</span><div><b>On a walk, you speak into Pocket:</b> “Decided to stop running until the knee settles.”<br><span class="muted">Within 15 minutes, or as soon as your Mac wakes if it's asleep, the recording arrives in Memento's <b>inbox</b>, as your exact words, not yet sorted into notes.</span></div></li>
     <li><span class="clock">14:05</span><div><b>The inbox is sorted.</b> Either the <b>distiller</b> does it on its own, or you ask Claude: “process my Memento inbox”.<br><span class="muted">The voice note becomes a note filed as a decision, dated today, and it still points back to the recording it came from.</span></div></li>
     <li><span class="clock">3 weeks later</span><div><b>You ask:</b> “how has my knee been?”<br><span class="muted">Claude looks through Memento and answers from your own words: “You mentioned it on 24 Sep (sore after padel) and 25 Sep (you stopped running)…”, and it says so if there's nothing.</span></div></li>
   </ol>
@@ -192,8 +192,8 @@ footer { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--ru
   <dl class="glossary">
     <div><dt>Entry</dt><dd>One saved note: something that happened, a thought, a decision or a reminder. It keeps your exact words, plus a clean one-line version with a real date. Most of Memento is entries.</dd></div>
     <div><dt>Inbox</dt><dd>A waiting tray for words that haven't been sorted into entries yet. Pocket voice notes always land here, and so does anything Claude couldn't sort. Nothing in the inbox is lost; it just hasn't been filed.</dd></div>
-    <div><dt>Distiller</dt><dd>An optional helper that empties the inbox for you. It's a small AI program on your Mac that wakes every 15 minutes, sorts new inbox notes into entries, and leaves anything it's unsure about for you. It needs its own Anthropic API key. Without it, you ask Claude to process the inbox yourself.</dd></div>
-    <div><dt>Client</dt><dd>The app you talk to: Claude Desktop, for you. It's the part that understands what you said. Each client has its own key to Memento.</dd></div>
+    <div><dt>Distiller</dt><dd>An optional helper that empties the inbox for you. It's a small AI program on your Mac that runs every 15 minutes while the Mac is awake, sorts new inbox notes into entries, and leaves anything it's unsure about for you. It needs its own Anthropic API key. Without it, you ask Claude to process the inbox yourself.</dd></div>
+    <div><dt>Client</dt><dd>The app you talk to: Claude Desktop, for you. It's the part that understands what you said. Each client has its own key to Memento, and the key says what it may do: Claude Desktop's includes forgetting, so “don't log that” works.</dd></div>
     <div><dt>MCP</dt><dd>The plug that lets Claude talk to Memento. It gives Claude nine actions, such as “remember”, “recall” and “forget”. You never use it directly.</dd></div>
   </dl>
 </section>
