@@ -64,6 +64,6 @@ In Claude Desktop: **Customize > Skills > + > Upload a skill**, and choose `dist
 ## Good to know
 
 - **There is one copy of your memories, on this Mac.** Run `make backup` and keep the file somewhere else too. A backup keeps what you later forget; to forget something completely, delete the backups that hold it. `make restore FILE=... CONFIRM=yes` puts a backup back.
-- **Claude Desktop's Custom connectors setting won't work.** It connects from Anthropic's servers, which can't reach your Mac. `make connect-desktop` sets Memento up as a local connector instead, with a token that includes forgetting, so "don't log that" works.
+- **Claude Desktop starts Memento itself** (0023), so it works whenever Docker is running. Its Custom connectors setting won't work: that connects from Anthropic's servers, which can't reach your Mac.
 - **The distiller** (optional) sorts the inbox on a schedule with its own Anthropic key. The key goes in `distiller/.env`, never in `.env`; the server refuses to start with a model key in its environment. Create its token with `make client USER=<you> NAME=distiller`, write `MEMENTO_URL=http://127.0.0.1:8000/mcp`, `MEMENTO_TOKEN=...` and `ANTHROPIC_API_KEY=...` to `distiller/.env`, check it with `make distil`, then run `make launchd-install LAUNCHD_JOBS="server pocket distiller"`.
 - **Deployment is parked.** When it's time, follow `docs/deploy.md` and move the data with `make backup`. Pocket's webhook then replaces the pull (0021).

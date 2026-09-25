@@ -753,6 +753,17 @@ def authenticate(token: str) -> Client | None:
     return client
 
 
+def seal_client(client: Client) -> Client:
+    """
+    Replace a client's token with one nobody is ever shown, so no bearer token can
+    act as it. For clients that never use HTTP, such as Claude Desktop over stdio (0023).
+    """
+    token = TOKEN_PREFIX + secrets.token_urlsafe(32)
+    client.token_hash, client.token_prefix = _token_hash(token), "sealed"
+    client.save(update_fields=["token_hash", "token_prefix"])
+    return client
+
+
 def revoke_client(client: Client) -> Client:
     client.revoked_at = client.revoked_at or timezone.now()
     client.save(update_fields=["revoked_at"])

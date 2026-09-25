@@ -26,3 +26,4 @@ Short records of decisions that shape behaviour: context, decision, consequences
 | [0020](0020-one-mac.md) | One person, one Mac: deployment is parked |
 | [0021](0021-pocket-pull.md) | Pocket by pull, while Memento lives on one Mac |
 | [0022](0022-one-unnamed-speaker.md) | On the pull, one speaker can count as you (opt-in) |
+| [0023](0023-desktop-over-stdio.md) | Claude Desktop starts Memento itself: stdio, no token |

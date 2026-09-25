@@ -16,7 +16,7 @@ Memento has one user, its owner, and one developer, the same person. The build p
 
 **The model key stays out of the server's way.** On one Mac the distiller's key sits next to the server. It lives in `distiller/.env`, which only `make distil` reads, and the server now refuses to start if a model-provider key is in its environment (Principle 2, 0013).
 
-**Clients are the ones a Mac can reach.** Claude Desktop connects to `http://127.0.0.1:8000/mcp` with its own bearer token; `docs/local.md` has the setup. claude.ai and ChatGPT on the web and phone can't reach the Mac, so M8 (OAuth) waits with deployment.
+**Clients are the ones a Mac can reach.** Claude Desktop connects to `http://127.0.0.1:8000/mcp` with its own bearer token; `docs/local.md` has the setup. (Since 0023, Claude Desktop starts Memento itself over stdio instead.) claude.ai and ChatGPT on the web and phone can't reach the Mac, so M8 (OAuth) waits with deployment.
 
 **Pocket will be pulled, not pushed.** Its webhook can't reach the Mac, so a scheduled job will pull new recordings through Pocket's API instead, into the same ingest path. That is its own decision (0021).
 
