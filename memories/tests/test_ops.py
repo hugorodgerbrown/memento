@@ -1,6 +1,7 @@
 """Operational surface: health check, admin, and the settings a deploy depends on."""
 
 import importlib
+import json
 import os
 from unittest import mock
 
@@ -71,3 +72,73 @@ class DeploySettingsTests(SimpleTestCase):
             settings.STORAGES["staticfiles"]["BACKEND"],
             "whitenoise.storage.CompressedManifestStaticFilesStorage",
         )
+
+
+class ConnectDesktopTests(TestCase):
+    """make connect-desktop: one step from a running Memento to Claude Desktop using it."""
+
+    def setUp(self):
+        import tempfile
+        from pathlib import Path
+
+        self.me = get_user_model().objects.create_superuser("hugo", "h@example.com", "pw")
+        self.dir = Path(tempfile.mkdtemp())
+        self.config = self.dir / "Claude" / "claude_desktop_config.json"
+        self.token_file = self.dir / ".memento-claude-desktop"
+
+    def connect(self):
+        import io
+
+        from django.core.management import call_command
+
+        out = io.StringIO()
+        call_command("connect_desktop", config=self.config, token_file=self.token_file, stdout=out)
+        return out.getvalue()
+
+    def token(self):
+        return self.token_file.read_text().removeprefix("Authorization: Bearer ").strip()
+
+    def test_it_connects_with_forget_and_a_private_token_file(self):
+        from memories import services
+        from memories.models import Scope
+
+        out = self.connect()
+        self.assertIn("quit Claude Desktop (Cmd-Q)", out)
+        client = services.authenticate(self.token())
+        self.assertEqual(client.owner, self.me)
+        self.assertIn(Scope.FORGET, client.scopes)  # "don't log that" must work
+        self.assertEqual(self.token_file.stat().st_mode & 0o777, 0o600)
+        server = json.loads(self.config.read_text())["mcpServers"]["memento"]
+        self.assertIn("http://127.0.0.1:8000/mcp", server["args"])
+        self.assertEqual(server["args"][-1], str(self.token_file))
+
+    def test_other_servers_are_kept_and_the_old_settings_backed_up(self):
+        self.config.parent.mkdir(parents=True)
+        self.config.write_text(json.dumps({"mcpServers": {"other": {"command": "x"}}, "k": 1}))
+        self.connect()
+        settings = json.loads(self.config.read_text())
+        self.assertEqual(set(settings["mcpServers"]), {"other", "memento"})
+        self.assertEqual(settings["k"], 1)
+        backup = self.config.with_name(self.config.name + ".before-memento")
+        self.assertNotIn("memento", json.loads(backup.read_text())["mcpServers"])
+
+    def test_running_it_again_replaces_the_token(self):
+        from memories import services
+
+        self.connect()
+        first = self.token()
+        self.connect()
+        self.assertIsNone(services.authenticate(first))
+        self.assertIsNotNone(services.authenticate(self.token()))
+
+    def test_broken_settings_change_nothing(self):
+        from django.core.management.base import CommandError
+
+        from memories.models import Client
+
+        self.config.parent.mkdir(parents=True)
+        self.config.write_text("{not json")
+        with self.assertRaisesMessage(CommandError, "Nothing was changed"):
+            self.connect()
+        self.assertEqual(self.config.read_text(), "{not json")
+        self.assertFalse(self.token_file.exists() or Client.objects.exists())
