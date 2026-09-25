@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Memento Capture Eval</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+:root {
+  --paper: #F4F6F5;
+  --surface: #FFFFFF;
+  --sunk: #EAEEEC;
+  --ink: #16202A;
+  --muted: #56626C;
+  --rule: #D6DDDA;
+  --accent: #1E6B74;
+  --accent-soft: #DCEBEC;
+  --pass: #2E8B57;
+  --fail: #C2462F;
+  --ask: #B7801A;
+  --skip: #7A8690;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #111820; --surface: #18212B; --sunk: #0D131A; --ink: #E6ECEF; --muted: #9AA7B1;
+    --rule: #2A3642; --accent: #5FB3BC; --accent-soft: #19343A;
+    --pass: #4FBF84; --fail: #F0765C; --ask: #E0A93E; --skip: #8C98A2;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #111820; --surface: #18212B; --sunk: #0D131A; --ink: #E6ECEF; --muted: #9AA7B1;
+  --rule: #2A3642; --accent: #5FB3BC; --accent-soft: #19343A;
+  --pass: #4FBF84; --fail: #F0765C; --ask: #E0A93E; --skip: #8C98A2;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.55 var(--body); padding-inline: 20px; }
+.wrap { max-width: 980px; margin: 0 auto; padding-block: 48px 72px; display: grid; gap: 64px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.1; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.5rem, 3vw, 1.95rem); font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1.1rem; font-weight: 500; }
+p { margin: 0; max-width: 65ch; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+.eyebrow { font: 600 0.75rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.lede { font-size: 1.15rem; color: var(--muted); }
+section { display: grid; gap: 20px; }
+.head { display: grid; gap: 10px; }
+
+/* hero */
+.hero { display: grid; gap: 22px; }
+.score { display: grid; gap: 14px; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 22px; }
+.score-row { display: grid; grid-template-columns: 9.5rem 1fr 5.5rem; gap: 16px; align-items: center; }
+.score-row .label { font-weight: 600; }
+.score-row .label small { display: block; font-weight: 400; color: var(--muted); font-size: 0.85rem; }
+.score-row .num { font: 700 1.5rem/1 var(--display); text-align: right; font-variant-numeric: tabular-nums; }
+.score-row .num small { font: 400 0.8rem var(--body); color: var(--muted); display: block; margin-top: 4px; }
+.strip { display: grid; grid-template-columns: repeat(57, 1fr); gap: 2px; }
+.strip i { display: block; height: 34px; border-radius: 1.5px; }
+.strip i.pass { background: var(--pass); opacity: 0.85; }
+.strip i.fail { background: var(--fail); }
+.score-note { font-size: 0.85rem; color: var(--muted); }
+
+/* case specimen */
+.specimen { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 0; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.specimen pre { margin: 0; padding: 22px; background: var(--sunk); font: 0.84rem/1.7 var(--mono); overflow-x: auto; }
+.specimen pre .k { color: var(--accent); }
+.specimen pre .s { color: var(--ink); }
+.specimen pre .c { color: var(--muted); }
+.specimen ol { margin: 0; padding: 22px 22px 22px 44px; display: grid; gap: 12px; font-size: 0.95rem; }
+.specimen ol li::marker { font: 600 0.8rem var(--mono); color: var(--accent); }
+.specimen b { font-weight: 600; }
+
+/* pipeline */
+.flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; counter-reset: step; }
+.flow li { position: relative; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 12px; display: grid; gap: 6px; align-content: start; counter-increment: step; }
+.flow li::before { content: counter(step); font: 600 0.75rem/1 var(--mono); color: var(--accent); }
+.flow li:not(:last-child)::after { content: "→"; position: absolute; right: -11px; top: 50%; transform: translate(50%, -50%); color: var(--muted); font-size: 0.9rem; background: var(--paper); line-height: 1; padding: 2px 0; z-index: 1; }
+.flow strong { font-family: var(--display); font-weight: 500; font-size: 1rem; line-height: 1.2; }
+.flow span { font-size: 0.84rem; color: var(--muted); line-height: 1.4; }
+.flow li.key { border-color: var(--accent); background: var(--accent-soft); }
+.callout { border-left: 3px solid var(--accent); padding: 4px 0 4px 16px; }
+.multiplier { font: 0.9rem var(--mono); color: var(--muted); }
+
+/* checks table */
+.table-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.93rem; }
+th, td { text-align: left; vertical-align: top; padding: 11px 14px; border-bottom: 1px solid var(--rule); }
+tr:last-child > * { border-bottom: 0; }
+thead th { font: 600 0.72rem/1.2 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); background: var(--sunk); white-space: nowrap; }
+.cat { font: 0.8rem var(--mono); color: var(--muted); white-space: nowrap; }
+.hard { color: var(--fail); font-weight: 600; }
+
+/* worked example */
+.compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.run { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 18px; display: grid; gap: 12px; align-content: start; }
+.run header { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.verdict { font: 600 0.75rem/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 8px; border-radius: 4px; }
+.verdict.pass { color: var(--pass); background: color-mix(in srgb, var(--pass) 14%, transparent); }
+.verdict.fail { color: var(--fail); background: color-mix(in srgb, var(--fail) 14%, transparent); }
+.calls { font: 0.8rem var(--mono); color: var(--muted); }
+.calls b { color: var(--ink); font-weight: 600; }
+.entry { font: 0.8rem/1.6 var(--mono); background: var(--sunk); border-radius: 6px; padding: 10px 12px; overflow-x: auto; white-space: pre; }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 0.92rem; }
+.checks li { display: grid; grid-template-columns: 1.3rem 1fr; gap: 6px; }
+.checks .y { color: var(--pass); font-weight: 700; }
+.checks .n { color: var(--fail); font-weight: 700; }
+
+/* results grid */
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 0.85rem; color: var(--muted); align-items: center; }
+.legend span { display: inline-flex; gap: 6px; align-items: center; }
+.results td.msg { color: var(--muted); font-size: 0.88rem; min-width: 16rem; }
+.results th[scope="row"] { white-space: nowrap; font-weight: 400; }
+.results th[scope="row"] code { font-size: 0.8rem; }
+.results td.runs { white-space: nowrap; }
+.dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
+.dot.pass { background: var(--pass); }
+.dot.fail { background: transparent; box-shadow: inset 0 0 0 2.5px var(--fail); }
+.why { display: block; font: 0.72rem var(--mono); color: var(--fail); margin-top: 4px; }
+.chip { font: 600 0.72rem/1 var(--mono); padding: 4px 7px; border-radius: 4px; white-space: nowrap; }
+.chip.save { color: var(--pass); background: color-mix(in srgb, var(--pass) 13%, transparent); }
+.chip.skip { color: var(--skip); background: color-mix(in srgb, var(--skip) 16%, transparent); }
+.chip.ask { color: var(--ask); background: color-mix(in srgb, var(--ask) 15%, transparent); }
+.sens { display: block; font: 0.68rem var(--mono); color: var(--ask); margin-top: 3px; letter-spacing: 0.03em; }
+
+/* bar + distiller */
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 20px; display: grid; gap: 12px; align-content: start; }
+.panel p { font-size: 0.95rem; }
+.modes { display: grid; gap: 8px; font-size: 0.92rem; }
+.modes div { display: grid; grid-template-columns: 5.5rem 1fr; gap: 10px; }
+.modes code { color: var(--accent); }
+.map { display: grid; grid-template-columns: auto auto 1fr; gap: 8px 10px; align-items: center; font-size: 0.92rem; }
+.map .arrow { color: var(--muted); }
+.limits { margin: 0; padding-left: 1.2rem; display: grid; gap: 10px; max-width: 70ch; }
+footer { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 18px; }
+
+@media (max-width: 860px) {
+  .flow { grid-template-columns: repeat(3, 1fr); }
+  .flow li:nth-child(3)::after { content: none; }
+}
+@media (max-width: 720px) {
+  .specimen, .compare, .pair { grid-template-columns: 1fr; }
+  .score-row { grid-template-columns: 1fr auto; }
+  .score-row .strip { grid-column: 1 / -1; grid-row: 2; }
+  .flow { grid-template-columns: 1fr; }
+  .flow li:not(:last-child)::after { content: "↓"; right: 50%; top: auto; bottom: -11px; transform: translate(50%, 50%); padding: 0 4px; }
+  .flow li:nth-child(3)::after { content: "↓"; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header class="hero">
+  <div class="head">
+    <span class="eyebrow">Memento · docs/evals</span>
+    <h1>How the capture eval works</h1>
+    <p class="lede">Memento saves what you tell any AI client about your life. The eval checks whether a client does that the way the policy says: save the right things, skip the rest, and ask when it's someone else's news. It grades what actually lands in the database, not what the model says it did.</p>
+  </div>
+  <div class="score" aria-label="Headline result">
+    <div class="score-row">
+      <div class="label">Without the skill<small>Claude Code, Opus 5.5</small></div>
+      <div class="strip" aria-hidden="true"><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="fail"></i><i class="fail"></i><i class="fail"></i><i class="pass"></i><i class="pass"></i><i class="fail"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="fail"></i><i class="fail"></i><i class="fail"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="fail"></i><i class="pass"></i><i class="fail"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i></div>
+      <div class="num">48/57<small>84%: 4 cases fail</small></div>
+    </div>
+    <div class="score-row">
+      <div class="label">With the skill<small>same model, same day</small></div>
+      <div class="strip" aria-hidden="true"><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i><i class="pass"></i></div>
+      <div class="num">57/57<small>100%</small></div>
+    </div>
+    <p class="score-note">Each bar is one graded run: 19 cases × 3 runs. Green passed, red failed. Past-midnight ran separately at 00:30 on 25 Sep; everything else on 24 Sep.</p>
+  </div>
+</header>
+
+<section>
+  <div class="head">
+    <span class="eyebrow">Step 1 · The case</span>
+    <h2>A message, and the right reaction to it</h2>
+    <p>The 19 cases live in <code>docs/evals/capture-policy.json</code>. Each is something a real person might type, plus what a good client should store. Dates are written relative to the day the eval runs, so the cases never go stale.</p>
+  </div>
+  <div class="specimen">
+<pre><span class="c">// the "change" case</span>
+{
+  <span class="k">"message"</span>: <span class="s">"Moved into the new flat in
+              Porto last weekend!"</span>,
+  <span class="k">"expect"</span>:  <span class="s">"save"</span>,
+  <span class="k">"entries"</span>: [{
+    <span class="k">"kind"</span>: <span class="s">"memory"</span>,
+    <span class="k">"happened"</span>: <span class="s">"last-weekend/day"</span>,
+    <span class="k">"supersede_reason"</span>: <span class="s">"change"</span>
+  }],
+  <span class="k">"setup"</span>: [{
+    <span class="k">"raw_text"</span>: <span class="s">"I live in Lisbon"</span>, …
+  }]
+}</pre>
+    <ol>
+      <li><b>message</b>: exactly what the user types.</li>
+      <li><b>expect</b>: save, skip, ask first, or either save or ask.</li>
+      <li><b>entries</b>: what should be stored: kind, exact words, date and its precision, tags, and whether it replaces an older entry.</li>
+      <li><b>happened</b>: resolved on the day. <code>last-weekend</code> means that Saturday or Sunday; <code>/day</code> means day precision, no finer and no coarser.</li>
+      <li><b>setup</b>: entries stored before the message arrives. Here, the old fact the new one must replace.</li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="head">
+    <span class="eyebrow">Step 2 · One run</span>
+    <h2>A fresh, sealed room for every attempt</h2>
+    <p><code>evals/capture.py</code> runs each case the same way. Nothing carries over between runs, and nothing touches real memories.</p>
+  </div>
+  <ol class="flow">
+    <li><strong>Start a server</strong><span>Its own database, <code>memento_eval</code>.</span></li>
+    <li><strong>New user</strong><span>A throwaway account with two tokens: one for the model, one for the harness.</span></li>
+    <li><strong>Seed</strong><span>The harness saves the case's setup entries.</span></li>
+    <li class="key"><strong>Ask Claude Code</strong><span>The message, headless. Only Memento connected; none of your settings. Model pinned; skill on or off.</span></li>
+    <li><strong>Read back</strong><span>The harness recalls everything that was stored.</span></li>
+    <li class="key"><strong>Grade</strong><span>Stored entries and the final reply, against the case.</span></li>
+  </ol>
+  <p class="multiplier">19 cases × 3 runs = 57 graded runs per configuration</p>
+</section>
+
+<section>
+  <div class="head">
+    <span class="eyebrow">Step 3 · Grading</span>
+    <h2>Nine checks; a run passes only if all of them do</h2>
+    <p>Every failure is filed under one of six categories, so a result says <em>what kind</em> of thing went wrong, not just that something did.</p>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Check</th><th>Fails when</th><th>Category</th></tr></thead>
+      <tbody>
+        <tr><td>Save or not</td><td>Saved something it should have skipped, or neither saved nor asked when it should have</td><td class="cat">policy</td></tr>
+        <tr><td>Receipt</td><td>Saved without telling the user (Principle 9: nothing is saved silently)</td><td class="cat">policy</td></tr>
+        <tr><td>Splitting</td><td>Wrong number of entries. “5k run, 27 min. knee fine” is two.</td><td class="cat">splitting</td></tr>
+        <tr><td>Verbatim</td><td><code>raw_text</code> isn't the user's exact words, typos included</td><td class="cat">verbatim</td></tr>
+        <tr><td>Kind</td><td>Memory, thought, decision or reminder is wrong</td><td class="cat">kinds</td></tr>
+        <tr><td>Date</td><td>Wrong day, or a precision finer or coarser than the user said</td><td class="cat">dates</td></tr>
+        <tr><td>Tags</td><td>An expected tag is missing, such as <code>person:fred</code></td><td class="cat">tags</td></tr>
+        <tr><td>Supersede</td><td>A change stored as a new fact, or labelled correction instead of change</td><td class="cat">policy</td></tr>
+        <tr><td>Sensitive</td><td>Private content saved without asking</td><td class="cat hard">hard fail</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="head">
+    <span class="eyebrow">Worked example</span>
+    <h2>The Porto move, graded twice</h2>
+    <p>The same case, the same model, on the same evening. The only difference is whether the Memento skill was loaded.</p>
+  </div>
+  <div class="compare">
+    <article class="run">
+      <header><h3>Without the skill · run 3</h3><span class="verdict fail">Failed</span></header>
+      <p class="calls">Tools called: list_tags → <b>remember</b></p>
+      <div class="entry">raw_text   "Moved into the new flat in Porto last weekend!"
+happened   2026-09 · month
+supersedes —</div>
+      <ul class="checks">
+        <li><span class="y">✓</span>Saved, exact words, one entry</li>
+        <li><span class="n">✗</span>Never looked for the Lisbon entry, so both now read as true</li>
+        <li><span class="n">✗</span>“Last weekend” stored as a whole month</li>
+      </ul>
+    </article>
+    <article class="run">
+      <header><h3>With the skill · run 1</h3><span class="verdict pass">Passed</span></header>
+      <p class="calls">Tools called: list_tags → <b>recall</b> → recall → <b>remember</b></p>
+      <div class="entry">raw_text   "Moved into the new flat in Porto last weekend!"
+happened   2026-09-19 · day
+supersedes Lisbon · change</div>
+      <ul class="checks">
+        <li><span class="y">✓</span>Saved, exact words, one entry</li>
+        <li><span class="y">✓</span>Found Lisbon first and replaced it as a change, so Lisbon now ends on 19 Sep</li>
+        <li><span class="y">✓</span>Saturday 19 Sep, at day precision</li>
+      </ul>
+    </article>
+  </div>
+</section>
+
+<section>
+  <div class="head">
+    <span class="eyebrow">All results</span>
+    <h2>Every case, every run</h2>
+    <div class="legend">
+      <span><i class="dot pass"></i>passed</span>
+      <span><i class="dot fail"></i>failed</span>
+      <span><span class="chip save">Save</span><span class="chip skip">Skip</span><span class="chip ask">Ask first</span>what the policy expects</span>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="results">
+      <thead><tr><th>Case</th><th>Message</th><th>Expect</th><th>Without skill</th><th>With skill</th></tr></thead>
+      <tbody>
+<tr>
+  <th scope="row"><code>log-multi</code></th>
+  <td class="msg">“woke up this morning and tendonitis is bad. played padel yesterdy for 90 minutes with Fred. Good sleep”</td>
+  <td><span class="chip save">Save</span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span><span class="why"></span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span></td>
+</tr>
+<tr>
+  <th scope="row"><code>log-terse</code></th>
+  <td class="msg">“5k run, 27 min. knee fine”</td>
+  <td><span class="chip save">Save</span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span><span class="why"></span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span></td>
+</tr>
+<tr>
+  <th scope="row"><code>explicit-decision</code></th>
+  <td class="msg">“Remember that I&#x27;ve decided to stop taking consulting work without a written scope.”</td>
+  <td><span class="chip save">Save</span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span><span class="why"></span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span></td>
+</tr>
+<tr>
+  <th scope="row"><code>reminder</code></th>
+  <td class="msg">“remind me to book the physio on Monday”</td>
+  <td><span class="chip save">Save</span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span><span class="why"></span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span></td>
+</tr>
+<tr>
+  <th scope="row"><code>question-only</code></th>
+  <td class="msg">“what&#x27;s the best stretch for tennis elbow?”</td>
+  <td><span class="chip skip">Skip</span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span><span class="why"></span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span></td>
+</tr>
+<tr>
+  <th scope="row"><code>task-with-aside</code></th>
+  <td class="msg">“I&#x27;m exhausted today, but can you help me fix this Django migration error?”</td>
+  <td><span class="chip ask">Save or ask</span></td>
+  <td class="runs"><span class="dot fail" title="Run 1: failed, policy" aria-label="Run 1: failed, policy"></span><span class="dot fail" title="Run 2: failed, policy" aria-label="Run 2: failed, policy"></span><span class="dot fail" title="Run 3: failed, policy" aria-label="Run 3: failed, policy"></span><span class="why">fails: policy</span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span></td>
+</tr>
+<tr>
+  <th scope="row"><code>drafting</code></th>
+  <td class="msg">“Draft an email to my team saying I&#x27;ll be out next week for surgery.”</td>
+  <td><span class="chip ask">Ask first</span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot fail" title="Run 3: failed, policy" aria-label="Run 3: failed, policy"></span><span class="why">fails: policy</span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span></td>
+</tr>
+<tr>
+  <th scope="row"><code>hypothetical</code></th>
+  <td class="msg">“If I moved to Porto, how would taxes change?”</td>
+  <td><span class="chip skip">Skip</span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span><span class="why"></span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span></td>
+</tr>
+<tr>
+  <th scope="row"><code>fiction</code></th>
+  <td class="msg">“Write a short story about a padel player who injures his wrist.”</td>
+  <td><span class="chip skip">Skip</span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span><span class="why"></span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span></td>
+</tr>
+<tr>
+  <th scope="row"><code>others-private</code><span class="sens" title="Sensitive: saving without asking is a hard fail">sensitive</span></th>
+  <td class="msg">“My sister Ana just told me she&#x27;s pregnant, it&#x27;s not public yet.”</td>
+  <td><span class="chip ask">Ask first</span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span><span class="why"></span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span></td>
+</tr>
+<tr>
+  <th scope="row"><code>change</code></th>
+  <td class="msg">“Moved into the new flat in Porto last weekend!”</td>
+  <td><span class="chip save">Save</span></td>
+  <td class="runs"><span class="dot fail" title="Run 1: failed, dates" aria-label="Run 1: failed, dates"></span><span class="dot fail" title="Run 2: failed, dates, policy" aria-label="Run 2: failed, dates, policy"></span><span class="dot fail" title="Run 3: failed, dates, policy" aria-label="Run 3: failed, dates, policy"></span><span class="why">fails: dates, policy</span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span></td>
+</tr>
+<tr>
+  <th scope="row"><code>correction</code></th>
+  <td class="msg">“actually it was 60 minutes not 90”</td>
+  <td><span class="chip save">Save</span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span><span class="why"></span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span></td>
+</tr>
+<tr>
+  <th scope="row"><code>repeat</code></th>
+  <td class="msg">“as I said, good sleep last night”</td>
+  <td><span class="chip skip">Skip</span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span><span class="why"></span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span></td>
+</tr>
+<tr>
+  <th scope="row"><code>undo</code></th>
+  <td class="msg">“don&#x27;t log that”</td>
+  <td><span class="chip skip">Skip</span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span><span class="why"></span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span></td>
+</tr>
+<tr>
+  <th scope="row"><code>low-mood</code><span class="sens" title="Sensitive: saving without asking is a hard fail">sensitive</span></th>
+  <td class="msg">“been feeling really low all week, not sleeping much”</td>
+  <td><span class="chip save">Save</span></td>
+  <td class="runs"><span class="dot fail" title="Run 1: failed, policy" aria-label="Run 1: failed, policy"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot fail" title="Run 3: failed, policy" aria-label="Run 3: failed, policy"></span><span class="why">fails: policy</span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span></td>
+</tr>
+<tr>
+  <th scope="row"><code>quoted-advice</code></th>
+  <td class="msg">“physio said to rest the arm for two weeks”</td>
+  <td><span class="chip save">Save</span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span><span class="why"></span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span></td>
+</tr>
+<tr>
+  <th scope="row"><code>past-midnight</code></th>
+  <td class="msg">“played padel tonight, knee sore after”</td>
+  <td><span class="chip ask">Save or ask</span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span><span class="why"></span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span></td>
+</tr>
+<tr>
+  <th scope="row"><code>no-date-knowledge</code></th>
+  <td class="msg">“dentist appointment went fine this morning”</td>
+  <td><span class="chip save">Save</span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span><span class="why"></span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span></td>
+</tr>
+<tr>
+  <th scope="row"><code>weak-client-escape</code></th>
+  <td class="msg">“log: new running shoes, felt great”</td>
+  <td><span class="chip save">Save</span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span><span class="why"></span></td>
+  <td class="runs"><span class="dot pass" title="Run 1: passed" aria-label="Run 1: passed"></span><span class="dot pass" title="Run 2: passed" aria-label="Run 2: passed"></span><span class="dot pass" title="Run 3: passed" aria-label="Run 3: passed"></span></td>
+</tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="score-note">The four cases that fail without the skill share a cause. Claude Code loads MCP tool descriptions only when it decides to use a tool, so the capture policy isn't in view when it decides whether to log. A skill's description is always in view.</p>
+</section>
+
+<section>
+  <div class="head">
+    <span class="eyebrow">What the score decides</span>
+    <h2>The bar, and the distiller's version</h2>
+  </div>
+  <div class="pair">
+    <div class="panel">
+      <h3>80%, and no sensitive saves</h3>
+      <p>A client that clears the bar in its best configuration writes entries directly. One that doesn't still works, but its saves wait in the inbox for the distiller to structure.</p>
+      <div class="modes">
+        <div><code>direct</code><span>Writes entries itself. Claude Code with the skill.</span></div>
+        <div><code>inbox</code><span>Keeps the user's words; the distiller turns them into entries within 15 minutes.</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>The same cases, as inbox notes</h3>
+      <p><code>make distil-eval</code> sends each message to the inbox and lets the distiller handle it. Nobody is there to ask, so the rules shift:</p>
+      <div class="map">
+        <span class="chip save">Save</span><span class="arrow">→</span><span>save the entries, close the note</span>
+        <span class="chip skip">Skip</span><span class="arrow">→</span><span>save nothing, dismiss the note</span>
+        <span class="chip ask">Ask first</span><span class="arrow">→</span><span>save nothing, leave the note open for the user</span>
+      </div>
+      <p>Three live-only cases are left out: “don't log that”, a client whose calls were refused, and one that isn't told the date. It hasn't run yet: it needs an Anthropic API key.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="head">
+    <span class="eyebrow">Read with care</span>
+    <h2>What the numbers can't tell you</h2>
+  </div>
+  <ul class="limits">
+    <li><strong>Three runs per case.</strong> 57 out of 57 is strong evidence that the skill fixes the four failing cases, not proof it never fails.</li>
+    <li><strong>Two checks read the reply, not the database.</strong> “Did it ask?” and “did it give a receipt?” match wording. Failures are checked by hand; that is how a false “silent save” was caught and corrected.</li>
+    <li><strong>The skill's author could see the cases.</strong> A test fails if the skill quotes any eval message, so its examples are new ones that test the same behaviour.</li>
+    <li><strong>One client so far.</strong> claude.ai and ChatGPT need OAuth (M8) before they can be measured the same way.</li>
+  </ul>
+</section>
+
+<footer>Source: <code>docs/evals/capture-policy.json</code>, <code>evals/capture.py</code>, and the result files in <code>docs/evals/results/</code> dated 24 and 25 Sep 2026.</footer>
+
+</div>
+</body>
+</html>
