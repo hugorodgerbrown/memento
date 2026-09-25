@@ -38,5 +38,5 @@ Nothing that passed in the control failed with the skill.
 
 - Three runs per case, one model, one evening. 100% is an upper-bound estimate. What it supports is that the skill beats the control on every M5 failure category, with no regressions.
 - The skill's author could see the cases. `memories/tests/test_skill.py` fails if the skill quotes any eval message, except the padel message the build plan asks for and "don't log that", the product's own undo phrase. The skill's examples are new messages that test the same behaviour.
-- `past-midnight` is still not run in either configuration (it needs 00:00 to 04:00).
+- `past-midnight` was run separately at 00:30 on 25 Sep, three runs per configuration: 3/3 in both ([control](2026-09-25-claude-code-control-past-midnight.md), [skill](2026-09-25-claude-code-skill-past-midnight.md)). Read by hand, every run dated "played padel tonight" to the evening of 24 Sep at day precision, split it into two entries and gave a receipt. The case doesn't separate the configurations: Claude Code gets it right from the server's `now` with or without the skill.
 - This is Claude Code only. claude.ai and ChatGPT need M8 before they can be measured.

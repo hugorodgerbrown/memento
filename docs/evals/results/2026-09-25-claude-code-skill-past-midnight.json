@@ -1,0 +1,387 @@
+[
+  {
+    "case": "past-midnight",
+    "run": 1,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 2,
+    "model": "claude-opus-5-5",
+    "seconds": 13,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-25T00:30:35.904536+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "knee",
+          "limit": 5
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-25T00:30:36.110340+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "played padel tonight",
+          "claim": "Played padel on the evening of 24 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "padel",
+            "exercise"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-25T00:30:38.720909+01:00\",\"saved\":[{\"id\":\"01a0d5c1-bbef-74b5-a902-21d54f707e99\",\"claim\":\"Played padel on the evening of 24 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "knee sore after",
+          "claim": "Knee was sore after playing padel on the evening of 24 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "knee",
+            "health",
+            "padel"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-25T00:30:40.169136+01:00\",\"saved\":[{\"id\":\"01a0d5c1-c194-7774-ad71-d30f4c29659e\",\"claim\":\"Knee was sore after playing padel on the evening of 24 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "Sorry about the knee. For tonight, rest it, ice it for 15\u201320 minutes, and keep it raised. If it's swollen, locks or gives way, or still hurts after a few days, get it looked at.\n\nI've saved two entries in Memento: padel on the evening of 24 Sep, and your knee being sore afterwards. If you tell me which knee or where it hurts, I can add that too.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d5c1-c194-7774-ad71-d30f4c29659e",
+          "kind": "memory",
+          "claim": "Knee was sore after playing padel on the evening of 24 Sep 2026.",
+          "raw_text": "knee sore after",
+          "tags": [
+            "health",
+            "knee",
+            "padel"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-25T00:30:40.166895+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        },
+        {
+          "id": "01a0d5c1-bbef-74b5-a902-21d54f707e99",
+          "kind": "memory",
+          "claim": "Played padel on the evening of 24 Sep 2026.",
+          "raw_text": "played padel tonight",
+          "tags": [
+            "exercise",
+            "padel"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-25T00:30:38.719104+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "past-midnight",
+    "run": 2,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 2,
+    "model": "claude-opus-5-5",
+    "seconds": 13,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-25T00:30:35.870235+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "knee"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-25T00:30:36.043396+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "played padel tonight",
+          "claim": "Played padel on the evening of 24 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "padel",
+            "exercise"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-25T00:30:38.602705+01:00\",\"saved\":[{\"id\":\"01a0d5c1-bb77-702c-b9b9-afa0884dbb0d\",\"claim\":\"Played padel on the evening of 24 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "knee sore after",
+          "claim": "Knee was sore after playing padel on the evening of 24 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "knee",
+            "health",
+            "padel"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-25T00:30:39.999892+01:00\",\"saved\":[{\"id\":\"01a0d5c1-c0f1-7434-bf34-7b32cf7c23d3\",\"claim\":\"Knee was sore after playing padel on the evening of 24 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I'm sorry about the knee. Ice it for 15 to 20 minutes, keep it raised, and take it easy for a day or two. If it swells, locks, gives way or still hurts after a few days, get it looked at.\n\nI saved two entries in Memento: you played padel on the evening of 24 Sep, and your knee was sore afterwards. If you don't want them kept, just say so.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d5c1-c0f1-7434-bf34-7b32cf7c23d3",
+          "kind": "memory",
+          "claim": "Knee was sore after playing padel on the evening of 24 Sep 2026.",
+          "raw_text": "knee sore after",
+          "tags": [
+            "health",
+            "knee",
+            "padel"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-25T00:30:39.998423+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        },
+        {
+          "id": "01a0d5c1-bb77-702c-b9b9-afa0884dbb0d",
+          "kind": "memory",
+          "claim": "Played padel on the evening of 24 Sep 2026.",
+          "raw_text": "played padel tonight",
+          "tags": [
+            "exercise",
+            "padel"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-25T00:30:38.600576+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  },
+  {
+    "case": "past-midnight",
+    "run": 3,
+    "passed": true,
+    "fails": [],
+    "notes": [],
+    "saves": 2,
+    "model": "claude-opus-5-5",
+    "seconds": 13,
+    "skills": [
+      "deep-research",
+      "memento:memento",
+      "design",
+      "slides",
+      "design-sync",
+      "dataviz",
+      "artifact-diagramming",
+      "artifact-capabilities",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "claude-api",
+      "workflow-authoring",
+      "run",
+      "run-skill-generator"
+    ],
+    "calls": [
+      {
+        "tool": "list_tags",
+        "input": {},
+        "error": false,
+        "output": "{\"now\":\"2026-09-25T00:30:36.013997+01:00\",\"tags\":[]}"
+      },
+      {
+        "tool": "recall",
+        "input": {
+          "query": "knee"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-25T00:30:36.130174+01:00\",\"entries\":[]}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "played padel tonight",
+          "claim": "Played padel on the evening of 24 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "padel",
+            "exercise"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-25T00:30:39.003540+01:00\",\"saved\":[{\"id\":\"01a0d5c1-bd0c-7518-9cc9-3b5bbb8bfe86\",\"claim\":\"Played padel on the evening of 24 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      },
+      {
+        "tool": "remember",
+        "input": {
+          "raw_text": "knee sore after",
+          "claim": "Knee was sore after playing padel on the evening of 24 Sep 2026.",
+          "kind": "memory",
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "tags": [
+            "knee",
+            "health",
+            "padel"
+          ],
+          "model_name": "claude-opus-5-5"
+        },
+        "error": false,
+        "output": "{\"now\":\"2026-09-25T00:30:40.397213+01:00\",\"saved\":[{\"id\":\"01a0d5c1-c27e-75cf-aea6-9bafd7242680\",\"claim\":\"Knee was sore after playing padel on the evening of 24 Sep 2026.\"}],\"duplicate\":false,\"say\":\"Tell the user in one line what you saved. If they say \\\"don't log that\\\", call forget with this id and confirm: true.\"}"
+      }
+    ],
+    "final": "I've saved two entries in Memento: padel on the evening of 24 Sep, and your knee being sore afterwards. Say if you'd rather I didn't keep them.\n\nThis is the first time your knee has come up in Memento. For now, rest it, ice it for 15\u201320 minutes at a time, and keep it raised. If it's still sore in a few days, or it swells, locks or gives way, get it checked. Let me know how it feels tomorrow and I'll log that too.",
+    "stored": {
+      "entries": [
+        {
+          "id": "01a0d5c1-c27e-75cf-aea6-9bafd7242680",
+          "kind": "memory",
+          "claim": "Knee was sore after playing padel on the evening of 24 Sep 2026.",
+          "raw_text": "knee sore after",
+          "tags": [
+            "health",
+            "knee",
+            "padel"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-25T00:30:40.395022+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        },
+        {
+          "id": "01a0d5c1-bd0c-7518-9cc9-3b5bbb8bfe86",
+          "kind": "memory",
+          "claim": "Played padel on the evening of 24 Sep 2026.",
+          "raw_text": "played padel tonight",
+          "tags": [
+            "exercise",
+            "padel"
+          ],
+          "happened_at": "2026-09-24",
+          "happened_precision": "day",
+          "recorded_at": "2026-09-25T00:30:39.002051+01:00",
+          "valid_until": null,
+          "supersedes": null,
+          "supersede_reason": "",
+          "superseded_by": null,
+          "cites": []
+        }
+      ],
+      "seeded_left": [],
+      "captures": []
+    }
+  }
+]
