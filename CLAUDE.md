@@ -81,6 +81,6 @@ Phases 1 to 3 (interrogate, define, model) are done: the data model, services, P
 
 These were researched or inferred, not confirmed against live systems:
 
-- **Pocket payloads.** The REST pull's envelope and field names come from a third-party SDK (pocket-laravel), not Pocket's docs, which were unreachable; `make pocket-pull DRY=1` on the Mac is the first real check. Whether `updated_at` changes on edits, and the rate limits, are unknown. For the webhook: whether `speakers.labeled` carries the full transcript. Milestone 4 records real responses as fixtures.
+- **Pocket payloads.** The REST pull's response shape was confirmed against the owner's account on 25 Sep 2026 (`REAL_DETAIL` in `test_pocket.py`); `start_date` takes a day. Whether `updated_at` changes on edits, and the rate limits, are unknown. For the webhook: whether `speakers.labeled` carries the full transcript. Milestone 4 records real responses as fixtures.
 - **Client behaviour.** claude.ai ignores MCP server `instructions` and truncates tool descriptions at ~500 characters (anthropics/claude-ai-mcp#93, open). For Claude Desktop neither is confirmed either way (checked Sep 2026), and uploaded skills are limited to a 200-character description (the skill's fits: 197, measured equal to the long one on Claude Code, 25 Sep). Re-check; it decides where guidance must live.
 - **MCP authorisation spec** details (protected-resource metadata, dynamic client registration, client ID metadata documents) and what claude.ai and ChatGPT currently require.
