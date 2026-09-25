@@ -10,7 +10,7 @@ On the Mac, Claude Desktop reached Memento over HTTP through `mcp-remote`, with 
 
 **Claude Desktop runs Memento's tools over stdio.** `manage.py mcp_stdio` serves the same nine tools, with the same descriptions and services, to the process that started it. `make connect-desktop` writes Claude Desktop's settings to run it with `uv`. There is no network, no token and no `mcp-remote`.
 
-**No token, because none protects anything here.** Whoever can start `mcp_stdio` can already read the database and `.env`. Entries are still recorded against a `claude-desktop` client, which has read, write and forget, so receipts, "don't log that" and `client_name` all work as before. Forgetting still previews and waits for a yes.
+**No token, because none protects anything here.** Whoever can start `mcp_stdio` can already read the database and `.env`. Entries are still recorded against a `claude-desktop` client, which has read, write and forget, so receipts, "don't log that" and `client_name` all work as before. That client's token is sealed: it is replaced with one nobody is shown, and older Claude Desktop clients are revoked. So no token left over from the HTTP connector still works. Forgetting still previews and waits for a yes.
 
 **HTTP stays.** `/mcp` with bearer tokens is still how the distiller, the evals and, once deployed, the web clients connect (0016). This changes only Claude Desktop on the Mac.
 

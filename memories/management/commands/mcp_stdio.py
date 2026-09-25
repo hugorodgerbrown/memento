@@ -46,12 +46,18 @@ def local_client(owner) -> Client:
     """
     The client every entry made from Claude Desktop is recorded against. It can
     forget, so "don't log that" works; forgetting still previews and waits for a yes.
+    Its token is sealed and any token-era Claude Desktop clients are revoked, so no
+    bearer token left over from the HTTP connector (before 0023) still works.
     """
     client = Client.objects.filter(owner=owner, name=NAME).first()
     if client is None:
         client, _token = services.create_client(owner, NAME, scopes=ALL)
-        return client
+    if client.token_prefix != "sealed":  # before it's revived, so no old token ever works
+        services.seal_client(client)
     if client.revoked_at or set(client.scopes) != set(ALL):
         client.revoked_at, client.scopes = None, ALL
         client.save(update_fields=["revoked_at", "scopes"])
+    stale = Client.objects.filter(owner=owner, name__startswith=f"{NAME}-", revoked_at=None)
+    for old in stale:
+        services.revoke_client(old)
     return client

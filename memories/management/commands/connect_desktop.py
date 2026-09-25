@@ -41,7 +41,7 @@ class Command(BaseCommand):
             "args": [
                 "--directory", str(repo), "run", "--quiet",
                 "--env-file", str(repo / ".env"),
-                "python", "manage.py", "mcp_stdio",
+                "python", "manage.py", "mcp_stdio", "--user", person.username,
             ],
         }  # fmt: skip
         config.parent.mkdir(parents=True, exist_ok=True)

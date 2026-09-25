@@ -99,7 +99,9 @@ class ConnectDesktopTests(TestCase):
         self.assertIn("quit Claude Desktop (Cmd-Q)", out)
         server = json.loads(self.config.read_text())["mcpServers"]["memento"]
         self.assertEqual(server["command"], "/opt/homebrew/bin/uv")
-        self.assertEqual(server["args"][-3:], ["python", "manage.py", "mcp_stdio"])
+        self.assertEqual(
+            server["args"][-5:], ["python", "manage.py", "mcp_stdio", "--user", "hugo"]
+        )
         self.assertNotIn("token", json.dumps(server).lower())
 
     def test_its_entries_are_recorded_against_claude_desktop_which_can_forget(self):
@@ -121,6 +123,30 @@ class ConnectDesktopTests(TestCase):
         client = local_client(self.me)
         self.assertIsNone(client.revoked_at)
         self.assertIn(Scope.FORGET, client.scopes)
+
+    def test_no_token_from_the_http_connector_still_works(self):
+        """Codex on #23: before 0023 Claude Desktop had bearer tokens, still in a file."""
+        from memories import services
+        from memories.management.commands.mcp_stdio import local_client
+        from memories.models import Scope
+
+        _, old = services.create_client(self.me, "claude-desktop", scopes=[Scope.READ])
+        _, older = services.create_client(self.me, "claude-desktop-20260925-1300")
+        local_client(self.me)
+        self.assertIsNone(services.authenticate(old))
+        self.assertIsNone(services.authenticate(older))
+
+    def test_it_connects_the_user_you_name(self):
+        """Codex on #23: --user must reach the command Claude Desktop runs."""
+        import io
+
+        from django.core.management import call_command
+
+        get_user_model().objects.create_user("sam", "s@example.com", "pw")
+        with mock.patch("shutil.which", return_value="/opt/homebrew/bin/uv"):
+            call_command("connect_desktop", user="sam", config=self.config, stdout=io.StringIO())
+        args = json.loads(self.config.read_text())["mcpServers"]["memento"]["args"]
+        self.assertEqual(args[-2:], ["--user", "sam"])
 
     def test_other_servers_are_kept_and_the_old_settings_backed_up(self):
         self.config.parent.mkdir(parents=True)
