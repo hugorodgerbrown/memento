@@ -49,6 +49,8 @@ Built (0017), ahead of M1's deploy by choice: `Profile` holds the time zone; eve
 
 ## M4. Pocket live (on the Mac, by pull: 0020, 0021)
 
+Now: the pull is built (`make pocket-pull`, 0021) and tested against Pocket's REST shape as a third-party SDK describes it. Done when a dry run against the real account matches expectations, real responses (redacted) replace the hand-written pull fixtures, and the unconfirmed items in 0021 are settled. The webhook bullets below wait with deployment.
+
 - Point a personal Pocket webhook at staging `/ingest/pocket/`.
 - Record real deliveries (with personal content redacted) as test fixtures: a solo note, a conversation, a transcript edit, a label change, a deletion.
 - Resolve every Pocket item under "Verify before relying" in `CLAUDE.md`, and update `pocket.py` and its tests to match reality.

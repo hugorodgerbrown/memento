@@ -129,6 +129,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Pocket webhook signing secret (Pocket app: Settings > Integrations > Webhooks).
 POCKET_WEBHOOK_SECRET = env("POCKET_WEBHOOK_SECRET", "")
+# The pull (0021): a personal key, read-only use.
+POCKET_API_KEY = env("POCKET_API_KEY", "")
+POCKET_API_URL = env("POCKET_API_URL", "https://public.heypocketai.com/api/v1/public")
 
 # The health check has to reach the database, not a redirect. Render counts any
 # 3xx as healthy, so without this exemption a service with a dead database would

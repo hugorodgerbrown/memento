@@ -12,7 +12,7 @@ Memento has one user, its owner, and one developer, the same person. The build p
 
 **Nothing listens beyond the Mac.** The server binds to `127.0.0.1:8000`. Postgres publishes its port on `127.0.0.1` only; it used to listen on every interface, with a password in the repository.
 
-**launchd keeps it running.** `make launchd-install` installs per-user LaunchAgents: the server (started at login, restarted if it stops) and, once configured, the distiller (every 15 minutes) and, when it is built, the Pocket pull (planned as 0021). Each job runs a `make` target, so there is one way to start anything, and logs go to `~/Library/Logs/Memento/`.
+**launchd keeps it running.** `make launchd-install` installs per-user LaunchAgents: the server (started at login, restarted if it stops) and, once configured, the distiller and the Pocket pull (0021), each every 15 minutes. Each job runs a `make` target, so there is one way to start anything, and logs go to `~/Library/Logs/Memento/`.
 
 **The model key stays out of the server's way.** On one Mac the distiller's key sits next to the server. It lives in `distiller/.env`, which only `make distil` reads, and the server now refuses to start if a model-provider key is in its environment (Principle 2, 0013).
 

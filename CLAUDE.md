@@ -24,7 +24,7 @@ Each principle is enforced in code and covered by tests. If a task seems to need
 |---|---|
 | `memories/models.py` | `Entry`, `Citation`, `Capture`, `PocketLink`, `IngestLog`, `Tombstone`, `Client`, `Profile`. Constraints live here. |
 | `memories/services.py` | All behaviour. MCP tools and views must be thin wrappers around these functions. |
-| `memories/pocket.py` | Pocket webhook: signature check, solo-voice rule. Action items are ignored (0015). |
+| `memories/pocket.py` | Pocket ingest: the webhook and, on one Mac, the scheduled pull (0021, `manage.py pocket_pull`), through one store path. Solo-voice rule; action items ignored (0015). |
 | `memories/mcp_server.py` | The nine MCP tools, bearer auth and the `/mcp` app. Descriptions must match `docs/mcp-tools.md`. |
 | `memories/views.py` | `/ingest/pocket/`, `/healthz`. |
 | `memories/tests/` | One file per area; tests are named for the principle or decision they protect. |
@@ -54,6 +54,7 @@ make serve     # ASGI, exactly as Render runs it (collectstatic first)
 make local-server   # as launchd runs it on the Mac: 127.0.0.1:8000, migrations first
 make launchd-install [LAUNCHD_JOBS="server distiller"]   # keep it running (macOS)
 make backup / make restore FILE=... CONFIRM=yes          # pg_dump to ~/Memento backups
+make pocket-pull [SINCE=2026-09-14] [DRY=1]             # Pocket recordings, by pull (0021)
 ```
 
 Copy `.env.example` to `.env` first. Python 3.14 (for `uuid.uuid7`), Django 6.1, Postgres 16, managed by uv.
@@ -73,12 +74,12 @@ Copy `.env.example` to `.env` first. Python 3.14 (for `uuid.uuid7`), Django 6.1,
 
 ## Status
 
-Phases 1 to 3 (interrogate, define, model) are done: the data model, services, Pocket ingest and tool spec. M2 is built: the MCP server at `/mcp` with per-client bearer tokens (0016). M3, the contract, is built too (0017), ahead of M1's deploy. M6, the skill, is built and beats a same-day control on Claude Code (54/54 against 45/54); plugin packaging is outstanding. **Deployment is parked (0020):** Memento runs on the owner's Mac with Claude Desktop as the client, M1 and M8 wait, and Pocket moves to a pull (0021, planned). Phase 4 (designing the morning email and web timeline) hasn't started; the build plan says where it slots in. Cross-model consistency (0013: contract, skill, inbox fallback, distiller) is built for M3 and M6; the distiller (M7, 0019) is built and awaits its eval run.
+Phases 1 to 3 (interrogate, define, model) are done: the data model, services, Pocket ingest and tool spec. M2 is built: the MCP server at `/mcp` with per-client bearer tokens (0016). M3, the contract, is built too (0017), ahead of M1's deploy. M6, the skill, is built and beats a same-day control on Claude Code (54/54 against 45/54); plugin packaging is outstanding. **Deployment is parked (0020):** Memento runs on the owner's Mac with Claude Desktop as the client, M1 and M8 wait, and Pocket comes in by a scheduled pull (0021), awaiting its first dry run against the real account. Phase 4 (designing the morning email and web timeline) hasn't started; the build plan says where it slots in. Cross-model consistency (0013: contract, skill, inbox fallback, distiller) is built for M3 and M6; the distiller (M7, 0019) is built and awaits its eval run.
 
 ## Verify before relying on these
 
 These were researched or inferred, not confirmed against live systems:
 
-- **Pocket payloads.** Whether `speakers.labeled` carries the full transcript; the signature format (hex, with or without `sha256=`). Milestone 4 records real deliveries as fixtures.
+- **Pocket payloads.** The REST pull's envelope and field names come from a third-party SDK (pocket-laravel), not Pocket's docs, which were unreachable; `make pocket-pull DRY=1` on the Mac is the first real check. Whether `updated_at` changes on edits, and the rate limits, are unknown. For the webhook: whether `speakers.labeled` carries the full transcript. Milestone 4 records real responses as fixtures.
 - **Client behaviour.** claude.ai ignores MCP server `instructions` and truncates tool descriptions at ~500 characters (anthropics/claude-ai-mcp#93, open). For Claude Desktop neither is confirmed either way (checked Sep 2026), and uploaded skills are limited to a 200-character description. Re-check; it decides where guidance must live.
 - **MCP authorisation spec** details (protected-resource metadata, dynamic client registration, client ID metadata documents) and what claude.ai and ChatGPT currently require.

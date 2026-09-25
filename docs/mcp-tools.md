@@ -157,6 +157,8 @@ Pocket delivers signed webhooks to `/ingest/pocket/`. Ingest is deterministic: i
 | Transcript edits | Appended as revisions. The original stays; excerpts may come from any revision. |
 | Retries | Safe: one capture per recording id. |
 
+While Memento runs on one Mac, the same rules apply to a scheduled pull from Pocket's REST API instead (0021; `docs/local.md`).
+
 Setup: create a personal webhook in the Pocket app pointing at `/ingest/pocket/`, store its signing secret as `POCKET_WEBHOOK_SECRET`, and create a `PocketLink` with your Pocket user id and the name Pocket's voice print gives you.
 
 ## Response shape

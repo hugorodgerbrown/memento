@@ -5,7 +5,7 @@ While Memento has one user on one computer, it runs entirely on that computer (A
 ```
 Claude Desktop ──mcp-remote──▶ 127.0.0.1:8000/mcp ──▶ Postgres (Docker, 127.0.0.1:5432)
                                      ▲    ▲
-       launchd, every 15 min:  distiller  Pocket pull (planned, 0021)
+       launchd, every 15 min:  distiller  Pocket pull (0021)
 ```
 
 ## Once: set it up
@@ -75,6 +75,28 @@ Two things are not yet known for Claude Desktop, so the capture policy stays in 
 
 Claude Desktop accepts uploaded skills: in **Customize > Skills**, choose **+**, then **Upload a skill**. Code execution must be on. But an uploaded skill's description is limited to 200 characters, and `skill/memento`'s is longer. The long description is what made the skill trigger in Claude Code's evals. A shorter one is a behaviour change, so it needs its own eval run before it ships. Until then, Claude Desktop works from the tool descriptions alone. Claude Code without the skill scored 45 of 54 on the same cases.
 
+## Pocket
+
+A scheduled job pulls your recordings from Pocket's API every 15 minutes (0021), by the same rules as the webhook: solo notes in your voice only, nothing kept from conversations, and nothing you've forgotten brought back.
+
+1. In the Pocket app, create a key: **Settings > Developer > API Keys**. Put it in `.env` as `POCKET_API_KEY=pk_...`.
+2. In the admin, add a **Pocket link** for your user. The **speaker label** is your name as Pocket's voice print labels you (on your own recordings it shows your first name). The Pocket user id is only used by the webhook; any unique value will do for the pull.
+3. **Dry run first.** Pocket's API documentation couldn't be read while this was built, so check what it would do before storing anything:
+
+   ```bash
+   make pocket-pull SINCE=2026-09-14 DRY=1
+   ```
+
+   You should see one line per recording (`stored`, or `skipped` with a reason) and nothing stored. If it fails or looks wrong, stop there and share the output.
+4. Then bring in everything since you started, and keep it pulling:
+
+   ```bash
+   make pocket-pull SINCE=2026-09-14
+   make launchd-install LAUNCHD_JOBS="server pocket"
+   ```
+
+Voice notes wait in the inbox until a client or the distiller turns them into entries.
+
 ## The distiller
 
 It needs an Anthropic API key and a token of its own. Both go in `distiller/.env`, never in `.env`: the server refuses to start with a model key in its environment (0020).
@@ -88,7 +110,7 @@ ANTHROPIC_API_KEY=<your key>
 EOF
 chmod 600 distiller/.env
 make distil                                          # once, by hand, to check
-make launchd-install LAUNCHD_JOBS="server distiller" # then every 15 minutes
+make launchd-install LAUNCHD_JOBS="server pocket distiller"  # then every 15 minutes
 ```
 
 ## Back up
