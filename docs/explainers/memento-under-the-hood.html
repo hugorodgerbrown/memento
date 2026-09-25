@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Memento overview - under the hood</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+:root {
+  --paper: #F4F6F5; --surface: #FFFFFF; --sunk: #EAEEEC;
+  --ink: #16202A; --muted: #56626C; --rule: #D6DDDA;
+  --code: #1E6B74; --code-soft: #DCEBEC;
+  --model: #B7801A; --model-soft: #F6ECD9;
+  --outside: #7A8690; --outside-soft: #EEF1F2;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #111820; --surface: #18212B; --sunk: #0D131A; --ink: #E6ECEF; --muted: #9AA7B1; --rule: #2A3642;
+    --code: #5FB3BC; --code-soft: #16343A; --model: #E0A93E; --model-soft: #3A2E17; --outside: #8C98A2; --outside-soft: #1E2833;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #111820; --surface: #18212B; --sunk: #0D131A; --ink: #E6ECEF; --muted: #9AA7B1; --rule: #2A3642;
+  --code: #5FB3BC; --code-soft: #16343A; --model: #E0A93E; --model-soft: #3A2E17; --outside: #8C98A2; --outside-soft: #1E2833;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.55 var(--body); padding-inline: 20px; }
+.wrap { max-width: 1000px; margin: 0 auto; padding-block: 48px 72px; display: grid; gap: 60px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.1; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.45rem, 3vw, 1.9rem); font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1.08rem; font-weight: 500; }
+p { margin: 0; max-width: 66ch; }
+code { font-family: var(--mono); font-size: 0.85em; }
+.eyebrow { font: 600 0.74rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--code); }
+.lede { font-size: 1.15rem; color: var(--muted); }
+section, .head { display: grid; gap: 14px; }
+section { gap: 22px; }
+.muted { color: var(--muted); }
+
+/* legend */
+.legend { display: flex; flex-wrap: wrap; gap: 10px 22px; font-size: 0.9rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.sw { width: 14px; height: 14px; border-radius: 3px; border: 2px solid; }
+.sw.model { border-color: var(--model); background: var(--model-soft); }
+.sw.code { border-color: var(--code); background: var(--code-soft); }
+.sw.outside { border-color: var(--outside); background: var(--outside-soft); }
+
+a { color: var(--code); text-underline-offset: 3px; }
+a:focus-visible { outline: 2px solid var(--code); outline-offset: 2px; }
+.next { border-top: 1px solid var(--rule); padding-top: 20px; font-size: 1.02rem; }
+
+/* day */
+.day { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border-left: 2px solid var(--code); }
+.day li { display: grid; grid-template-columns: 7.5rem 1fr; gap: 16px; padding: 12px 0 12px 18px; position: relative; }
+.day li::before { content: ""; position: absolute; left: -7px; top: 18px; width: 12px; height: 12px; border-radius: 50%; background: var(--paper); border: 2px solid var(--code); }
+.day .clock { font: 600 0.8rem/1.9 var(--mono); color: var(--code); }
+.day b { font-weight: 600; }
+.glossary { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 12px; }
+.glossary div { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 16px 18px; display: grid; gap: 6px; align-content: start; }
+.glossary dt { font: 700 1.1rem var(--display); }
+.glossary dd { margin: 0; font-size: 0.94rem; color: var(--muted); }
+table.says td:first-child { font-weight: 600; min-width: 14rem; }
+
+/* diagram */
+.diagram { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); }
+.diagram svg { display: block; width: 100%; min-width: 760px; height: auto; }
+svg text { font-family: var(--body); fill: var(--ink); }
+svg .t { font: 600 15px var(--display); fill: var(--ink); }
+svg .s { font-size: 12.5px; fill: var(--muted); }
+svg .m { font: 11.5px var(--mono); fill: var(--muted); }
+svg .lab { font: 11.5px var(--mono); fill: var(--muted); }
+svg .frame { fill: none; stroke: var(--code); stroke-width: 1.5; stroke-dasharray: 6 5; }
+svg .frame-lab { font: 600 12px var(--mono); fill: var(--code); letter-spacing: 0.04em; }
+svg .box-model { fill: var(--model-soft); stroke: var(--model); stroke-width: 2; }
+svg .box-code { fill: var(--code-soft); stroke: var(--code); stroke-width: 1.5; }
+svg .box-out { fill: var(--outside-soft); stroke: var(--outside); stroke-width: 1.5; }
+svg .box-db { fill: var(--surface); stroke: var(--code); stroke-width: 1.5; }
+svg .chip { fill: var(--code-soft); stroke: none; }
+svg .arrow { stroke: var(--muted); stroke-width: 1.6; fill: none; }
+svg .arrowhead { fill: var(--muted); }
+
+/* two paths */
+.paths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.path { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 20px; display: grid; gap: 14px; align-content: start; }
+.path header { display: grid; gap: 4px; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: s; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 1.6rem 1fr; gap: 10px; padding: 9px 0; border-top: 1px solid var(--rule); font-size: 0.94rem; }
+.steps li:first-child { border-top: 0; }
+.steps li::before { content: counter(s); font: 600 0.78rem/1.6 var(--mono); color: var(--code); }
+.steps li.m::before { color: var(--model); }
+.quote { font-family: var(--mono); font-size: 0.8rem; background: var(--sunk); border-radius: 6px; padding: 8px 10px; overflow-x: auto; white-space: pre; }
+.tag { font: 600 0.7rem/1 var(--mono); padding: 4px 7px; border-radius: 4px; white-space: nowrap; }
+.tag.model { color: var(--model); background: var(--model-soft); }
+.tag.code { color: var(--code); background: var(--code-soft); }
+
+/* storage */
+.tables { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.tbl { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; display: grid; align-content: start; }
+.tbl header { padding: 14px 18px 10px; display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.tbl header code { color: var(--muted); }
+.fields { margin: 0; padding: 0 18px 12px; list-style: none; display: grid; gap: 4px; font: 0.8rem/1.5 var(--mono); color: var(--muted); }
+.fields b { color: var(--ink); font-weight: 600; }
+.rule { background: var(--sunk); padding: 10px 18px; font-size: 0.88rem; border-top: 1px solid var(--rule); }
+.rule strong { font-weight: 600; }
+.chain { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 18px; }
+.link { font: 0.8rem var(--mono); color: var(--muted); text-align: center; }
+.card { border: 1px solid var(--rule); border-radius: 8px; padding: 12px 14px; display: grid; gap: 4px; font-size: 0.9rem; }
+.card .when { font: 0.76rem var(--mono); color: var(--muted); }
+.card.old { opacity: 0.75; }
+
+/* tools */
+.tools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.group { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 18px; display: grid; gap: 10px; align-content: start; }
+.group dl { margin: 0; display: grid; gap: 8px; }
+.group dt { font: 600 0.86rem var(--mono); color: var(--code); }
+.group dd { margin: 0; font-size: 0.9rem; color: var(--muted); }
+
+/* who thinks */
+.table-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.93rem; }
+th, td { text-align: left; vertical-align: top; padding: 11px 14px; border-bottom: 1px solid var(--rule); }
+tr:last-child > * { border-bottom: 0; }
+thead th { font: 600 0.72rem/1.2 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); background: var(--sunk); white-space: nowrap; }
+td.who { white-space: nowrap; font-weight: 600; }
+td.who .sw { display: inline-block; vertical-align: -2px; margin-right: 8px; }
+
+/* principles */
+.principles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; counter-reset: p; }
+.principles li { background: var(--surface); padding: 14px 16px; display: grid; gap: 4px; counter-increment: p; font-size: 0.9rem; }
+.principles li::before { content: counter(p); font: 600 0.75rem var(--mono); color: var(--code); }
+.principles b { font-family: var(--display); font-weight: 500; font-size: 1rem; }
+.principles span { color: var(--muted); }
+
+/* running now */
+.jobs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.job { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 14px; display: grid; gap: 4px; align-content: start; font-size: 0.9rem; }
+.job .when { font: 600 0.74rem var(--mono); color: var(--code); }
+.job.off .when { color: var(--outside); }
+.parked { font-size: 0.92rem; color: var(--muted); }
+footer { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 18px; }
+
+@media (max-width: 820px) {
+  .tools, .principles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .jobs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .day li { grid-template-columns: 1fr; gap: 2px; }
+  .paths, .tables, .tools, .principles, .jobs { grid-template-columns: 1fr; }
+  .chain { grid-template-columns: 1fr; }
+  .link { transform: rotate(90deg); }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header class="head">
+  <span class="eyebrow">Memento overview · under the hood</span>
+  <h1>How Memento is built</h1>
+  <p class="lede">The parts, how your words move between them, and the rules they keep. For what Memento is and how to use it, start with <a href="memento-user-guide.html">Memento overview - user guide</a>.</p>
+</header>
+
+<section aria-labelledby="inside">
+  <div class="head">
+    <span class="eyebrow">The idea</span>
+    <h2 id="inside">Memento keeps; the AI understands</h2>
+    <p>One idea runs through the design. Understanding what you meant is left to the AI you're talking to. Memento itself only keeps, finds and forgets, and it never writes a word of its own.</p>
+    <div class="legend" aria-label="Colour key">
+      <span><i class="sw model"></i>An AI model works here</span>
+      <span><i class="sw code"></i>Memento's own code: no AI, ever</span>
+      <span><i class="sw outside"></i>Outside Memento</span>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="map">
+  <div class="head">
+    <span class="eyebrow">The map</span>
+    <h2 id="map">Four parts, one rule about who thinks</h2>
+    <p>Only two parts contain an AI: the app you chat in (the client) and the optional distiller. They decide what your words mean. Memento itself checks, stores, searches, counts and forgets. Both reach your data through the same nine MCP actions. Pocket voice notes are the one exception: they arrive as plain transcripts in the inbox, to be sorted later.</p>
+  </div>
+  <div class="diagram" role="img" aria-label="Architecture: Claude Desktop and Claude Code call Memento's MCP endpoint on your Mac. The Pocket pull brings voice notes into the inbox. The distiller reads the inbox through MCP and saves entries, using Sonnet 5 through the Anthropic API. Everything is stored in Postgres.">
+    <svg viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path class="arrowhead" d="M0,0 L10,5 L0,10 z"/>
+        </marker>
+      </defs>
+
+      <!-- sources -->
+      <text class="lab" x="20" y="34">YOU, TYPING</text>
+      <rect class="box-model" x="20" y="48" width="200" height="72" rx="8"/>
+      <text class="t" x="36" y="76">Claude Desktop</text>
+      <text class="s" x="36" y="98">everyday, via mcp-remote</text>
+      <rect class="box-model" x="20" y="136" width="200" height="72" rx="8"/>
+      <text class="t" x="36" y="164">Claude Code</text>
+      <text class="s" x="36" y="186">where the evals run</text>
+
+      <text class="lab" x="20" y="332">YOU, SPEAKING</text>
+      <rect class="box-out" x="20" y="346" width="200" height="86" rx="8"/>
+      <text class="t" x="36" y="374">Pocket</text>
+      <text class="s" x="36" y="396">recorder + cloud: transcribes,</text>
+      <text class="s" x="36" y="414">labels who spoke</text>
+
+      <!-- the mac -->
+      <rect class="frame" x="256" y="20" width="460" height="500" rx="14"/>
+      <text class="frame-lab" x="272" y="42">YOUR MAC · 127.0.0.1 ONLY</text>
+
+      <rect class="box-code" x="284" y="58" width="404" height="140" rx="8"/>
+      <text class="t" x="302" y="86">MCP endpoint  /mcp</text>
+      <text class="s" x="302" y="108">nine tools · a bearer token per client · every</text>
+      <text class="s" x="302" y="126">result carries now, in your time zone</text>
+      <text class="m" x="302" y="148">remember · save_digest · complete_reminder</text>
+      <text class="m" x="302" y="166">close_capture · recall · timeline · list_tags</text>
+      <text class="m" x="302" y="184">inbox · forget</text>
+
+      <rect class="box-code" x="284" y="238" width="404" height="70" rx="8"/>
+      <text class="t" x="302" y="266">services.py</text>
+      <text class="s" x="302" y="288">validate · store · search · count · schedule · forget</text>
+
+      <rect class="box-code" x="284" y="346" width="186" height="64" rx="8"/>
+      <text class="t" x="300" y="372">Pocket pull</text>
+      <text class="s" x="300" y="394">launchd, every 15 min</text>
+
+      <rect class="box-db" x="284" y="436" width="404" height="68" rx="8"/>
+      <text class="t" x="302" y="460">Postgres</text>
+      <rect class="chip" x="302" y="470" width="76" height="24" rx="4"/><text class="m" x="312" y="486">Entries</text>
+      <rect class="chip" x="386" y="470" width="66" height="24" rx="4"/><text class="m" x="396" y="486">Inbox</text>
+      <rect class="chip" x="460" y="470" width="92" height="24" rx="4"/><text class="m" x="470" y="486">Citations</text>
+      <rect class="chip" x="560" y="470" width="110" height="24" rx="4"/><text class="m" x="570" y="486">Tombstones</text>
+
+      <!-- distiller -->
+      <rect class="box-model" x="752" y="58" width="190" height="140" rx="8"/>
+      <text class="t" x="768" y="86">Distiller</text>
+      <text class="s" x="768" y="108">launchd, every 15 min</text>
+      <text class="s" x="768" y="126">Sonnet 5 + the skill</text>
+      <text class="s" x="768" y="144">structures the inbox</text>
+      <text class="m" x="768" y="176">key: distiller/.env</text>
+      <rect class="box-out" x="752" y="250" width="190" height="56" rx="8"/>
+      <text class="t" x="768" y="276">Anthropic API</text>
+      <text class="s" x="768" y="295">optional; see below</text>
+
+      <!-- arrows -->
+      <path class="arrow" d="M220 84 H282" marker-end="url(#ah)"/>
+      <path class="arrow" d="M220 172 H282" marker-end="url(#ah)"/>
+      <path class="arrow" d="M486 198 V236" marker-end="url(#ah)"/>
+      <path class="arrow" d="M600 308 V434" marker-end="url(#ah)"/>
+      <path class="arrow" d="M220 378 H282" marker-end="url(#ah)"/>
+      <text class="lab" x="232" y="370">REST</text>
+      <path class="arrow" d="M377 346 V310" marker-end="url(#ah)"/>
+      <text class="lab" x="384" y="332">solo only</text>
+      <path class="arrow" d="M750 128 H690" marker-end="url(#ah)"/>
+      <text class="lab" x="694" y="118">MCP</text>
+      <path class="arrow" d="M846 198 V248" marker-end="url(#ah)"/>
+    </svg>
+  </div>
+</section>
+
+<section aria-labelledby="ways">
+  <div class="head">
+    <span class="eyebrow">Two ways in</span>
+    <h2 id="ways">Structured now, or kept now and structured later</h2>
+    <p>Either way your exact words are stored first and never rewritten. What differs is who turns them into dated, tagged entries, and when.</p>
+  </div>
+  <div class="paths">
+    <article class="path">
+      <header><span class="tag model">direct</span><h3>A client structures it as you speak</h3></header>
+      <div class="quote">"played padel yesterdy for 90 minutes with Fred. Good sleep"</div>
+      <ol class="steps">
+        <li class="m"><span>The client's model spots two observations and works out the dates from the server's <code>now</code>.</span></li>
+        <li><span><code>remember</code> checks each one: no "yesterday" in the claim, no memory dated in the future. If a call is refused, the error says how to fix it.</span></li>
+        <li><span>Two <b>Entries</b> are stored, typo intact in <code>raw_text</code> and fixed in <code>claim</code>.</span></li>
+        <li class="m"><span>The client tells you in one line what it saved. "Don't log that" undoes it.</span></li>
+      </ol>
+    </article>
+    <article class="path">
+      <header><span class="tag code">inbox</span><h3>Kept as spoken, structured later</h3></header>
+      <div class="quote">🎙 "Bad night's sleep. PF is fine on left foot…"</div>
+      <ol class="steps">
+        <li><span>A Pocket voice note (solo, your voice), words saved with <code>raw_text</code> alone, or any save from a client in <code>inbox</code> mode becomes a <b>Capture</b>: the transcript, waiting.</span></li>
+        <li class="m"><span>Later, the distiller, or you asking Claude Desktop to process the inbox, reads it with your recent entries alongside.</span></li>
+        <li><span><code>remember</code> takes each exact excerpt with <code>capture</code> set, so every entry points back to what you said.</span></li>
+        <li><span><code>close_capture</code>: processed or dismissed. If a note needs you, it stays in the inbox.</span></li>
+      </ol>
+    </article>
+  </div>
+</section>
+
+<section aria-labelledby="storage">
+  <div class="head">
+    <span class="eyebrow">Storage</span>
+    <h2 id="storage">Four tables carry the promises</h2>
+    <p>Each of these tables is shaped by a principle, and the database enforces it, not just the code.</p>
+  </div>
+  <div class="tables">
+    <article class="tbl">
+      <header><h3>Entry</h3><code>memory · thought · decision · reminder · digest</code></header>
+      <ul class="fields">
+        <li><b>raw_text</b> your words · <b>claim</b> one clean sentence</li>
+        <li><b>happened_at</b> + precision · <b>recorded_at</b></li>
+        <li><b>supersedes</b> + correction | change · <b>valid_until</b></li>
+        <li><b>capture</b> · <b>client_name</b> · <b>model_name</b></li>
+      </ul>
+      <div class="rule"><strong>Raw is sacred.</strong> <code>raw_text</code> can't be rewritten: a Postgres trigger refuses it.</div>
+    </article>
+    <article class="tbl">
+      <header><h3>Capture</h3><code>the inbox</code></header>
+      <ul class="fields">
+        <li><b>text</b> the transcript · <b>revisions</b> appended</li>
+        <li><b>captured_at</b> when said · <b>received_at</b> when it arrived</li>
+        <li><b>hints</b> Pocket's summary, kept apart</li>
+        <li><b>status</b> inbox | processed | dismissed</li>
+      </ul>
+      <div class="rule"><strong>Your words, not others'.</strong> Only solo notes in your voice are kept. Edits append; the original stays.</div>
+    </article>
+    <article class="tbl">
+      <header><h3>Citation</h3><code>digest → its sources</code></header>
+      <ul class="fields">
+        <li><b>digest</b> a synthesis a client wrote</li>
+        <li><b>source</b> each entry it drew on</li>
+      </ul>
+      <div class="rule"><strong>Every answer cites.</strong> Forget a source and the digests citing it go too.</div>
+    </article>
+    <article class="tbl">
+      <header><h3>Tombstone</h3><code>no content</code></header>
+      <ul class="fields">
+        <li><b>object_id</b> · <b>object_type</b> · <b>external_ref</b></li>
+        <li><b>forgotten_at</b></li>
+      </ul>
+      <div class="rule"><strong>Forgetting is a right.</strong> <code>forget</code> hard-deletes. The tombstone only stops Pocket bringing it back.</div>
+    </article>
+  </div>
+  <div class="chain" aria-label="Example of a change: an old entry stays in history with an end date">
+    <div class="card old"><span class="when">memory · Jan 2023 · valid until 19 Sep 2026</span>Lives in Lisbon.</div>
+    <div class="link">supersedes<br>as change →</div>
+    <div class="card"><span class="when">memory · 19 Sep 2026 · current</span>Moved into a new flat in Porto.</div>
+  </div>
+  <p class="muted">Changes append instead of overwriting. <code>recall</code> shows Porto as current, <code>as_of</code> a date in 2025 still answers Lisbon, and a <code>correction</code> would mark the old entry as never true.</p>
+</section>
+
+<section aria-labelledby="tools">
+  <div class="head">
+    <span class="eyebrow">The MCP surface</span>
+    <h2 id="tools">Nine tools, and their descriptions are the product</h2>
+    <p>The first 500 characters of <code>remember</code> are the capture policy that every client reads. The Memento skill teaches the rest: when to recall before saving, how to date "last weekend", what not to keep.</p>
+  </div>
+  <div class="tools">
+    <div class="group">
+      <h3>Write</h3>
+      <dl>
+        <dt>remember</dt><dd>Save your words, or keep them in the inbox</dd>
+        <dt>save_digest</dt><dd>Keep a synthesis, citing its sources</dd>
+        <dt>complete_reminder</dt><dd>Mark a reminder done</dd>
+        <dt>close_capture</dt><dd>Finish an inbox note</dd>
+      </dl>
+    </div>
+    <div class="group">
+      <h3>Read</h3>
+      <dl>
+        <dt>recall</dt><dd>Search entries: now, as of a date, or all history</dd>
+        <dt>timeline</dt><dd>Counts per tag over time; mentions, not occurrences</dd>
+        <dt>list_tags</dt><dd>Reuse tags instead of inventing near-duplicates</dd>
+        <dt>inbox</dt><dd>Notes waiting, with entries they might update</dd>
+      </dl>
+    </div>
+    <div class="group">
+      <h3>Delete</h3>
+      <dl>
+        <dt>forget</dt><dd>Preview, then confirm. Cascades to digests and leaves a content-free tombstone. "Don't log that" right after a save is the one shortcut.</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="who">
+  <div class="head">
+    <span class="eyebrow">Where the intelligence lives</span>
+    <h2 id="who">The server never writes a word</h2>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Part</th><th>Decides</th><th>Guided by</th><th>Model</th></tr></thead>
+      <tbody>
+        <tr><td class="who"><i class="sw code"></i>Memento server</td><td>Nothing about meaning. It refuses what breaks the contract: relative dates, future memories, paraphrased voice notes.</td><td>Its own rules and tests</td><td>None, and it won't start with a model key</td></tr>
+        <tr><td class="who"><i class="sw model"></i>Clients</td><td>What to save or skip, how to split and date it, when to ask; how to answer from what's stored</td><td>Tool descriptions and the Memento skill</td><td>Whatever the client runs</td></tr>
+        <tr><td class="who"><i class="sw model"></i>Distiller</td><td>How to turn inbox notes into entries; what to leave for you</td><td>The skill, verbatim</td><td>Sonnet 5, key in <code>distiller/.env</code></td></tr>
+        <tr><td class="who"><i class="sw outside"></i>Pocket</td><td>Transcription and who was speaking</td><td>Its own models</td><td>Its summaries are kept only as hints</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section aria-labelledby="principles">
+  <div class="head">
+    <span class="eyebrow">The nine principles</span>
+    <h2 id="principles">Requirements, each enforced in code and tests</h2>
+  </div>
+  <ol class="principles">
+    <li><b>Raw is sacred</b><span>Your words are never rewritten; corrections are new entries.</span></li>
+    <li><b>The server never generates</b><span>It validates, stores, searches, counts, schedules and deletes.</span></li>
+    <li><b>Every answer cites</b><span>Digests link to the entries they came from.</span></li>
+    <li><b>Changes append</b><span>Correction: never true. Change: true until then.</span></li>
+    <li><b>Forgetting is a right</b><span>Hard delete, cascade, content-free tombstone.</span></li>
+    <li><b>Time has two axes</b><span>When it happened is not when it was recorded.</span></li>
+    <li><b>Tool text is the product</b><span>Edits to descriptions and the skill are eval-tested.</span></li>
+    <li><b>Your words, not others'</b><span>Only solo voice notes in your voice are kept.</span></li>
+    <li><b>Nothing saved silently</b><span>Every save has a receipt and a one-step undo.</span></li>
+  </ol>
+</section>
+
+<section aria-labelledby="now">
+  <div class="head">
+    <span class="eyebrow">Running now</span>
+    <h2 id="now">One person, one Mac</h2>
+    <p>Until you say otherwise, everything runs on your Mac and nothing listens beyond it. launchd keeps it going, and logs go to <code>~/Library/Logs/Memento</code>.</p>
+  </div>
+  <div class="jobs">
+    <div class="job"><span class="when">at login</span><b>Server</b><span class="muted">/mcp on 127.0.0.1:8000, Postgres in Docker</span></div>
+    <div class="job"><span class="when">every 15 min</span><b>Pocket pull</b><span class="muted">last 36 hours, silent on repeats</span></div>
+    <div class="job off"><span class="when">optional · 15 min</span><b>Distiller</b><span class="muted">or ask Claude Desktop to process the inbox</span></div>
+    <div class="job off"><span class="when">by hand</span><b>Backup</b><span class="muted"><code>make backup</code>; keep a copy elsewhere</span></div>
+  </div>
+  <p class="parked"><b>Parked until you're ready:</b> hosting on Render, OAuth for claude.ai and ChatGPT, and Pocket's webhook, which replaces the pull once a server Pocket can reach exists.</p>
+</section>
+
+<footer>From the repository: <code>CLAUDE.md</code>, <code>docs/mcp-tools.md</code>, <code>memories/models.py</code>, and decisions 0013, 0019, 0020 and 0021. As of 25 Sep 2026.</footer>
+
+</div>
+</body>
+</html>

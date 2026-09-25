@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Memento overview - user guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+:root {
+  --paper: #F4F6F5; --surface: #FFFFFF; --sunk: #EAEEEC;
+  --ink: #16202A; --muted: #56626C; --rule: #D6DDDA;
+  --code: #1E6B74; --code-soft: #DCEBEC;
+  --model: #B7801A; --model-soft: #F6ECD9;
+  --outside: #7A8690; --outside-soft: #EEF1F2;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #111820; --surface: #18212B; --sunk: #0D131A; --ink: #E6ECEF; --muted: #9AA7B1; --rule: #2A3642;
+    --code: #5FB3BC; --code-soft: #16343A; --model: #E0A93E; --model-soft: #3A2E17; --outside: #8C98A2; --outside-soft: #1E2833;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #111820; --surface: #18212B; --sunk: #0D131A; --ink: #E6ECEF; --muted: #9AA7B1; --rule: #2A3642;
+  --code: #5FB3BC; --code-soft: #16343A; --model: #E0A93E; --model-soft: #3A2E17; --outside: #8C98A2; --outside-soft: #1E2833;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.55 var(--body); padding-inline: 20px; }
+.wrap { max-width: 1000px; margin: 0 auto; padding-block: 48px 72px; display: grid; gap: 60px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.1; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.45rem, 3vw, 1.9rem); font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1.08rem; font-weight: 500; }
+p { margin: 0; max-width: 66ch; }
+code { font-family: var(--mono); font-size: 0.85em; }
+.eyebrow { font: 600 0.74rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--code); }
+.lede { font-size: 1.15rem; color: var(--muted); }
+section, .head { display: grid; gap: 14px; }
+section { gap: 22px; }
+.muted { color: var(--muted); }
+
+/* legend */
+.legend { display: flex; flex-wrap: wrap; gap: 10px 22px; font-size: 0.9rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.sw { width: 14px; height: 14px; border-radius: 3px; border: 2px solid; }
+.sw.model { border-color: var(--model); background: var(--model-soft); }
+.sw.code { border-color: var(--code); background: var(--code-soft); }
+.sw.outside { border-color: var(--outside); background: var(--outside-soft); }
+
+a { color: var(--code); text-underline-offset: 3px; }
+a:focus-visible { outline: 2px solid var(--code); outline-offset: 2px; }
+.next { border-top: 1px solid var(--rule); padding-top: 20px; font-size: 1.02rem; }
+
+/* day */
+.day { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border-left: 2px solid var(--code); }
+.day li { display: grid; grid-template-columns: 7.5rem 1fr; gap: 16px; padding: 12px 0 12px 18px; position: relative; }
+.day li::before { content: ""; position: absolute; left: -7px; top: 18px; width: 12px; height: 12px; border-radius: 50%; background: var(--paper); border: 2px solid var(--code); }
+.day .clock { font: 600 0.8rem/1.9 var(--mono); color: var(--code); }
+.day b { font-weight: 600; }
+.glossary { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 12px; }
+.glossary div { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 16px 18px; display: grid; gap: 6px; align-content: start; }
+.glossary dt { font: 700 1.1rem var(--display); }
+.glossary dd { margin: 0; font-size: 0.94rem; color: var(--muted); }
+table.says td:first-child { font-weight: 600; min-width: 14rem; }
+
+/* diagram */
+.diagram { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); }
+.diagram svg { display: block; width: 100%; min-width: 760px; height: auto; }
+svg text { font-family: var(--body); fill: var(--ink); }
+svg .t { font: 600 15px var(--display); fill: var(--ink); }
+svg .s { font-size: 12.5px; fill: var(--muted); }
+svg .m { font: 11.5px var(--mono); fill: var(--muted); }
+svg .lab { font: 11.5px var(--mono); fill: var(--muted); }
+svg .frame { fill: none; stroke: var(--code); stroke-width: 1.5; stroke-dasharray: 6 5; }
+svg .frame-lab { font: 600 12px var(--mono); fill: var(--code); letter-spacing: 0.04em; }
+svg .box-model { fill: var(--model-soft); stroke: var(--model); stroke-width: 2; }
+svg .box-code { fill: var(--code-soft); stroke: var(--code); stroke-width: 1.5; }
+svg .box-out { fill: var(--outside-soft); stroke: var(--outside); stroke-width: 1.5; }
+svg .box-db { fill: var(--surface); stroke: var(--code); stroke-width: 1.5; }
+svg .chip { fill: var(--code-soft); stroke: none; }
+svg .arrow { stroke: var(--muted); stroke-width: 1.6; fill: none; }
+svg .arrowhead { fill: var(--muted); }
+
+/* two paths */
+.paths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.path { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 20px; display: grid; gap: 14px; align-content: start; }
+.path header { display: grid; gap: 4px; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: s; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 1.6rem 1fr; gap: 10px; padding: 9px 0; border-top: 1px solid var(--rule); font-size: 0.94rem; }
+.steps li:first-child { border-top: 0; }
+.steps li::before { content: counter(s); font: 600 0.78rem/1.6 var(--mono); color: var(--code); }
+.steps li.m::before { color: var(--model); }
+.quote { font-family: var(--mono); font-size: 0.8rem; background: var(--sunk); border-radius: 6px; padding: 8px 10px; overflow-x: auto; white-space: pre; }
+.tag { font: 600 0.7rem/1 var(--mono); padding: 4px 7px; border-radius: 4px; white-space: nowrap; }
+.tag.model { color: var(--model); background: var(--model-soft); }
+.tag.code { color: var(--code); background: var(--code-soft); }
+
+/* storage */
+.tables { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.tbl { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; display: grid; align-content: start; }
+.tbl header { padding: 14px 18px 10px; display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.tbl header code { color: var(--muted); }
+.fields { margin: 0; padding: 0 18px 12px; list-style: none; display: grid; gap: 4px; font: 0.8rem/1.5 var(--mono); color: var(--muted); }
+.fields b { color: var(--ink); font-weight: 600; }
+.rule { background: var(--sunk); padding: 10px 18px; font-size: 0.88rem; border-top: 1px solid var(--rule); }
+.rule strong { font-weight: 600; }
+.chain { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 18px; }
+.link { font: 0.8rem var(--mono); color: var(--muted); text-align: center; }
+.card { border: 1px solid var(--rule); border-radius: 8px; padding: 12px 14px; display: grid; gap: 4px; font-size: 0.9rem; }
+.card .when { font: 0.76rem var(--mono); color: var(--muted); }
+.card.old { opacity: 0.75; }
+
+/* tools */
+.tools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.group { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 18px; display: grid; gap: 10px; align-content: start; }
+.group dl { margin: 0; display: grid; gap: 8px; }
+.group dt { font: 600 0.86rem var(--mono); color: var(--code); }
+.group dd { margin: 0; font-size: 0.9rem; color: var(--muted); }
+
+/* who thinks */
+.table-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.93rem; }
+th, td { text-align: left; vertical-align: top; padding: 11px 14px; border-bottom: 1px solid var(--rule); }
+tr:last-child > * { border-bottom: 0; }
+thead th { font: 600 0.72rem/1.2 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); background: var(--sunk); white-space: nowrap; }
+td.who { white-space: nowrap; font-weight: 600; }
+td.who .sw { display: inline-block; vertical-align: -2px; margin-right: 8px; }
+
+/* principles */
+.principles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; counter-reset: p; }
+.principles li { background: var(--surface); padding: 14px 16px; display: grid; gap: 4px; counter-increment: p; font-size: 0.9rem; }
+.principles li::before { content: counter(p); font: 600 0.75rem var(--mono); color: var(--code); }
+.principles b { font-family: var(--display); font-weight: 500; font-size: 1rem; }
+.principles span { color: var(--muted); }
+
+/* running now */
+.jobs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.job { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 14px; display: grid; gap: 4px; align-content: start; font-size: 0.9rem; }
+.job .when { font: 600 0.74rem var(--mono); color: var(--code); }
+.job.off .when { color: var(--outside); }
+.parked { font-size: 0.92rem; color: var(--muted); }
+footer { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 18px; }
+
+@media (max-width: 820px) {
+  .tools, .principles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .jobs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .day li { grid-template-columns: 1fr; gap: 2px; }
+  .paths, .tables, .tools, .principles, .jobs { grid-template-columns: 1fr; }
+  .chain { grid-template-columns: 1fr; }
+  .link { transform: rotate(90deg); }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header class="head">
+  <span class="eyebrow">Memento overview · user guide</span>
+  <h1>Memento: a user guide</h1>
+  <p class="lede">Memento is a private notebook of your life that your AI assistant writes in and reads from. You chat with Claude as you normally would. When you mention something about your life, Claude writes it down in Memento and tells you it did. Weeks later, when you ask "how has my knee been since the summer?", Claude looks it up in Memento and answers from what you actually said, with dates.</p>
+</header>
+
+<section aria-labelledby="day">
+  <div class="head">
+    <span class="eyebrow">In plain words</span>
+    <h2 id="day">A day with Memento</h2>
+    <p>You never open Memento or fill anything in. You talk to Claude, or into your Pocket recorder, and Memento is the memory behind the conversation.</p>
+  </div>
+  <ol class="day">
+    <li><span class="clock">08:10</span><div><b>You tell Claude:</b> “slept badly, knee sore after padel last night”<br><span class="muted">Claude saves two notes, one about sleep and one about your knee, dated today and last night, and replies: “Saved: poor sleep, and a sore knee after padel on 24 Sep.”</span></div></li>
+    <li><span class="clock">08:11</span><div><b>You:</b> “actually, don't log the sleep bit”<br><span class="muted">Claude removes it straight away. Nothing is ever saved without you being told, and one sentence undoes it.</span></div></li>
+    <li><span class="clock">13:40</span><div><b>On a walk, you speak into Pocket:</b> “Decided to stop running until the knee settles.”<br><span class="muted">Within 15 minutes the recording arrives in Memento's <b>inbox</b>, as your exact words, not yet sorted into notes.</span></div></li>
+    <li><span class="clock">14:05</span><div><b>The inbox is sorted.</b> Either the <b>distiller</b> does it on its own, or you ask Claude: “process my Memento inbox”.<br><span class="muted">The voice note becomes a note filed as a decision, dated today, and it still points back to the recording it came from.</span></div></li>
+    <li><span class="clock">3 weeks later</span><div><b>You ask:</b> “how has my knee been?”<br><span class="muted">Claude looks through Memento and answers from your own words: “You mentioned it on 24 Sep (sore after padel) and 25 Sep (you stopped running)…”, and it says so if there's nothing.</span></div></li>
+  </ol>
+</section>
+
+<section aria-labelledby="words">
+  <div class="head">
+    <span class="eyebrow">Five words you'll meet</span>
+    <h2 id="words">What the parts are called</h2>
+  </div>
+  <dl class="glossary">
+    <div><dt>Entry</dt><dd>One saved note: something that happened, a thought, a decision or a reminder. It keeps your exact words, plus a clean one-line version with a real date. Most of Memento is entries.</dd></div>
+    <div><dt>Inbox</dt><dd>A waiting tray for words that haven't been sorted into entries yet. Pocket voice notes always land here, and so does anything Claude couldn't sort. Nothing in the inbox is lost; it just hasn't been filed.</dd></div>
+    <div><dt>Distiller</dt><dd>An optional helper that empties the inbox for you. It's a small AI program on your Mac that wakes every 15 minutes, sorts new inbox notes into entries, and leaves anything it's unsure about for you. It needs its own Anthropic API key. Without it, you ask Claude to process the inbox yourself.</dd></div>
+    <div><dt>Client</dt><dd>The app you talk to: Claude Desktop, for you. It's the part that understands what you said. Each client has its own key to Memento.</dd></div>
+    <div><dt>MCP</dt><dd>The plug that lets Claude talk to Memento. It gives Claude nine actions, such as “remember”, “recall” and “forget”. You never use it directly.</dd></div>
+  </dl>
+</section>
+
+<section aria-labelledby="use">
+  <div class="head">
+    <span class="eyebrow">How you use it</span>
+    <h2 id="use">Things you'll say, and what happens</h2>
+    <p>Say them in your own words; these are examples, not commands.</p>
+  </div>
+  <div class="table-wrap">
+    <table class="says">
+      <thead><tr><th>You say</th><th>What happens</th></tr></thead>
+      <tbody>
+        <tr><td>“Ran 5k in 27 minutes, knee fine”</td><td>Saved as two entries. Claude tells you what it saved.</td></tr>
+        <tr><td>“Don't log that”</td><td>The last save is removed at once.</td></tr>
+        <tr><td>“Actually it was 60 minutes, not 90”</td><td>A correction is saved. The old version is kept out of view, not rewritten.</td></tr>
+        <tr><td>“Remind me to book the physio on Monday”</td><td>Saved as a reminder for Monday. <b>Nothing notifies you yet:</b> ask “what reminders do I have?” The morning email that will send them isn't built.</td></tr>
+        <tr><td>“What's in my Memento inbox?” / “Process my inbox”</td><td>Claude lists what's waiting, or sorts it into entries, asking you about anything unclear.</td></tr>
+        <tr><td>“How has my sleep been this month?”</td><td>Claude answers from your entries with dates, and says plainly if there's nothing.</td></tr>
+        <tr><td>“Summarise my September and keep it”</td><td>Claude writes a summary and saves it, linked to the entries it came from.</td></tr>
+        <tr><td>“Forget what I said about my sister”</td><td>Claude shows you exactly what would be deleted, and deletes it only when you confirm. It can't be undone.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="muted">Claude also saves things you mention in passing without being asked, like “exhausted today, but can you help with this email?”, and tells you when it does. It won't save questions, hypotheticals, or other people's private news without asking you first.</p>
+</section>
+
+<section aria-labelledby="where">
+  <div class="head">
+    <span class="eyebrow">Where your memories are</span>
+    <h2 id="where">On your Mac, and nowhere else</h2>
+  </div>
+  <div class="paths">
+    <div class="path"><h3>To see them, ask Claude</h3><p class="muted">There is no Memento app yet. You look through your memories by asking, in any wording: “what did I decide about running?”, “show me everything from last weekend”, “what's waiting in my inbox?”. A read-only timeline page is planned.</p></div>
+    <div class="path"><h3>To check the raw data, the admin page</h3><p class="muted">At <code>http://127.0.0.1:8000/admin/</code> on your Mac you can browse entries and inbox notes as stored. It's for checking, not everyday use, and deleting there is switched off on purpose: forgetting goes through Claude, so it's always previewed.</p></div>
+  </div>
+</section>
+
+<section class="next" aria-label="Next">
+  <p>How it's built (the parts, how your words move between them, and the rules they keep) is in <a href="memento-under-the-hood.html">Memento overview - under the hood</a>.</p>
+</section>
+
+<footer>For Memento running on one Mac, as of 25 Sep 2026. Setup is in <code>docs/local.md</code> in the repository.</footer>
+
+</div>
+</body>
+</html>
