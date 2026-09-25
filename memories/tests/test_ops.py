@@ -75,16 +75,14 @@ class DeploySettingsTests(SimpleTestCase):
 
 
 class ConnectDesktopTests(TestCase):
-    """make connect-desktop: one step from a running Memento to Claude Desktop using it."""
+    """make connect-desktop (0023): Claude Desktop starts Memento itself. No network, no token."""
 
     def setUp(self):
         import tempfile
         from pathlib import Path
 
         self.me = get_user_model().objects.create_superuser("hugo", "h@example.com", "pw")
-        self.dir = Path(tempfile.mkdtemp())
-        self.config = self.dir / "Claude" / "claude_desktop_config.json"
-        self.token_file = self.dir / ".memento-claude-desktop"
+        self.config = Path(tempfile.mkdtemp()) / "Claude" / "claude_desktop_config.json"
 
     def connect(self):
         import io
@@ -92,44 +90,47 @@ class ConnectDesktopTests(TestCase):
         from django.core.management import call_command
 
         out = io.StringIO()
-        call_command("connect_desktop", config=self.config, token_file=self.token_file, stdout=out)
+        with mock.patch("shutil.which", return_value="/opt/homebrew/bin/uv"):
+            call_command("connect_desktop", config=self.config, stdout=out)
         return out.getvalue()
 
-    def token(self):
-        return self.token_file.read_text().removeprefix("Authorization: Bearer ").strip()
-
-    def test_it_connects_with_forget_and_a_private_token_file(self):
-        from memories import services
-        from memories.models import Scope
-
+    def test_claude_desktop_starts_memento_directly(self):
         out = self.connect()
         self.assertIn("quit Claude Desktop (Cmd-Q)", out)
-        client = services.authenticate(self.token())
-        self.assertEqual(client.owner, self.me)
-        self.assertIn(Scope.FORGET, client.scopes)  # "don't log that" must work
-        self.assertEqual(self.token_file.stat().st_mode & 0o777, 0o600)
         server = json.loads(self.config.read_text())["mcpServers"]["memento"]
-        self.assertIn("http://127.0.0.1:8000/mcp", server["args"])
-        self.assertEqual(server["args"][-1], str(self.token_file))
+        self.assertEqual(server["command"], "/opt/homebrew/bin/uv")
+        self.assertEqual(server["args"][-3:], ["python", "manage.py", "mcp_stdio"])
+        self.assertNotIn("token", json.dumps(server).lower())
+
+    def test_its_entries_are_recorded_against_claude_desktop_which_can_forget(self):
+        from memories.models import Client, Scope
+
+        self.connect()
+        self.connect()  # again: still one client
+        client = Client.objects.get(owner=self.me)
+        self.assertEqual(client.name, "claude-desktop")
+        self.assertIn(Scope.FORGET, client.scopes)  # "don't log that" must work
+
+    def test_a_revoked_desktop_client_is_restored(self):
+        from memories import services
+        from memories.management.commands.mcp_stdio import local_client
+        from memories.models import Scope
+
+        client, _ = services.create_client(self.me, "claude-desktop", scopes=[Scope.READ])
+        services.revoke_client(client)
+        client = local_client(self.me)
+        self.assertIsNone(client.revoked_at)
+        self.assertIn(Scope.FORGET, client.scopes)
 
     def test_other_servers_are_kept_and_the_old_settings_backed_up(self):
         self.config.parent.mkdir(parents=True)
         self.config.write_text(json.dumps({"mcpServers": {"other": {"command": "x"}}, "k": 1}))
         self.connect()
-        settings = json.loads(self.config.read_text())
-        self.assertEqual(set(settings["mcpServers"]), {"other", "memento"})
-        self.assertEqual(settings["k"], 1)
+        current = json.loads(self.config.read_text())
+        self.assertEqual(set(current["mcpServers"]), {"other", "memento"})
+        self.assertEqual(current["k"], 1)
         backup = self.config.with_name(self.config.name + ".before-memento")
         self.assertNotIn("memento", json.loads(backup.read_text())["mcpServers"])
-
-    def test_running_it_again_replaces_the_token(self):
-        from memories import services
-
-        self.connect()
-        first = self.token()
-        self.connect()
-        self.assertIsNone(services.authenticate(first))
-        self.assertIsNotNone(services.authenticate(self.token()))
 
     def test_broken_settings_change_nothing(self):
         from django.core.management.base import CommandError
@@ -141,4 +142,4 @@ class ConnectDesktopTests(TestCase):
         with self.assertRaisesMessage(CommandError, "Nothing was changed"):
             self.connect()
         self.assertEqual(self.config.read_text(), "{not json")
-        self.assertFalse(self.token_file.exists() or Client.objects.exists())
+        self.assertFalse(Client.objects.exists())

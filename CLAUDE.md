@@ -26,6 +26,7 @@ Each principle is enforced in code and covered by tests. If a task seems to need
 | `memories/services.py` | All behaviour. MCP tools and views must be thin wrappers around these functions. |
 | `memories/pocket.py` | Pocket ingest: the webhook and, on one Mac, the scheduled pull (0021, `manage.py pocket_pull`), through one store path. Solo-voice rule; action items ignored (0015). |
 | `memories/mcp_server.py` | The nine MCP tools, bearer auth and the `/mcp` app. Descriptions must match `docs/mcp-tools.md`. |
+| `memories/management/commands/mcp_stdio.py` | The same nine tools over stdio, for Claude Desktop on the Mac (0023). No token. |
 | `memories/views.py` | `/ingest/pocket/`, `/healthz`. |
 | `memories/tests/` | One file per area; tests are named for the principle or decision they protect. |
 | `docs/decisions/` | Architecture decision records. Add one for any decision that changes behaviour. |
@@ -47,7 +48,7 @@ make test      # full suite (needs Postgres; SQLite is not supported)
 make check     # everything CI runs: lint, format, migrations check, tests
 make run       # development server, with /mcp (uvicorn, reloads)
 make client USER=hugo NAME=claude-code   # MCP client + bearer token, shown once
-make connect-desktop   # Claude Desktop on this Mac: token (with forget), token file, its settings
+make connect-desktop   # Claude Desktop on this Mac: it starts Memento itself over stdio (0023)
 make eval      # capture evals against Claude Code (RUNS=3, CASE=id, SKILL=1, MODEL=id)
 make distil    # run the distiller once (MEMENTO_URL, MEMENTO_TOKEN, ANTHROPIC_API_KEY)
 make distil-eval  # capture-policy cases as inbox notes, through the distiller
