@@ -15,7 +15,7 @@ Each principle is enforced in code and covered by tests. If a task seems to need
 5. **Forgetting is a right.** `services.forget()` hard-deletes, cascades to citing digests, and leaves a content-free `Tombstone`. Admin deletion is disabled on purpose.
 6. **Time has two axes.** `happened_at` (+ precision) is not `recorded_at`.
 7. **Tool descriptions are the product.** The first ~500 characters of `remember` are the capture policy for every client. Treat edits to tool descriptions like UI copy changes: deliberate, reviewed, and eval-tested.
-8. **Your words, not other people's.** Only solo Pocket recordings in the owner's voice are stored; skipped recordings leave no content. Pocket's REST pull names no one, so a single unnamed speaker counts as the owner only when their Pocket link opts in (0022).
+8. **Your words, not other people's.** Only solo Pocket recordings in the owner's voice are stored; skipped recordings leave no content. Pocket's REST pull names no one, so a recording with one speaker counts as the owner's only when their Pocket link opts in (0022).
 9. **Nothing is saved silently.** Every save returns a receipt; "don't log that" is a one-step undo.
 
 ## Where things live
