@@ -1,6 +1,6 @@
 # 0021. Pocket by pull, while Memento lives on one Mac
 
-Status: accepted, September 2026. Follows from 0020; revisits the transport in 0006, not its rules.
+Status: accepted, September 2026. Follows from 0020; revisits the transport in 0006, not its rules. **Temporary:** it lasts only as long as 0020.
 
 ## Context
 
@@ -18,10 +18,12 @@ Status: accepted, September 2026. Follows from 0020; revisits the transport in 0
 
 **The key is Pocket's, not a model's.** `POCKET_API_KEY` sits in `.env` with the rest of the server's settings. It reads the owner's recordings and generates nothing, so Principle 2 is untouched.
 
+**Push is the mechanism once a server is reachable.** The pull exists only because nothing can reach a Mac. When Memento is deployed on a server Pocket can reach (0020 ends), Pocket delivers by signed webhook, as 0006 decided, and the pull is retired: its launchd job is removed and `pocket_pull` is kept only for backfills (`--since`). Push is better on every count that matters here. It arrives in seconds, not up to 15 minutes. It sees every event, including edits made at any age and deletions (logged, per 0008). It needs no stored API key and no polling. And it spends nothing on Pocket's rate limits.
+
 ## Consequences
 
 - Voice notes arrive within 15 minutes while the Mac is awake, and on waking otherwise. The distiller sees them because its window is on `received_at` (0019).
 - Edits made more than 36 hours after recording aren't seen unless pulled with `--since`.
 - Deleting in Pocket still doesn't delete here (0008). A pull never sees deletions at all.
-- The webhook stays, tested and unused, for when deployment resumes. Running both at once would be harmless, because a recording id stores once.
+- The webhook stays, tested and unused, for when deployment resumes, and it becomes the only live path then. Running both during a switchover is harmless, because a recording id stores once.
 - Still unconfirmed against the live API: the response envelope (`data`, `pagination.has_more`), whether `updated_at` changes on transcript edits, and the rate limits. The dry run settles the first; the rest are M4's "verify before relying" items.

@@ -97,6 +97,8 @@ A scheduled job pulls your recordings from Pocket's API every 15 minutes (0021),
 
 Voice notes wait in the inbox until a client or the distiller turns them into entries.
 
+The pull is only for while Memento lives on this Mac. Once it runs on a server Pocket can reach, Pocket's webhook takes over (faster, sees every edit, and needs no stored key), and the pull is kept for backfills only (0021).
+
 ## The distiller
 
 It needs an Anthropic API key and a token of its own. Both go in `distiller/.env`, never in `.env`: the server refuses to start with a model key in its environment (0020).
