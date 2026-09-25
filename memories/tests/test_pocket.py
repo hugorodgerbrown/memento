@@ -307,6 +307,80 @@ def pulled(**changes):
     return rec
 
 
+# The real REST detail response, by shape (M4): key names and types from the owner's
+# account, 25 Sep 2026. Values are made up. `summarizations` is keyed by id, the
+# transcript is {metadata, segments, text}, and segments carry originalText too.
+REAL_DETAIL = {
+    "success": True,
+    "data": {
+        "id": "rec_real",
+        "title": "Plantar fasciitis update",
+        "folder_id": None,
+        "duration": 41,
+        "state": "completed",
+        "language": "en",
+        "recording_at": "2026-09-15T08:23:00.000Z",
+        "created_at": "2026-09-15T08:24:10.000Z",
+        "updated_at": "2026-09-15T08:30:00.000Z",
+        "tags": [],
+        "transcript": {
+            "metadata": {
+                "duration": 41.2,
+                "language": "en",
+                "language_probability": 0.99,
+                "source": "pocket",
+                "transcription_id": "tr_1",
+            },
+            "segments": [
+                {
+                    "start": 0.0,
+                    "end": 3.1,
+                    "speaker": "Sam",
+                    "text": "PF is fine on left foot,",
+                    "originalText": "PF is fine on left foot,",
+                },
+                {
+                    "start": 3.1,
+                    "end": 6.0,
+                    "speaker": "Sam",
+                    "text": "and on right foot is very mild.",
+                    "originalText": "and on right foot is very mild.",
+                },
+            ],
+            "text": "PF is fine on left foot, and on right foot is very mild.",
+        },
+        "summarizations": {
+            "fe8f6ec3-ad11-43cf-a9a8-d8d12a8d458f": {
+                "id": "fe8f6ec3-ad11-43cf-a9a8-d8d12a8d458f",
+                "summarizationId": "fe8f6ec3-ad11-43cf-a9a8-d8d12a8d458f",
+                "processingStatus": "completed",
+                "v2": {
+                    "summary": {"markdown": "## Feet", "version": "2"},
+                    "mindMap": {"nodes": [], "type": "tree"},
+                    "actionItems": {
+                        "actions": [
+                            {
+                                "id": "a1",
+                                "globalActionItemId": "gai_real",
+                                "label": "Book physio",
+                                "type": "reminder",
+                                "dueDate": None,
+                                "isCompleted": False,
+                                "payload": {"reminder": {"title": "Book physio"}},
+                            }
+                        ],
+                        "version": "2",
+                    },
+                },
+                "settings": {"modelId": "model-x", "matchedSpeakerCount": 1},
+                "createdAt": "2026-09-15T08:25:00.000Z",
+                "updatedAt": "2026-09-15T08:26:00.000Z",
+            }
+        },
+    },
+}
+
+
 class FakePocket:
     """Pocket's REST API as the pull sees it: a page of recordings, then each one."""
 
@@ -414,6 +488,42 @@ class PocketPullTests(PullTestCase):
         self.assertEqual(api.calls[0][1]["start_date"], "2026-09-15")
         self.assertEqual(results, [("rec_on_time", "stored")])
         self.assertEqual(Capture.objects.get().external_id, "rec_on_time")
+
+    def test_a_transcript_wrapped_with_its_text_is_read(self):
+        """The first real dry run: the transcript came as {text, segments}, not a bare list."""
+        wrapped = pulled(transcript={"text": PULLED_TEXT, "segments": PULLED["transcript"]})
+        _, results = self.pull(wrapped)
+        self.assertEqual(results, [("rec_9", "stored")])
+        self.assertEqual(Capture.objects.get().text, PULLED_TEXT)
+
+    def test_a_transcript_without_speaker_labels_is_skipped(self):
+        """Principle 8: plain text can't say whose words they are, so nothing is kept."""
+        for transcript in (PULLED_TEXT, {"text": PULLED_TEXT}):
+            with self.subTest(transcript=type(transcript).__name__):
+                _, results = self.pull(pulled(transcript=transcript))
+                self.assertEqual(results, [("rec_9", "skipped")])
+                self.assertFalse(Capture.objects.exists())
+                log = IngestLog.objects.get()
+                self.assertEqual(log.reason, "no speaker labels")
+                self.assertNotIn("foot", str(log.__dict__))
+                IngestLog.objects.all().delete()
+
+    def test_the_real_response_shape_is_stored(self):
+        """M4: the detail response as Pocket really sends it, envelope and all."""
+        real = REAL_DETAIL["data"]
+        _, results = self.pull(real)
+        self.assertEqual(results, [("rec_real", "stored")])
+        c = Capture.objects.get()
+        self.assertEqual(c.text, PULLED_TEXT)
+        self.assertEqual(
+            c.segments[0],
+            {"speaker": "Sam", "text": "PF is fine on left foot,", "start": 0.0, "end": 3.1},
+        )
+        self.assertEqual(c.captured_at, datetime(2026, 9, 15, 8, 23, tzinfo=UTC))
+        self.assertEqual(c.hints["summary_markdown"], "## Feet")
+        self.assertEqual(c.hints["model"], "model-x")
+        self.assertNotIn("Book physio", json.dumps(c.hints))  # action items ignored (0015)
+        self.assertFalse(Entry.objects.exists())
 
     def test_pockets_own_error_is_kept(self):
         """A 400 names the parameter Pocket refused; the owner sees it, not just "Bad Request"."""
