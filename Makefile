@@ -3,7 +3,7 @@ include $(wildcard .env)
 export
 
 .PHONY: setup db migrate run serve test lint fmt check superuser client eval distil distil-eval \
-	skill-zip pocket-pull local-server backup restore launchd-install launchd-uninstall launchd-status
+	skill-zip pocket-pull connect-desktop local-server backup restore launchd-install launchd-uninstall launchd-status
 
 setup:        ## Install dependencies and git hooks
 	uv sync
@@ -56,6 +56,9 @@ eval:         ## Capture evals against Claude Code, on a separate database: make
 
 client:       ## Create an MCP client: make client USER=hugo NAME=claude-code [SCOPES=...]
 	uv run python manage.py create_client $(USER) $(NAME) $(if $(SCOPES),--scopes $(SCOPES))
+
+connect-desktop: ## Connect Claude Desktop to Memento on this Mac (token, token file, settings). Safe to rerun.
+	uv run python manage.py connect_desktop $(if $(USER_NAME),--user $(USER_NAME))
 
 skill-zip:    ## Package skill/memento for upload to Claude Desktop (Customize > Skills > Upload): dist/memento-skill.zip
 	@mkdir -p dist && rm -f dist/memento-skill.zip

@@ -47,6 +47,7 @@ make test      # full suite (needs Postgres; SQLite is not supported)
 make check     # everything CI runs: lint, format, migrations check, tests
 make run       # development server, with /mcp (uvicorn, reloads)
 make client USER=hugo NAME=claude-code   # MCP client + bearer token, shown once
+make connect-desktop   # Claude Desktop on this Mac: token (with forget), token file, its settings
 make eval      # capture evals against Claude Code (RUNS=3, CASE=id, SKILL=1, MODEL=id)
 make distil    # run the distiller once (MEMENTO_URL, MEMENTO_TOKEN, ANTHROPIC_API_KEY)
 make distil-eval  # capture-policy cases as inbox notes, through the distiller
