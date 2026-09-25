@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Memento's server on this Mac (0020): started at login and restarted if it stops.
+  Installed by `make launchd-install`, which fills in @REPO@, @LOGS@ and @PATH@.
+  It runs `make local-server`, so it reads .env like everything else.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.memento.server</string>
+  <key>ProgramArguments</key>
+  <array><string>/usr/bin/make</string><string>-C</string><string>@REPO@</string><string>local-server</string></array>
+  <key>WorkingDirectory</key><string>@REPO@</string>
+  <key>EnvironmentVariables</key>
+  <dict><key>PATH</key><string>@PATH@</string></dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <!-- Docker may still be starting at login: wait before retrying. -->
+  <key>ThrottleInterval</key><integer>30</integer>
+  <key>StandardOutPath</key><string>@LOGS@/server.log</string>
+  <key>StandardErrorPath</key><string>@LOGS@/server.log</string>
+</dict>
+</plist>

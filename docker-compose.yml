@@ -1,4 +1,4 @@
-# Local Postgres, matching production's major version.
+# Local Postgres 16: where Memento's data lives while it runs on one Mac (0020).
 services:
   db:
     image: postgres:16
@@ -6,8 +6,10 @@ services:
       POSTGRES_USER: memento
       POSTGRES_PASSWORD: memento
       POSTGRES_DB: memento
+    # Your Mac only: never listen on the network (0020).
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
+    restart: unless-stopped
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

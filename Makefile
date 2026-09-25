@@ -2,7 +2,8 @@
 include $(wildcard .env)
 export
 
-.PHONY: setup db migrate run serve test lint fmt check superuser client eval
+.PHONY: setup db migrate run serve test lint fmt check superuser client eval distil distil-eval \
+	local-server backup restore launchd-install launchd-uninstall launchd-status
 
 setup:        ## Install dependencies and git hooks
 	uv sync
@@ -38,8 +39,9 @@ check: lint   ## Everything CI runs
 	uv run python manage.py test
 	cd distiller && uv sync --locked -q && uv run python -m unittest -q
 
-distil:       ## Run the distiller once over the last 35 minutes of the inbox: needs MEMENTO_URL, MEMENTO_TOKEN, ANTHROPIC_API_KEY
-	cd distiller && uv run python distil.py $(if $(SINCE),--since $(SINCE))
+distil:       ## Run the distiller once over the last 35 minutes of the inbox. Reads distiller/.env (MEMENTO_URL, MEMENTO_TOKEN, ANTHROPIC_API_KEY)
+	@test -f distiller/.env || { echo "Create distiller/.env first: see docs/local.md."; exit 2; }
+	cd distiller && set -a && . ./.env && set +a && uv run python distil.py $(if $(SINCE),--since $(SINCE))
 
 distil-eval:  ## Capture-policy cases as inbox notes, through the distiller: make distil-eval [RUNS=3] [CASE=id]
 	cd distiller && uv run python ../evals/distilling.py --runs $(or $(RUNS),3) $(if $(CASE),--case $(CASE))
@@ -54,3 +56,46 @@ eval:         ## Capture evals against Claude Code, on a separate database: make
 
 client:       ## Create an MCP client: make client USER=hugo NAME=claude-code [SCOPES=...]
 	uv run python manage.py create_client $(USER) $(NAME) $(if $(SCOPES),--scopes $(SCOPES))
+
+# --- One Mac (0020) ---------------------------------------------------------------
+
+BACKUP_DIR ?= $(HOME)/Memento backups
+PGCMD ?= docker compose exec -T db
+LAUNCHD_JOBS ?= server
+LAUNCH_AGENTS := $(HOME)/Library/LaunchAgents
+LOG_DIR := $(HOME)/Library/Logs/Memento
+
+local-server: ## Memento as launchd runs it: Postgres up, migrations applied, /mcp on 127.0.0.1:8000
+	docker compose up -d --wait db
+	uv run python manage.py migrate --no-input
+	uv run uvicorn config.asgi:application --host 127.0.0.1 --port 8000 --timeout-graceful-shutdown 5
+
+backup:       ## Dump everything to "$(BACKUP_DIR)" (make backup BACKUP_DIR=...)
+	@mkdir -p "$(BACKUP_DIR)"
+	@out="$(BACKUP_DIR)/memento-$$(date +%Y-%m-%d-%H%M%S).dump"; \
+	$(PGCMD) pg_dump -U memento -Fc memento > "$$out" && echo "Backed up to $$out"
+
+restore:      ## Replace the database with a backup: make restore FILE=... CONFIRM=yes
+	@test -f "$(FILE)" || { echo "Say which backup: make restore FILE=path/to/memento-....dump CONFIRM=yes"; exit 2; }
+	@test "$(CONFIRM)" = yes || { echo "This replaces everything in Memento with $(FILE), including anything forgotten since it was taken. Add CONFIRM=yes to go ahead."; exit 2; }
+	$(PGCMD) pg_restore -U memento -d memento --clean --if-exists --no-owner < "$(FILE)"
+	@echo "Restored from $(FILE)"
+
+launchd-install: ## Keep Memento running on this Mac: make launchd-install [LAUNCHD_JOBS="server distiller"]
+	@mkdir -p "$(LAUNCH_AGENTS)" "$(LOG_DIR)"
+	@for job in $(LAUNCHD_JOBS); do \
+	  plist="$(LAUNCH_AGENTS)/com.memento.$$job.plist"; \
+	  sed -e "s|@REPO@|$(CURDIR)|g" -e "s|@LOGS@|$(LOG_DIR)|g" -e "s|@PATH@|$$(dirname $$(command -v uv)):/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin|g" \
+	    ops/launchd/com.memento.$$job.plist > "$$plist"; \
+	  launchctl bootout gui/$$(id -u) "$$plist" 2>/dev/null; \
+	  launchctl bootstrap gui/$$(id -u) "$$plist" && echo "Started com.memento.$$job (logs in $(LOG_DIR))"; \
+	done
+
+launchd-uninstall: ## Stop and remove the launchd jobs: make launchd-uninstall [LAUNCHD_JOBS="server distiller"]
+	@for job in $(LAUNCHD_JOBS); do \
+	  plist="$(LAUNCH_AGENTS)/com.memento.$$job.plist"; \
+	  launchctl bootout gui/$$(id -u) "$$plist" 2>/dev/null; rm -f "$$plist" && echo "Removed com.memento.$$job"; \
+	done
+
+launchd-status: ## Which Memento jobs launchd is running, and their last exit codes
+	@launchctl list | grep -E "PID|com\.memento" || echo "No Memento jobs loaded."

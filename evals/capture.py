@@ -52,8 +52,12 @@ CATEGORIES = ("dates", "splitting", "kinds", "tags", "verbatim", "policy")
 # --- the eval server ---------------------------------------------------------------
 
 
+# The server refuses to start holding a model-provider key (Principle 2).
+MODEL_KEYS = ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY", "GOOGLE_API_KEY")
+
+
 def server_env() -> dict:
-    env = dict(os.environ)
+    env = {k: v for k, v in os.environ.items() if k not in MODEL_KEYS}
     base = env.get("DATABASE_URL", "postgres://memento:memento@localhost:5432/memento")
     env["DATABASE_URL"] = base.rsplit("/", 1)[0] + f"/{EVAL_DB}"
     env.setdefault("DJANGO_DEBUG", "1")
