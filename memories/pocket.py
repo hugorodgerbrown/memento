@@ -131,7 +131,7 @@ def ingest(payload: dict) -> str:
     capture = Capture.objects.filter(owner=link.owner, source="pocket", external_id=rec_id).first()
 
     if event == "transcript.edited":
-        return _record_edit(event, capture, payload, rec_id)
+        return _record_edit(event, link, capture, payload, rec_id)
 
     if event not in TRANSCRIPT_EVENTS:
         return _log(event, rec_id, Decision.IGNORED, "event not used")
@@ -185,16 +185,30 @@ def _text(segments: list[dict]) -> str:
     return " ".join(seg["text"].strip() for seg in segments if seg.get("text"))
 
 
-def _record_edit(event, capture, payload, rec_id) -> str:
+def _record_edit(event, link, capture, payload, rec_id) -> str:
     if not capture:
         return _log(event, rec_id, Decision.IGNORED, "no stored capture")
-    text = _text(payload.get("transcript") or [])
+    segments = payload.get("transcript") or []
+    text = _text(segments)
     if not text or text == capture.texts()[-1]:
         return _log(event, rec_id, Decision.IGNORED, "no text change")
-    return _append_revision(event, capture, text, rec_id)
+    return _append_revision(event, link, capture, segments, rec_id) or Decision.SKIPPED
 
 
-def _append_revision(event, capture, text, rec_id) -> str:
+def _append_revision(event, link, capture, segments, rec_id) -> str | None:
+    """
+    A later version of a stored recording is kept only if it is still solo in your
+    voice (Principle 8): an edit or relabel can't bring someone else's words in.
+    The refusal is logged once, without content.
+    """
+    solo, reason = _solo_verdict(segments, link.speaker_label)
+    if not solo:
+        reason = f"revision not kept: {reason}"
+        seen = IngestLog.objects.filter(
+            external_id=rec_id, decision=Decision.SKIPPED, reason=reason
+        )
+        return None if seen.exists() else _log(event, rec_id, Decision.SKIPPED, reason)
+    text = _text(segments)
     capture.revisions = [*capture.revisions, {"at": timezone.now().isoformat(), "text": text}]
     capture.save(update_fields=["revisions"])
     return _log(event, rec_id, Decision.UPDATED, f"revision {len(capture.revisions)} appended")
@@ -248,7 +262,7 @@ def _recording_ids(api, since: datetime):
         if isinstance(rows, dict):
             rows = rows.get("recordings", [])
         yield from (row["id"] for row in rows)
-        pagination = body.get("pagination") or body
+        pagination = (body.get("pagination") or body) if isinstance(body, dict) else {}
         if not rows or not pagination.get("has_more"):
             return
         page += 1
@@ -273,6 +287,16 @@ def pull(link: PocketLink, api, *, since: datetime, dry_run: bool = False) -> li
     return results
 
 
+def _refresh(capture: Capture, recording: dict) -> None:
+    """Hints and title are derived, and Pocket may finish them later. The transcript doesn't."""
+    summary = _latest_summary(recording)
+    hints = _hints(recording, summary) if summary else capture.hints
+    title = (recording.get("title") or capture.title)[:255]
+    if (hints, title) != (capture.hints, capture.title):
+        capture.hints, capture.title = hints, title
+        capture.save(update_fields=["hints", "title"])
+
+
 def _pull_one(link: PocketLink, recording: dict) -> str | None:
     rec_id = recording["id"]
     segments = [
@@ -281,10 +305,11 @@ def _pull_one(link: PocketLink, recording: dict) -> str | None:
     ]
     capture = Capture.objects.filter(owner=link.owner, source="pocket", external_id=rec_id).first()
     if capture:
+        _refresh(capture, recording)
         text = _text(segments)
         if not text or text == capture.texts()[-1]:
             return None
-        return _append_revision(PULL, capture, text, rec_id)
+        return _append_revision(PULL, link, capture, segments, rec_id)
     if services.is_forgotten_ref(link.owner, f"pocket:{rec_id}"):
         return None
     solo, reason = _solo_verdict(segments, link.speaker_label)

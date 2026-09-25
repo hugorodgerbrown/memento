@@ -325,7 +325,7 @@ class FakePocket:
         return {"data": next(r for r in self.recordings if r["id"] == rec_id)}
 
 
-class PocketPullTests(TestCase):
+class PullTestCase(TestCase):
     def setUp(self):
         self.me = get_user_model().objects.create(username="sam")
         self.link = PocketLink.objects.create(
@@ -337,6 +337,8 @@ class PocketPullTests(TestCase):
         results = pocket.pull(self.link, api, since=datetime(2026, 9, 14, tzinfo=UTC), **kw)
         return api, results
 
+
+class PocketPullTests(PullTestCase):
     def test_a_pulled_solo_note_is_stored_as_a_webhook_one_would_be(self):
         _, results = self.pull(pulled())
         self.assertEqual(results, [("rec_9", "stored")])
@@ -445,3 +447,47 @@ class PocketPullCommandTests(TestCase):
         self.assertTrue(api.calls[0][1]["start_date"].startswith("2026-09-14T00:00:00"))
         with self.assertRaisesMessage(CommandError, "isn't a time I can read"):
             self.run_pull("--since", "last week")
+
+
+class PocketRevisionTests(PullTestCase):
+    """Review of 0021: what a later version of a recording may and may not change."""
+
+    TWO_VOICES = [
+        {"speaker": "Sam", "text": "PF is fine on left foot,", "start": 0, "end": 3},
+        {"speaker": "Priya", "text": "That's my private news.", "start": 3, "end": 6},
+    ]
+
+    def test_a_revision_with_another_voice_is_never_stored(self):
+        """Principle 8: relabelled or re-transcribed with someone else in it, it stays as it was."""
+        self.pull(pulled())
+        _, results = self.pull(pulled(transcript=self.TWO_VOICES))
+        self.assertEqual(results, [("rec_9", "skipped")])
+        c = Capture.objects.get()
+        self.assertEqual((c.revisions, c.text), ([], PULLED_TEXT))
+        self.assertNotIn("private", json.dumps(list(IngestLog.objects.values()), default=str))
+        _, again = self.pull(pulled(transcript=self.TWO_VOICES))
+        self.assertEqual(again, [])  # logged once
+
+    def test_a_webhook_edit_with_another_voice_is_never_stored(self):
+        pocket.ingest(payload())
+        edited = payload(event="transcript.edited", transcript=self.TWO_VOICES)
+        self.assertEqual(pocket.ingest(edited), "skipped")
+        self.assertEqual(Capture.objects.get().revisions, [])
+
+    def test_a_summary_that_arrives_later_is_picked_up(self):
+        """Hints are derived and may be refreshed; the transcript never changes."""
+        self.pull(pulled(summarizations={}, title=""))
+        _, results = self.pull(pulled(title="Foot update"))
+        self.assertEqual(results, [])  # not a change worth logging
+        c = Capture.objects.get()
+        self.assertEqual((c.title, c.hints["summary_markdown"]), ("Foot update", "## Ideas"))
+
+    def test_a_bare_list_of_recordings_is_read_too(self):
+        class BareList(FakePocket):
+            def get(self, path, params=None):
+                body = super().get(path, params)
+                return body["data"] if path == "/recordings" else body
+
+        api = BareList([pulled()])
+        results = pocket.pull(self.link, api, since=datetime(2026, 9, 14, tzinfo=UTC))
+        self.assertEqual(results, [("rec_9", "stored")])
