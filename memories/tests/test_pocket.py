@@ -406,6 +406,15 @@ class PocketPullTests(PullTestCase):
         api, _ = self.pull(since=datetime.fromisoformat("2026-09-14T00:30:00+01:00"))
         self.assertEqual(api.calls[0][1]["start_date"], "2026-09-13")
 
+    def test_the_rest_of_the_day_before_since_is_not_stored(self):
+        """Pocket answers for the whole day; the cutoff is still the time asked for."""
+        early = pulled(id="rec_early", created_at="2026-09-15T07:59:00Z")
+        on_time = pulled(id="rec_on_time", created_at="2026-09-15T08:00:00Z")
+        api, results = self.pull(early, on_time, since=datetime(2026, 9, 15, 8, tzinfo=UTC))
+        self.assertEqual(api.calls[0][1]["start_date"], "2026-09-15")
+        self.assertEqual(results, [("rec_on_time", "stored")])
+        self.assertEqual(Capture.objects.get().external_id, "rec_on_time")
+
     def test_pockets_own_error_is_kept(self):
         """A 400 names the parameter Pocket refused; the owner sees it, not just "Bad Request"."""
         body = io.BytesIO(b'{"error":"bad start_date"}')
@@ -443,7 +452,8 @@ class PocketPullCommandTests(TestCase):
 
     @override_settings(POCKET_API_KEY="pk_test")
     def test_it_looks_back_36_hours_and_reports(self):
-        api = FakePocket([pulled()])
+        an_hour_ago = (timezone.now() - timedelta(hours=1)).isoformat()
+        api = FakePocket([pulled(created_at=an_hour_ago)])
         before = timezone.now() - timedelta(hours=36)
         with patch.object(pocket, "PocketAPI", return_value=api):
             out = self.run_pull()

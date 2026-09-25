@@ -26,5 +26,5 @@ Status: accepted, September 2026. Follows from 0020; revisits the transport in 0
 - Edits made more than 36 hours after recording aren't seen unless pulled with `--since`.
 - Deleting in Pocket still doesn't delete here (0008). A pull never sees deletions at all.
 - The webhook stays, tested and unused, for when deployment resumes, and it becomes the only live path then. Running both during a switchover is harmless, because a recording id stores once.
-- `start_date` is a day (`YYYY-MM-DD`): the first dry run got a 400 for a full time. The pull asks from the UTC day its window starts on, which is never later than the window.
+- `start_date` is a day (`YYYY-MM-DD`): the first dry run got a 400 for a full time. The pull asks from the UTC day its window starts on, then drops what Pocket created (`created_at`) before the window itself, so the cutoff is still the time asked for.
 - Still unconfirmed against the live API: the response envelope (`data`, `pagination.has_more`), whether `updated_at` changes on transcript edits, and the rate limits. The dry run settles the first; the rest are M4's "verify before relying" items.

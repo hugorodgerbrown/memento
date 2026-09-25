@@ -258,7 +258,8 @@ def _unwrap(body: dict):
 
 def _recording_ids(api, since: datetime):
     # Pocket filters by the day, as YYYY-MM-DD, and answers 400 to a full time.
-    # The day is taken in UTC, which starts no later than `since`; repeats are silent.
+    # The day is taken in UTC, which starts no later than `since`; `pull` drops the
+    # part of the day before it.
     start_date = since.astimezone(UTC).date().isoformat()
     page = 1
     while True:
@@ -284,12 +285,24 @@ def pull(link: PocketLink, api, *, since: datetime, dry_run: bool = False) -> li
         for rec_id in _recording_ids(api, since):
             params = {"include_transcript": "true", "include_summarizations": "true"}
             recording = _unwrap(api.get(f"/recordings/{rec_id}", params))
+            if _before(recording, since):
+                continue
             with transaction.atomic():
                 if decision := _pull_one(link, recording):
                     results.append((rec_id, decision))
         if dry_run:
             transaction.set_rollback(True)
     return results
+
+
+def _before(recording: dict, since: datetime) -> bool:
+    """
+    Pocket was asked for the whole day, so drop what it created before `since`: on
+    the axis Pocket filters by, `created_at`. Without a readable time, keep it.
+    """
+    stamp = recording.get("created_at") or recording.get("recording_at") or ""
+    created = parse_datetime(stamp)
+    return created is not None and created < since
 
 
 def _refresh(capture: Capture, recording: dict) -> None:
