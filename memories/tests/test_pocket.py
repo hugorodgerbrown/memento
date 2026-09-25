@@ -6,7 +6,9 @@ import hmac
 import io
 import json
 import time
-from datetime import UTC, datetime
+import urllib.error
+import urllib.request
+from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -334,7 +336,8 @@ class PullTestCase(TestCase):
 
     def pull(self, *recordings, **kw):
         api = FakePocket(list(recordings))
-        results = pocket.pull(self.link, api, since=datetime(2026, 9, 14, tzinfo=UTC), **kw)
+        kw.setdefault("since", datetime(2026, 9, 14, tzinfo=UTC))
+        results = pocket.pull(self.link, api, **kw)
         return api, results
 
 
@@ -391,12 +394,37 @@ class PocketPullTests(PullTestCase):
         api, results = self.pull(*recs)
         self.assertEqual(len(results), 5)
         self.assertEqual([p["page"] for path, p in api.calls if path == "/recordings"], [1, 2, 3])
-        self.assertEqual(api.calls[0][1]["start_date"], "2026-09-14T00:00:00+00:00")
+        self.assertEqual(api.calls[0][1]["start_date"], "2026-09-14")
 
     def test_a_dry_run_stores_nothing(self):
         _, results = self.pull(pulled(), dry_run=True)
         self.assertEqual(results, [("rec_9", "stored")])  # what would happen
         self.assertFalse(Capture.objects.exists() or IngestLog.objects.exists())
+
+    def test_pocket_is_asked_for_a_day_not_a_time(self):
+        """Pocket answers 400 to a full time in start_date. The UTC day never starts late."""
+        api, _ = self.pull(since=datetime.fromisoformat("2026-09-14T00:30:00+01:00"))
+        self.assertEqual(api.calls[0][1]["start_date"], "2026-09-13")
+
+    def test_the_rest_of_the_day_before_since_is_not_stored(self):
+        """Pocket answers for the whole day; the cutoff is still the time asked for."""
+        early = pulled(id="rec_early", created_at="2026-09-15T07:59:00Z")
+        on_time = pulled(id="rec_on_time", created_at="2026-09-15T08:00:00Z")
+        api, results = self.pull(early, on_time, since=datetime(2026, 9, 15, 8, tzinfo=UTC))
+        self.assertEqual(api.calls[0][1]["start_date"], "2026-09-15")
+        self.assertEqual(results, [("rec_on_time", "stored")])
+        self.assertEqual(Capture.objects.get().external_id, "rec_on_time")
+
+    def test_pockets_own_error_is_kept(self):
+        """A 400 names the parameter Pocket refused; the owner sees it, not just "Bad Request"."""
+        body = io.BytesIO(b'{"error":"bad start_date"}')
+        error = urllib.error.HTTPError("https://pocket/recordings", 400, "Bad Request", {}, body)
+        said = 'Bad Request: {"error":"bad start_date"}'
+        with (
+            patch.object(urllib.request, "urlopen", side_effect=error),
+            self.assertRaisesMessage(pocket.PocketAPIError, said),
+        ):
+            pocket.PocketAPI("pk_test", "https://pocket").get("/recordings")
 
     def test_a_rejected_key_says_what_to_do(self):
         api = FakePocket([], status=401)
@@ -424,11 +452,14 @@ class PocketPullCommandTests(TestCase):
 
     @override_settings(POCKET_API_KEY="pk_test")
     def test_it_looks_back_36_hours_and_reports(self):
-        api = FakePocket([pulled()])
+        an_hour_ago = (timezone.now() - timedelta(hours=1)).isoformat()
+        api = FakePocket([pulled(created_at=an_hour_ago)])
+        before = timezone.now() - timedelta(hours=36)
         with patch.object(pocket, "PocketAPI", return_value=api):
             out = self.run_pull()
-        since = datetime.fromisoformat(api.calls[0][1]["start_date"])
-        self.assertAlmostEqual((timezone.now() - since).total_seconds(), 36 * 3600, delta=60)
+        after = timezone.now() - timedelta(hours=36)
+        days = {before.astimezone(UTC).date().isoformat(), after.astimezone(UTC).date().isoformat()}
+        self.assertIn(api.calls[0][1]["start_date"], days)
         self.assertIn("rec_9: stored", out)
 
     @override_settings(POCKET_API_KEY="pk_test")
@@ -444,7 +475,7 @@ class PocketPullCommandTests(TestCase):
         api = FakePocket([])
         with patch.object(pocket, "PocketAPI", return_value=api):
             self.run_pull("--since", "2026-09-14")
-        self.assertTrue(api.calls[0][1]["start_date"].startswith("2026-09-14T00:00:00"))
+        self.assertEqual(api.calls[0][1]["start_date"], "2026-09-14")
         with self.assertRaisesMessage(CommandError, "isn't a time I can read"):
             self.run_pull("--since", "last week")
 

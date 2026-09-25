@@ -25,7 +25,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from contextlib import nullcontext
-from datetime import datetime
+from datetime import UTC, datetime
 
 from django.db import IntegrityError, transaction
 from django.utils import timezone
@@ -246,7 +246,9 @@ class PocketAPI:
             with urllib.request.urlopen(request, timeout=self.timeout) as response:
                 return json.load(response)
         except urllib.error.HTTPError as e:
-            raise PocketAPIError(e.code, e.reason) from e
+            # Pocket's own words say which parameter it refused; keep them.
+            body = e.read().decode("utf-8", "replace").strip()[:300]
+            raise PocketAPIError(e.code, f"{e.reason}: {body}" if body else e.reason) from e
 
 
 def _unwrap(body: dict):
@@ -255,9 +257,13 @@ def _unwrap(body: dict):
 
 
 def _recording_ids(api, since: datetime):
+    # Pocket filters by the day, as YYYY-MM-DD, and answers 400 to a full time.
+    # The day is taken in UTC, which starts no later than `since`; `pull` drops the
+    # part of the day before it.
+    start_date = since.astimezone(UTC).date().isoformat()
     page = 1
     while True:
-        body = api.get("/recordings", {"start_date": since.isoformat(), "page": page, "limit": 100})
+        body = api.get("/recordings", {"start_date": start_date, "page": page, "limit": 100})
         rows = _unwrap(body)
         if isinstance(rows, dict):
             rows = rows.get("recordings", [])
@@ -279,12 +285,24 @@ def pull(link: PocketLink, api, *, since: datetime, dry_run: bool = False) -> li
         for rec_id in _recording_ids(api, since):
             params = {"include_transcript": "true", "include_summarizations": "true"}
             recording = _unwrap(api.get(f"/recordings/{rec_id}", params))
+            if _before(recording, since):
+                continue
             with transaction.atomic():
                 if decision := _pull_one(link, recording):
                     results.append((rec_id, decision))
         if dry_run:
             transaction.set_rollback(True)
     return results
+
+
+def _before(recording: dict, since: datetime) -> bool:
+    """
+    Pocket was asked for the whole day, so drop what it created before `since`: on
+    the axis Pocket filters by, `created_at`. Without a readable time, keep it.
+    """
+    stamp = recording.get("created_at") or recording.get("recording_at") or ""
+    created = parse_datetime(stamp)
+    return created is not None and created < since
 
 
 def _refresh(capture: Capture, recording: dict) -> None:
