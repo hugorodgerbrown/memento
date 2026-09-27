@@ -460,6 +460,99 @@ REAL_DETAIL = {
 }
 
 
+# Real webhook deliveries, by shape (M4): what Pocket sent for one solo note on
+# 27 Sep 2026, read from the service log's content-free shape lines. Values are made
+# up. Summaries are a list, with `summary` at the top (no `v2`, no processingStatus);
+# the transcript is a bare list of segments; the recording carries `recordingAt`.
+# Two summary keys and one settings key were masked in the log, so aren't here.
+def real_delivery(event: str) -> dict:
+    summary = {
+        "id": "sum_real",
+        "settings": {"modelId": "model-y", "language": "en"},
+        "actionItems": [],
+        "createdAt": "2026-09-27T14:38:40.000Z",
+    }
+    if event in ("summary.updated", "mind_map.completed", "summary.completed"):
+        summary["summary"] = {"markdown": "## Webhook test"}
+    delivery = {
+        "event": event,
+        "timestamp": "2026-09-27T14:38:49.000Z",
+        "user": {"id": "user_real", "email": "me@example.com"},
+        "recording": {
+            "id": "2ae98786-ba21-466e-9860-8a7c72102769",
+            "title": "Webhook Testing Take Two",
+            "duration": 3,
+            "recordingAt": "2026-09-27T14:38:27.142Z",
+            "createdAt": "2026-09-27T14:38:29.000Z",
+        },
+        "summarizations": [] if event == "recording.created" else [summary],
+    }
+    if event != "recording.created":
+        delivery["transcript"] = [
+            {"speaker": "SPEAKER_00", "text": "Testing webhook take two.", "start": 0.0, "end": 2.4}
+        ]
+    return delivery
+
+
+REAL_SEQUENCE = [
+    "recording.created",
+    "transcription.completed",
+    "speakers.labeled",
+    "summary.updated",
+    "mind_map.completed",
+    "summary.completed",
+]
+
+
+class PocketWebhookRealTests(TestCase):
+    """The webhook as Pocket really delivers it (M4, 27 Sep 2026)."""
+
+    def setUp(self):
+        self.me = get_user_model().objects.create(username="hugo")
+        PocketLink.objects.create(owner=self.me, speaker_label="Hugo", one_speaker_is_me=True)
+
+    def deliver_all(self):
+        return [pocket.ingest(real_delivery(event)) for event in REAL_SEQUENCE]
+
+    def test_one_real_note_is_stored_once_across_all_its_events(self):
+        self.assertEqual(
+            self.deliver_all(),
+            ["ignored", "stored", "duplicate", "duplicate", "ignored", "duplicate"],
+        )
+        c = Capture.objects.get()
+        self.assertEqual(
+            (c.text, c.title), ("Testing webhook take two.", "Webhook Testing Take Two")
+        )
+
+    def test_a_real_note_is_dated_when_it_was_said_not_when_pocket_filed_it(self):
+        self.deliver_all()
+        said = datetime(2026, 9, 27, 14, 38, 27, 142000, tzinfo=UTC)
+        self.assertEqual(Capture.objects.get().captured_at, said)
+
+    def test_pockets_real_summary_becomes_a_hint_once_it_exists(self):
+        pocket.ingest(real_delivery("transcription.completed"))
+        self.assertEqual(Capture.objects.get().hints["summary_markdown"], "")
+        pocket.ingest(real_delivery("summary.completed"))
+        hints = Capture.objects.get().hints
+        self.assertEqual(
+            (hints["summary_markdown"], hints["model"]), ("## Webhook test", "model-y")
+        )
+
+    def test_a_summary_still_processing_is_not_a_hint(self):
+        delivery = real_delivery("summary.completed")
+        delivery["summarizations"][0]["processingStatus"] = "processing"
+        pocket.ingest(delivery)
+        self.assertEqual(Capture.objects.get().hints["summary_markdown"], "")
+
+    def test_the_real_delivery_logs_the_shape_that_was_seen(self):
+        with self.assertLogs("memories.pocket", "INFO") as logs:
+            pocket.ingest(real_delivery("summary.completed"))
+        line = logs.output[0]
+        self.assertIn('"recordingAt": "str"', line)
+        self.assertIn('"summary": {"markdown": "str"}', line)
+        self.assertNotIn("Testing webhook", line)
+
+
 class FakePocket:
     """Pocket's REST API as the pull sees it: a page of recordings, then each one."""
 

@@ -358,9 +358,9 @@ In the repository's habit of not trusting what has not been seen:
 
 - Confirming the custom domain resolves and its certificate is issued. Until it
   does, the `onrender.com` hostname is the working one.
-- Pocket's first real deliveries (M4). The route is ready ([above](#pocket-m4));
-  until the secret is set in Render, Pocket recordings reach nothing. If the
-  webhook's unknowns bite, the fallback is the pull as a second cron job with
-  `POCKET_API_KEY`.
+- The rest of M4's real Pocket deliveries. A solo note is stored (27 Sep
+  2026); a conversation, a transcript edit and a deletion haven't been seen yet.
+  Each delivery's shape is in the service log (`Pocket delivery ...`), without
+  content.
 - Connecting claude.ai and ChatGPT (M8). The server is built (0025); the clients
   have not been connected, and that waits on the custom domain resolving.
