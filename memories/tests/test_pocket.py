@@ -200,6 +200,37 @@ class PocketIngestTests(TestCase):
         with self.assertRaises(IntegrityError), transaction.atomic():
             Capture.objects.filter(pk=c.pk).update(revisions=[])
 
+    # The webhook's real shapes (M4): read what Pocket sends, not only what we guessed
+    def test_summaries_sent_as_a_list_are_read(self):
+        as_list = payload(summarizations=list(SOLO["summarizations"].values()))
+        self.assertEqual(pocket.ingest(as_list), "stored")
+        self.assertEqual(Capture.objects.get().hints["model"], "gpt5")
+
+    def test_a_transcript_wrapped_with_its_text_is_read_from_the_webhook(self):
+        wrapped = payload(transcript={"text": "ignored", "segments": SOLO["transcript"]})
+        self.assertEqual(pocket.ingest(wrapped), "stored")
+        self.assertTrue(Capture.objects.get().text.startswith("I think we should hire slower"))
+
+    def test_a_transcript_inside_the_recording_is_read(self):
+        nested = payload(transcript=None)
+        nested["recording"]["transcript"] = SOLO["transcript"]
+        self.assertEqual(pocket.ingest(nested), "stored")
+
+    def test_each_delivery_logs_its_shape_and_none_of_its_words(self):
+        with self.assertLogs("memories.pocket", "INFO") as logs:
+            pocket.ingest(payload())
+        line = "\n".join(logs.output)
+        self.assertIn("summary.completed", line)
+        self.assertIn("transcript", line)
+        self.assertNotIn("hire slower", line.lower())
+        self.assertNotIn("Walk thoughts", line)
+        self.assertNotIn("me@example.com", line)
+
+    def test_names_used_as_keys_are_not_logged(self):
+        with self.assertLogs("memories.pocket", "INFO") as logs:
+            pocket.ingest(payload(speakers={"Ana Silva": {"segments": 3}}))
+        self.assertNotIn("Ana", "\n".join(logs.output))
+
     # One user (0026): the only Pocket link takes every delivery
     def test_the_only_link_takes_a_delivery_whatever_its_user_id(self):
         self.assertEqual(pocket.ingest(payload(user={"id": "user_real"})), "stored")

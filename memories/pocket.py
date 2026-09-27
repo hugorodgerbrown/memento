@@ -20,6 +20,8 @@ on one Mac that Pocket can't reach, a scheduled pull from Pocket's REST API
 import hashlib
 import hmac
 import json
+import logging
+import re
 import time
 import urllib.error
 import urllib.parse
@@ -33,6 +35,9 @@ from django.utils.dateparse import parse_datetime
 
 from . import services
 from .models import Capture, IngestLog, PocketLink
+
+logger = logging.getLogger(__name__)
+FIELD_NAME = re.compile(r"[a-z][A-Za-z0-9_]{0,40}")
 
 REPLAY_WINDOW_SECONDS = 300
 TRANSCRIPT_EVENTS = {
@@ -70,11 +75,10 @@ def verify_signature(
 
 
 def _latest_summary(payload: dict) -> dict:
-    rows = [
-        r
-        for r in (payload.get("summarizations") or {}).values()
-        if r.get("processingStatus") == "completed"
-    ]
+    # The REST pull keys summaries by id; the webhook sends them as a list.
+    rows = payload.get("summarizations") or []
+    rows = rows.values() if isinstance(rows, dict) else rows
+    rows = [r for r in rows if isinstance(r, dict) and r.get("processingStatus") == "completed"]
     rows.sort(key=lambda r: r.get("updatedAt") or "")
     return rows[-1] if rows else {}
 
@@ -103,6 +107,25 @@ def _solo_verdict(segments: list[dict], link: PocketLink) -> tuple[bool, str]:
     if link.one_speaker_is_me:
         return True, "solo, one speaker (0022)"
     return False, "one speaker, not labelled as you; to keep these, tick 'one speaker is me'"
+
+
+def _shape(value, depth=0):
+    """
+    What a delivery looks like, with none of its content: keys and types only. Pocket's
+    webhook shape is unconfirmed (M4), so each delivery logs this, and the logs can
+    show what really arrives without keeping a word anyone said.
+    """
+    if isinstance(value, dict):
+        if depth >= 3:
+            return "{...}"
+        # Keys that aren't field names (ids, or a name keying a speaker map) are masked.
+        return {
+            (k if FIELD_NAME.fullmatch(k) else "<key>"): _shape(v, depth + 1)
+            for k, v in value.items()
+        }
+    if isinstance(value, list):
+        return [_shape(value[0], depth + 1), len(value)] if value else []
+    return type(value).__name__
 
 
 def _log(event, external_id, decision, reason=""):
@@ -139,6 +162,7 @@ def ingest(payload: dict) -> str:
     event = payload.get("event", "")
     recording = payload.get("recording") or {}
     rec_id = recording.get("id", "")
+    logger.info("Pocket delivery %s %s: %s", event, rec_id, json.dumps(_shape(payload)))
 
     link = _link_for((payload.get("user") or {}).get("id") or "")
     if not link:
@@ -157,7 +181,7 @@ def ingest(payload: dict) -> str:
     if event not in TRANSCRIPT_EVENTS:
         return _log(event, rec_id, Decision.IGNORED, "event not used")
 
-    segments = payload.get("transcript") or []
+    segments = _segments(payload) or _segments(recording)
     summary = _latest_summary(payload)
 
     if capture:
@@ -209,7 +233,7 @@ def _text(segments: list[dict]) -> str:
 def _record_edit(event, link, capture, payload, rec_id) -> str:
     if not capture:
         return _log(event, rec_id, Decision.IGNORED, "no stored capture")
-    segments = payload.get("transcript") or []
+    segments = _segments(payload) or _segments(payload.get("recording") or {})
     text = _text(segments)
     if not text or text == capture.texts()[-1]:
         return _log(event, rec_id, Decision.IGNORED, "no text change")
@@ -342,10 +366,10 @@ def _refresh(capture: Capture, recording: dict) -> None:
         capture.save(update_fields=["hints", "title"])
 
 
-def _pulled_segments(recording: dict) -> list[dict]:
+def _segments(recording: dict) -> list[dict]:
     """
-    The REST transcript comes as {text, segments}, a bare list of segments, or plain
-    text (as pocket-laravel reads it). Plain text has no speaker labels, so the
+    A transcript comes as {text, segments}, a bare list of segments, or plain text (as
+    pocket-laravel reads it), by pull or by webhook. Plain text has no speaker labels, so the
     solo-voice rule skips it: without labels there's no telling whose words they are.
     """
     transcript = recording.get("transcript") or recording.get("raw_transcript") or []
@@ -363,7 +387,7 @@ def _pulled_segments(recording: dict) -> list[dict]:
 
 def _pull_one(link: PocketLink, recording: dict) -> str | None:
     rec_id = recording["id"]
-    segments = _pulled_segments(recording)
+    segments = _segments(recording)
     capture = Capture.objects.filter(owner=link.owner, source="pocket", external_id=rec_id).first()
     if capture:
         _refresh(capture, recording)
