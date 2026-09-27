@@ -44,10 +44,18 @@ After the first deploy, on the service's **Settings > Custom Domains**:
 2. Render then shows the DNS records it wants — read them there rather than from
    memory; the apex needs an `A` record (or an `ALIAS`/`ANAME` if your DNS
    provider offers one), not a `CNAME`.
-3. Replace any existing records at your registrar. A parked domain answers
-   `200` on every path from the registrar's own server, so check
-   `curl -sI https://memento-app.me/healthz` really is served by Render and
-   returns the body `ok` — a `200` alone proves nothing.
+3. Replace any existing records at your registrar. **A `200` alone proves
+   nothing:** a parked domain answers `200` on every path from the registrar's
+   own server, with an empty body. Check the body and the server separately —
+   the first needs a GET, so don't use `-I` for it:
+
+   ```bash
+   curl -s https://memento-app.me/healthz                      # must print: ok
+   curl -sI https://memento-app.me/healthz | grep -i '^server' # must not be your registrar
+   ```
+
+   On the first apply the parked domain answered `200` with an empty body and
+   `server: Squarespace`, which is exactly what this catches.
 4. Wait for Render to verify the domain and issue its TLS certificate. Until it
    does, the `onrender.com` hostname still serves.
 
