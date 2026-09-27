@@ -45,6 +45,10 @@ class DeploySettingsTests(SimpleTestCase):
     def reloaded_with(self, **environ):
         import config.settings
 
+        # A production reload needs the canonical URL (0025): the OAuth issuer
+        # cannot be derived per request, so settings refuse to start without it.
+        # Tests that are not about that supply one and move on.
+        environ = {"MEMENTO_BASE_URL": "https://memento-app.me", **environ}
         # Restore the ambient values for every later test in this process.
         self.addCleanup(importlib.reload, config.settings)
         with mock.patch.dict(os.environ, environ):

@@ -1,0 +1,24 @@
+{% comment %}
+Shown only when the request is broken in a way that must not be redirected back
+to the client: an unknown client, or a redirect_uri it never registered. Sending
+an error to an unverified URI is the open-redirect hole this avoids.
+{% endcomment %}
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Can't connect</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font: 16px/1.5 system-ui, sans-serif; max-width: 34rem; margin: 3rem auto; padding: 0 1.25rem; }
+    code { word-break: break-all; }
+  </style>
+</head>
+<body>
+  <h1>Memento can't complete this request</h1>
+  <p>{{ message }}</p>
+  {% if oauth_client %}<p>Client: <code>{{ oauth_client.client_id }}</code></p>{% endif %}
+  <p>Nothing was connected and nothing was changed. Start again from the client that sent you here.</p>
+</body>
+</html>

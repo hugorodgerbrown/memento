@@ -100,14 +100,16 @@ Skill built and measured (24 Sep 2026): `skill/memento` passes 54 of 54 runs on 
 
 Built (0019), not yet measured: `distiller/distil.py` runs the skill on `claude-sonnet-5` through the Tool Runner, over notes received in the last 35 minutes. It leaves for the user what it would ask about, and it is offered only six tools, never `forget`. `inbox` gained `received_since`. `render.yaml` describes the cron job. `make distil-eval` runs the capture-policy cases as inbox notes; its plumbing is verified against the real server with a scripted model. Outstanding: a real eval run (it needs `ANTHROPIC_API_KEY`), and the cron job going live with M1's deploy, where the key lives in the cron job's own environment (0024).
 
-## M8. OAuth 2.1 for claude.ai and ChatGPT (next, after M1: 0024)
+## M8. OAuth 2.1 for claude.ai and ChatGPT (server built, 0025)
 
 - **The hostname is settled:** `memento-app.me`, decided before any client registered, so the issuer never has to move (0024).
-- Authorisation server via django-oauth-toolkit: authorisation code + PKCE, protected-resource metadata, authorisation-server metadata, dynamic client registration. Client ID metadata documents when both clients support them.
-- OAuth clients become `Client` rows, with scopes `memento:read`, `memento:write` and `memento:forget`.
+- Authorisation server in Django, on the MCP SDK's metadata models rather than django-oauth-toolkit (0025): authorisation code + PKCE (S256 only), RFC 9728 protected-resource metadata, RFC 8414 authorisation-server metadata, RFC 8707 audience binding, RFC 9207 `iss`, and both registration mechanisms — Client ID Metadata Documents and dynamic client registration.
+- OAuth clients become `Client` rows, with scopes `memento:read`, `memento:write` and `memento:forget`. `forget` is not advertised as basic and is an unticked box on the consent screen.
 - Connect claude.ai (web and mobile) and ChatGPT. Run the evals on each, with and without the skill, and set each client's `mode` from the results.
 
 **Done when:** both clients connect, every client has a recorded eval result and a mode, and no client in `direct` mode is below the bar.
+
+Built (0025), not yet connected: 48 tests in `memories/tests/test_oauth.py` cover the discovery chain, both registration mechanisms, PKCE, code replay, refresh rotation, audience binding and an OAuth token reaching the tools with provenance intact — while bearer tokens keep working (0016). Outstanding: connect the two clients against the deploy, which needs the custom domain resolving, then the eval runs and each client's `mode`. Which registration mechanism each client actually uses is recorded when it first connects.
 
 ## M9 and M10. Morning email and read-only timeline
 

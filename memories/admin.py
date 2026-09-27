@@ -5,7 +5,17 @@ must go through services.forget(), which cascades and leaves a tombstone.
 
 from django.contrib import admin
 
-from .models import Capture, Client, Entry, IngestLog, PocketLink, Profile, Tombstone
+from .models import (
+    Capture,
+    Client,
+    Entry,
+    IngestLog,
+    OAuthClient,
+    OAuthToken,
+    PocketLink,
+    Profile,
+    Tombstone,
+)
 
 
 class NoDeleteAdmin(admin.ModelAdmin):
@@ -91,3 +101,60 @@ class ClientAdmin(NoDeleteAdmin):
 @admin.register(Profile)
 class ProfileAdmin(NoDeleteAdmin):
     list_display = ("owner", "timezone")
+
+
+@admin.register(OAuthClient)
+class OAuthClientAdmin(NoDeleteAdmin):
+    """
+    Clients that asked for access (M8, 0025). Revoking a client's access means
+    revoking its tokens below, or the Client row it acts as; this page is the
+    record of who asked and what they registered.
+    """
+
+    list_display = ("client_name", "client_id", "from_metadata_document", "registered_at")
+    list_filter = ("from_metadata_document",)
+    search_fields = ("client_name", "client_id")
+    readonly_fields = (
+        "client_id",
+        "client_name",
+        "client_uri",
+        "redirect_uris",
+        "from_metadata_document",
+        "metadata_fresh_until",
+        "registered_at",
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(OAuthToken)
+class OAuthTokenAdmin(NoDeleteAdmin):
+    """
+    The consent screen promises the owner can revoke a connection at any time, so
+    this page has to be able to do it. Set `revoked_at` and the token stops
+    working on the next request; only its hash is stored, so it cannot be read.
+    """
+
+    list_display = ("oauth_client", "client", "use", "scopes", "expires_at", "revoked_at")
+    list_filter = ("use",)
+    readonly_fields = (
+        "oauth_client",
+        "client",
+        "use",
+        "scopes",
+        "resource",
+        "expires_at",
+        "created_at",
+    )
+    actions = ["revoke_selected"]
+
+    def has_add_permission(self, request):
+        return False
+
+    @admin.action(description="Revoke the selected tokens")
+    def revoke_selected(self, request, queryset):
+        from django.utils import timezone
+
+        updated = queryset.filter(revoked_at__isnull=True).update(revoked_at=timezone.now())
+        self.message_user(request, f"Revoked {updated} token(s).")
