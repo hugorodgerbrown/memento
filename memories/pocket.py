@@ -50,6 +50,7 @@ KNOWN_FIELDS = frozenset(
         "duration",
         "language",
         "createdAt",
+        "recordingAt",
         "updatedAt",
         "created_at",
         "updated_at",
@@ -103,20 +104,36 @@ def verify_signature(
 # --- payload helpers ---------------------------------------------------------
 
 
+def _summary_body(summary: dict) -> dict:
+    # The REST pull nests it under `v2`; the webhook puts it at the top (M4).
+    return (summary.get("v2") or summary).get("summary") or {}
+
+
 def _latest_summary(payload: dict) -> dict:
-    # The REST pull keys summaries by id; the webhook sends them as a list.
+    """
+    Pocket's newest finished summary. The REST pull keys summaries by id and marks
+    them with processingStatus; the webhook sends a list, without a status, and a
+    summary that isn't written yet has no body. Either way, one still processing
+    isn't used.
+    """
     rows = payload.get("summarizations") or []
     rows = rows.values() if isinstance(rows, dict) else rows
-    rows = [r for r in rows if isinstance(r, dict) and r.get("processingStatus") == "completed"]
-    rows.sort(key=lambda r: r.get("updatedAt") or "")
+    rows = [
+        r
+        for r in rows
+        if isinstance(r, dict)
+        and r.get("processingStatus", "completed") == "completed"
+        and _summary_body(r).get("markdown")
+    ]
+    rows.sort(key=lambda r: r.get("updatedAt") or r.get("createdAt") or "")
     return rows[-1] if rows else {}
 
 
 def _hints(payload: dict, summary: dict) -> dict:
-    v2 = summary.get("v2") or {}
+    body = _summary_body(summary)
     return {
-        "summary_markdown": (v2.get("summary") or {}).get("markdown", ""),
-        "bullet_points": (v2.get("summary") or {}).get("bulletPoints", []),
+        "summary_markdown": body.get("markdown", ""),
+        "bullet_points": body.get("bulletPoints", []),
         "model": (summary.get("settings") or {}).get("modelId", ""),
     }
 
@@ -235,9 +252,11 @@ def ingest(payload: dict) -> str:
     if not solo:
         return _log(event, rec_id, Decision.SKIPPED, reason)
 
+    # When it was said (0021): recordingAt, not createdAt, which is when Pocket filed it.
+    spoken = recording.get("recordingAt") or recording.get("createdAt") or ""
     return _store(
         link, event, rec_id, segments,
-        captured_at=parse_datetime(recording.get("createdAt") or ""),
+        captured_at=parse_datetime(spoken),
         title=recording.get("title"), hints=_hints(payload, summary),
         duration=recording.get("duration"), language=recording.get("language"),
         reason=reason,

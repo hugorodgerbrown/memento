@@ -112,6 +112,26 @@ Pocket app ──POST, signed──▶ https://memento-app.me/ingest/pocket/
 Then M4's remaining work is to keep real deliveries, redacted, as test fixtures,
 and settle what `CLAUDE.md` lists under "Verify before relying" for the webhook.
 
+### Backfilling Pocket
+
+The webhook only brings in what is recorded from now on. For older recordings,
+run the pull (0021) once, from the service's **Shell** tab: the database takes no
+outside connections. Paste the Pocket key for this session only, so the server
+never stores it:
+
+```bash
+read -rs POCKET_API_KEY && export POCKET_API_KEY   # pk_... from Pocket > Settings > Developer
+uv run python manage.py pocket_pull --since 2026-09-14 --dry-run   # stores nothing
+uv run python manage.py pocket_pull --since 2026-09-14
+```
+
+The pull keeps the webhook's rules: solo notes only, dated when they were said,
+one capture per recording id (the REST API and the webhook share ids, checked
+27 Sep 2026), and nothing forgotten comes back. Re-running is safe. The notes
+count as received now, so the distiller takes them in its next runs, up to 50 a
+run; for more than about 100, catch up as in [Backfilling after an
+outage](#backfilling-after-an-outage).
+
 ## How a deploy runs
 
 ```
@@ -358,9 +378,9 @@ In the repository's habit of not trusting what has not been seen:
 
 - Confirming the custom domain resolves and its certificate is issued. Until it
   does, the `onrender.com` hostname is the working one.
-- Pocket's first real deliveries (M4). The route is ready ([above](#pocket-m4));
-  until the secret is set in Render, Pocket recordings reach nothing. If the
-  webhook's unknowns bite, the fallback is the pull as a second cron job with
-  `POCKET_API_KEY`.
+- The rest of M4's real Pocket deliveries. A solo note is stored (27 Sep
+  2026); a conversation, a transcript edit and a deletion haven't been seen yet.
+  Each delivery's shape is in the service log (`Pocket delivery ...`), without
+  content.
 - Connecting claude.ai and ChatGPT (M8). The server is built (0025); the clients
   have not been connected, and that waits on the custom domain resolving.
