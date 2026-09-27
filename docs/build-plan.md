@@ -2,9 +2,9 @@
 
 Each milestone ends in something usable and a green CI. Don't start a milestone until the previous one meets its acceptance criteria. Decisions referenced as 00NN are in `docs/decisions/`.
 
-## Now: deploying (0024)
+## Now: deployed (0024)
 
-Deployment has resumed. The real Memento runs on Render as `memento` (not staging: there is one environment, and it holds real memories from day one), and the Mac becomes the development environment. **M1 and M8 are unparked**, and M8 — OAuth, so claude.ai and ChatGPT can connect — is the next milestone after M1's deploy is green. `docs/deploy.md` is the runbook; `docs/local.md` is now the development setup.
+Deployment has resumed and M1 has landed. The real Memento runs on Render as `memento` (not staging: there is one environment, and it holds real memories from day one), and the Mac becomes the development environment. **M1 and M8 are unparked**, and M8 — OAuth, so claude.ai and ChatGPT can connect — is the next milestone after M1's deploy is green. `docs/deploy.md` is the runbook; `docs/local.md` is now the development setup.
 
 Pocket stays on the pull, on the Mac, and so writes to the development database: connecting it to the real Memento is deliberately a separate step (0024), after 0021's first dry run against the real account.
 
@@ -17,11 +17,16 @@ Pocket stays on the pull, on the Mac, and so writes to the development database:
 
 **Done when:** a push to `main` deploys, `/healthz` returns `ok`, and you can log in to the admin.
 
-In progress. `render.yaml` describes the web service, the database and the
-distiller's cron job, with the build, pre-deploy and start commands; serving is
-gunicorn with uvicorn workers over `config.asgi`, and `docs/deploy.md` has the
-first-run steps. Outstanding: apply the blueprint in Render, create the superuser
-and a Profile, and confirm the deployed health check and admin.
+**Done, 27 Sep 2026.** The blueprint is applied: `memento`, `memento-db` and
+`memento-distiller` in Frankfurt. Build 52s, migrations succeeded as their own
+pre-deploy step, `/healthz` answers `ok` (so Postgres is reachable), `/mcp`
+answers `401` to an unauthenticated call, `/ingest/pocket/` answers `401` as
+intended, the admin serves over HTTPS with hashed static files, and the superuser
+and Profile exist. Render assigned `memento-ru31.onrender.com`.
+
+Outstanding, and not blocking: the custom domain. `domains:` in the blueprint did
+not create it, so `memento-app.me` needs adding on the service's Custom Domains
+page and its registrar records replacing.
 
 ## M2. MCP server and client registry
 
