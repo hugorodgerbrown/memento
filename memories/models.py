@@ -386,10 +386,23 @@ class Client(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     last_used_at = models.DateTimeField(null=True, blank=True)
     revoked_at = models.DateTimeField(null=True, blank=True)
+    # Set when this row exists because an OAuth client was granted access (0025).
+    # It is what identifies the row, not the name: a name is chosen by whoever
+    # registered, and two clients may ask to be called the same thing.
+    oauth_client = models.ForeignKey(
+        "OAuthClient", null=True, blank=True, on_delete=models.CASCADE, related_name="client_rows"
+    )
 
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["owner", "name"], name="unique_client_name"),
+            # One row per owner per OAuth client, so re-consent updates that
+            # client's own row and can never reach another client's.
+            models.UniqueConstraint(
+                fields=["owner", "oauth_client"],
+                name="unique_client_per_oauth_client",
+                condition=Q(oauth_client__isnull=False),
+            ),
         ]
 
     def __str__(self):
@@ -471,6 +484,10 @@ class OAuthToken(models.Model):
 
     token_hash = models.CharField(max_length=64, unique=True, editable=False)
     use = models.CharField(max_length=8, choices=Use)
+    # Every token descended from one authorization shares a family. Refresh tokens
+    # rotate, so presenting a spent one means it was copied: OAuth 2.1 says revoke
+    # the whole family at that point, which needs the lineage recorded.
+    family = models.UUIDField(default=uuid.uuid4, editable=False)
     oauth_client = models.ForeignKey(OAuthClient, on_delete=models.CASCADE, related_name="tokens")
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="oauth_tokens")
     scopes = ArrayField(models.CharField(max_length=32, choices=Scope))
@@ -480,7 +497,10 @@ class OAuthToken(models.Model):
     revoked_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        indexes = [models.Index(fields=["use", "expires_at"])]
+        indexes = [
+            models.Index(fields=["use", "expires_at"]),
+            models.Index(fields=["family"]),
+        ]
 
     def __str__(self):
         return f"{self.use} for {self.oauth_client} ({self.client.owner})"

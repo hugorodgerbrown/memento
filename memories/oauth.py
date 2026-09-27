@@ -28,12 +28,14 @@ they already do — the MCP tools cannot tell the two credential kinds apart.
 
 import base64
 import hashlib
+import http.client
 import ipaddress
 import json
+import logging
 import secrets
 import socket
-import urllib.error
-import urllib.request
+import ssl
+import uuid
 from datetime import timedelta
 from urllib.parse import urlencode, urlparse, urlunparse
 
@@ -48,6 +50,8 @@ from django.views.decorators.http import require_GET, require_POST
 from mcp.shared.auth import OAuthMetadata, ProtectedResourceMetadata
 
 from .models import Client, OAuthClient, OAuthGrant, OAuthToken, Scope
+
+logger = logging.getLogger(__name__)
 
 # The minimal set for basic use. `memento:forget` is deliberately absent: the
 # spec says scopes_supported should be the minimum for basic functionality, and
@@ -231,24 +235,56 @@ def is_metadata_document_id(client_id: str) -> bool:
 
 
 def _fetch_metadata_document(url: str) -> dict:
+    """
+    One GET, to an address that was checked and then actually used.
+
+    Resolving the name for the check and handing the *name* to an HTTP library
+    would let it resolve again: a short-TTL record that answers public once and
+    then internally would pass the check and be connected to anyway. So the
+    address is pinned — we connect to the IP we validated, with SNI and Host set
+    to the hostname so TLS still verifies against the certificate.
+    """
     parsed = urlparse(url)
     if parsed.scheme != "https" or not parsed.hostname:
         raise ValidationError("A client_id document URL must be https.")
-    _refuse_private_address(parsed.hostname)
+    if parsed.port not in (None, 443):
+        raise ValidationError("A client_id document URL must be served on port 443.")
+    address = _public_address(parsed.hostname)
 
-    class NoRedirect(urllib.request.HTTPRedirectHandler):
-        def redirect_request(self, *args, **kwargs):
-            return None
-
-    opener = urllib.request.build_opener(NoRedirect)
-    request = urllib.request.Request(
-        url, headers={"Accept": "application/json", "User-Agent": "Memento"}
-    )
+    path = parsed.path or "/"
+    if parsed.query:
+        path = f"{path}?{parsed.query}"
+    context = ssl.create_default_context()
+    raw = b""
     try:
-        with opener.open(request, timeout=CIMD_TIMEOUT) as response:
+        with (
+            socket.create_connection((address, 443), timeout=CIMD_TIMEOUT) as plain,
+            context.wrap_socket(plain, server_hostname=parsed.hostname) as secure,
+        ):
+            connection = http.client.HTTPSConnection(
+                parsed.hostname, 443, timeout=CIMD_TIMEOUT, context=context
+            )
+            connection.sock = secure  # already connected to the checked address
+            connection.request(
+                "GET",
+                path,
+                headers={
+                    "Host": parsed.hostname,
+                    "Accept": "application/json",
+                    "User-Agent": "Memento",
+                },
+            )
+            response = connection.getresponse()
+            if response.status != 200:
+                # Deliberately vague: the status of an arbitrary host is not
+                # something this page should report back.
+                raise ValidationError(f"{url} did not return a metadata document.")
             raw = response.read(CIMD_MAX_BYTES + 1)
-    except (urllib.error.URLError, OSError, ValueError) as e:
-        raise ValidationError(f"Could not fetch {url}: {e}") from e
+    except ValidationError:
+        raise
+    except (OSError, ssl.SSLError, http.client.HTTPException, ValueError) as e:
+        logger.info("client_id document fetch failed for %s: %r", url, e)
+        raise ValidationError(f"Could not fetch {url}.") from None
     if len(raw) > CIMD_MAX_BYTES:
         raise ValidationError(f"{url} returned more than {CIMD_MAX_BYTES} bytes.")
     try:
@@ -260,23 +296,25 @@ def _fetch_metadata_document(url: str) -> dict:
     return document
 
 
-def _refuse_private_address(hostname: str) -> None:
-    """Every address the name resolves to must be public, or the fetch is an SSRF."""
+def _public_address(hostname: str) -> str:
+    """
+    One resolved address, checked to be globally routable, returned so the caller
+    connects to exactly what was checked. Every address the name resolves to must
+    be public: answering with one good address and one bad one is not enough.
+    """
     try:
         infos = socket.getaddrinfo(hostname, 443, proto=socket.IPPROTO_TCP)
     except socket.gaierror as e:
         raise ValidationError(f"Could not resolve {hostname}.") from e
-    for info in infos:
-        address = ipaddress.ip_address(info[4][0])
-        if (
-            address.is_private
-            or address.is_loopback
-            or address.is_link_local
-            or address.is_reserved
-            or address.is_multicast
-            or address.is_unspecified
-        ):
+    if not infos:
+        raise ValidationError(f"Could not resolve {hostname}.")
+    addresses = [ipaddress.ip_address(info[4][0]) for info in infos]
+    for address in addresses:
+        # is_global is the allow-list form: anything not globally routable fails,
+        # including IPv4-mapped IPv6 and ranges added to the registry later.
+        if not address.is_global:
             raise ValidationError(f"{hostname} resolves to a non-public address.")
+    return str(addresses[0])
 
 
 def _load_client(client_id: str) -> OAuthClient:
@@ -355,7 +393,14 @@ def authorize(request):
     if params.get("decision") != "allow":
         return _redirect_error(redirect_uri, "access_denied", state, "The owner declined.")
 
-    granted = [s for s in requested if params.get(f"scope_{s.split(':')[1]}") == "on"] or requested
+    # No fallback: if the owner cleared the boxes, they granted nothing. Treating
+    # an empty selection as "everything asked for" would hand over memento:forget
+    # precisely when the owner had unticked it (Principle 5, 0025).
+    granted = [s for s in requested if params.get(f"scope_{s.split(':')[1]}") == "on"]
+    if not granted:
+        return _redirect_error(
+            redirect_uri, "access_denied", state, "The owner granted no permissions."
+        )
     client = _client_row(request.user, oauth_client, granted)
     code = secrets.token_urlsafe(32)
     OAuthGrant.objects.create(
@@ -381,22 +426,51 @@ def _requested_scopes(raw: str | None) -> list[str]:
 
 def _client_row(user, oauth_client: OAuthClient, scopes: list[str]) -> Client:
     """
-    The Client row an OAuth token acts as. One per (owner, OAuth client), so
-    provenance names the client the owner recognises, and the scopes recorded are
-    the ones they just granted. Its token is sealed: no bearer token can act as
-    this client (as for Claude Desktop over stdio, 0023).
+    The Client row an OAuth token acts as: one per (owner, OAuth client).
+
+    It is found by `oauth_client`, never by name. `client_name` is chosen by
+    whoever registered — registration is unauthenticated — so keying on it would
+    let a stranger who registers as "claude-code" land on the row an existing
+    bearer-token client already uses, inherit its live token, rewrite its scopes
+    and clear its revocation. The row is always created here and always sealed,
+    so no bearer token can ever act as an OAuth client (as for stdio, 0023).
+
+    Re-consent by the owner updates this client's own row, including lifting a
+    revocation: they are logged in and choosing it. It cannot touch another
+    client's row, which is the part that matters.
     """
     from . import services
 
-    name = (oauth_client.client_name or urlparse(oauth_client.client_id).netloc or "oauth")[:64]
-    client = Client.objects.filter(owner=user, name=name).first()
+    client = Client.objects.filter(owner=user, oauth_client=oauth_client).first()
     if client is None:
-        client, _ = services.create_client(user, name, scopes=scopes)
+        client, _ = services.create_client(user, _free_name(user, oauth_client), scopes=scopes)
+        client.oauth_client = oauth_client
+        client.save(update_fields=["oauth_client"])
         services.seal_client(client)
     if sorted(client.scopes) != sorted(scopes) or client.revoked_at:
         client.scopes, client.revoked_at = scopes, None
         client.save(update_fields=["scopes", "revoked_at"])
     return client
+
+
+def _free_name(user, oauth_client: OAuthClient) -> str:
+    """
+    A display name for provenance that no existing client is using. The name a
+    client asks for is a label, not an identity, so a collision is disambiguated
+    rather than merged — an entry's client_name must not be ambiguous about which
+    client wrote it.
+    """
+    wanted = (oauth_client.client_name or urlparse(oauth_client.client_id).netloc or "oauth")[:48]
+    taken = set(Client.objects.filter(owner=user).values_list("name", flat=True))
+    if wanted not in taken:
+        return wanted
+    marker = hashlib.sha256(oauth_client.client_id.encode()).hexdigest()[:6]
+    candidate = f"{wanted} ({marker})"
+    suffix = 2
+    while candidate in taken:
+        candidate = f"{wanted} ({marker}-{suffix})"
+        suffix += 1
+    return candidate
 
 
 def _authorize_problem(request, message: str, client: OAuthClient | None = None) -> HttpResponse:
@@ -477,38 +551,89 @@ def _exchange_code(request):
     if not _pkce_matches(verifier, grant.code_challenge):
         return _oauth_error("invalid_grant", "code_verifier does not match.", status=400)
 
-    grant.used_at = timezone.now()
-    grant.save(update_fields=["used_at"])
+    # One conditional update claims the code. Checking `used_at` and then writing
+    # it are two statements, and two requests arriving together would both pass
+    # the check and both be issued tokens.
+    claimed = OAuthGrant.objects.filter(pk=grant.pk, used_at__isnull=True).update(
+        used_at=timezone.now()
+    )
+    if not claimed:
+        return _oauth_error("invalid_grant", "That code has expired or been used.", status=400)
     return _issue(grant.oauth_client, grant.client, grant.scopes, grant.resource)
 
 
 def _exchange_refresh(request):
     presented = request.POST.get("refresh_token") or ""
+    # Look it up whatever state it is in: a spent token that comes back is the
+    # signal that it was copied, and that has to be actionable rather than
+    # indistinguishable from an unknown token.
     stored = (
         OAuthToken.objects.select_related("oauth_client", "client__owner")
         .filter(token_hash=_hash(presented), use=OAuthToken.Use.REFRESH)
         .first()
     )
-    if stored is None or stored.revoked_at or stored.expires_at <= timezone.now():
+    if stored is None:
+        return _oauth_error("invalid_grant", "That refresh token is not usable.", status=400)
+    if stored.revoked_at:
+        # Reuse of a rotated token. Whoever holds the newer one may be the thief,
+        # so the whole family goes (OAuth 2.1 refresh token replay detection);
+        # both parties have to authorize again, which is the safe outcome.
+        OAuthToken.objects.filter(family=stored.family, revoked_at__isnull=True).update(
+            revoked_at=timezone.now()
+        )
+        logger.warning(
+            "refresh token reuse for family %s (client %s); family revoked",
+            stored.family,
+            stored.oauth_client.client_id,
+        )
+        return _oauth_error(
+            "invalid_grant", "That refresh token was already used; authorize again.", status=400
+        )
+    # The same liveness the access path checks. Without the client filters a
+    # revoked client could rotate its refresh token indefinitely, so revoking the
+    # Client row would not be the kill switch 0025 says it is.
+    if (
+        stored.expires_at <= timezone.now()
+        or stored.client.revoked_at
+        or not stored.client.owner.is_active
+    ):
         return _oauth_error("invalid_grant", "That refresh token is not usable.", status=400)
     if request.POST.get("client_id") != stored.oauth_client.client_id:
         return _oauth_error("invalid_client", "client_id does not match the token.", status=401)
     asked = _requested_scopes(request.POST.get("scope")) if request.POST.get("scope") else None
     if asked and not set(asked) <= set(stored.scopes):
         return _oauth_error("invalid_scope", "A refresh cannot widen scope.", status=400)
-    # Rotate: the presented token is spent, as OAuth 2.1 requires of public clients.
-    stored.revoked_at = timezone.now()
-    stored.save(update_fields=["revoked_at"])
-    return _issue(stored.oauth_client, stored.client, asked or stored.scopes, stored.resource)
+    # Rotate, claimed with one conditional update so two concurrent refreshes
+    # cannot both spend the same token and open two live chains.
+    spent = OAuthToken.objects.filter(pk=stored.pk, revoked_at__isnull=True).update(
+        revoked_at=timezone.now()
+    )
+    if not spent:
+        return _oauth_error("invalid_grant", "That refresh token is not usable.", status=400)
+    return _issue(
+        stored.oauth_client,
+        stored.client,
+        asked or stored.scopes,
+        stored.resource,
+        family=stored.family,
+    )
 
 
-def _issue(oauth_client: OAuthClient, client: Client, scopes: list[str], for_resource: str):
+def _issue(
+    oauth_client: OAuthClient,
+    client: Client,
+    scopes: list[str],
+    for_resource: str,
+    family=None,
+):
     now = timezone.now()
+    family = family or uuid.uuid4()
     access = TOKEN_PREFIX + secrets.token_urlsafe(32)
     refresh = TOKEN_PREFIX + secrets.token_urlsafe(32)
     OAuthToken.objects.create(
         token_hash=_hash(access),
         use=OAuthToken.Use.ACCESS,
+        family=family,
         oauth_client=oauth_client,
         client=client,
         scopes=scopes,
@@ -518,6 +643,7 @@ def _issue(oauth_client: OAuthClient, client: Client, scopes: list[str], for_res
     OAuthToken.objects.create(
         token_hash=_hash(refresh),
         use=OAuthToken.Use.REFRESH,
+        family=family,
         oauth_client=oauth_client,
         client=client,
         scopes=scopes,
