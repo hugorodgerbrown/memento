@@ -4,6 +4,16 @@ from django.conf import settings
 from django.db import migrations, models
 
 
+def refuse_duplicate_blanks(apps, schema_editor):
+    """Before 0012 the id was unique, so two blank ids can't go back."""
+    PocketLink = apps.get_model("memories", "PocketLink")
+    if PocketLink.objects.filter(pocket_user_id="").count() > 1:
+        raise RuntimeError(
+            "Two or more Pocket links have no Pocket user id, and before 0012 each needed "
+            "its own. Set the ids in the admin (or delete the spare links), then roll back."
+        )
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -29,4 +39,6 @@ class Migration(migrations.Migration):
                 name="pocketlink_user_id_unique_when_set",
             ),
         ),
+        # Last, so that on the way back it runs first, before uniqueness returns.
+        migrations.RunPython(migrations.RunPython.noop, refuse_duplicate_blanks),
     ]
