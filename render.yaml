@@ -66,6 +66,11 @@ services:
         value: memento-app.me
       - key: DJANGO_CSRF_TRUSTED_ORIGINS
         value: https://memento-app.me
+      # M8 (0025): the OAuth issuer and the base of the resource identifier.
+      # Registered clients remember it, so it must be the custom domain and must
+      # not drift; settings refuse to start in production without it.
+      - key: MEMENTO_BASE_URL
+        value: https://memento-app.me
       - key: LOG_LEVEL
         value: INFO
       # Pocket is deliberately not connected here yet (0024): the pull's first dry

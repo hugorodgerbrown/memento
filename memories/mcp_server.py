@@ -27,7 +27,7 @@ from mcp.server.transport_security import TransportSecuritySettings
 from mcp.types import ToolAnnotations
 from pydantic import Field
 
-from . import services
+from . import oauth, services
 from .models import Capture, Client, ClientMode, Entry, Kind, Precision, Scope
 
 # --- descriptions: exactly as in docs/mcp-tools.md ---------------------------
@@ -184,7 +184,7 @@ SCOPE_VERBS = {
 def _client(scope: Scope) -> Client:
     client = current_client.get()
     if client is None:
-        raise ToolError("Not authenticated. Send a Memento bearer token.")
+        raise ToolError("Not authenticated. Send a Memento bearer token, or connect with OAuth.")
     if scope not in client.scopes:
         raise ToolError(
             f"This client isn't allowed to {SCOPE_VERBS[scope]} ({scope}). "
@@ -742,7 +742,16 @@ class BearerAuth:
     """
     ASGI wrapper: every request to /mcp carries `Authorization: Bearer <token>`
     for a live Client, or gets a 401. The client is available to tools through
-    `current_client`. OAuth (M8) replaces how the token is issued, not this check.
+    `current_client`.
+
+    Two kinds of token are accepted and the tools cannot tell them apart: a
+    per-client bearer token (0016), which is how the distiller and Claude Code
+    connect, and an OAuth access token (M8, 0025), which is how claude.ai and
+    ChatGPT do. Both resolve to a Client, so provenance and scope are unchanged.
+
+    The 401 carries `resource_metadata` (RFC 9728), which is what lets a client
+    discover the authorization server. Without it Memento is a dead end to any
+    client that only speaks OAuth.
     """
 
     def __init__(self, app):
@@ -767,12 +776,19 @@ class BearerAuth:
 
 def _authenticate(token: str) -> Client | None:
     _fresh_connection()
-    return services.authenticate(token)
+    client = services.authenticate(token)
+    if client is not None:
+        return client
+    verified = oauth.verify_access_token(token)
+    return verified[0] if verified else None
 
 
 async def _unauthorised(send):
     body = json.dumps(
-        {"error": "invalid_token", "error_description": "Send a valid Memento bearer token."}
+        {
+            "error": "invalid_token",
+            "error_description": "Send a valid Memento bearer token, or connect with OAuth.",
+        }
     ).encode()
     await send(
         {
@@ -780,7 +796,10 @@ async def _unauthorised(send):
             "status": 401,
             "headers": [
                 (b"content-type", b"application/json"),
-                (b"www-authenticate", b'Bearer realm="memento", error="invalid_token"'),
+                (
+                    b"www-authenticate",
+                    oauth.unauthorised_headers(scopes=oauth.BASIC_SCOPES).encode(),
+                ),
                 (b"content-length", str(len(body)).encode()),
             ],
         }

@@ -1,6 +1,6 @@
 # 0005. Bearer token first, then OAuth 2.1
 
-Status: accepted, September 2026
+Status: accepted, September 2026. The staging order still holds; the choice of django-oauth-toolkit is superseded by [0025](0025-memento-is-its-own-authorization-server.md), which builds the authorization server on the MCP SDK instead.
 
 ## Context
 

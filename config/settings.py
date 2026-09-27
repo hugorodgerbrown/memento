@@ -127,6 +127,20 @@ STORAGES = {
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# M8 (0025): the canonical public URL. It is the OAuth issuer and the base of the
+# resource identifier, both of which registered clients remember, so it must not
+# drift — hence one setting rather than per-request hosts. RFC 8414 compares
+# issuers by exact string, so no trailing slash.
+MEMENTO_BASE_URL = env("MEMENTO_BASE_URL", "http://localhost:8000" if DEBUG else "").rstrip("/")
+if not DEBUG and not MEMENTO_BASE_URL:
+    raise ImproperlyConfigured(
+        "Set MEMENTO_BASE_URL to the canonical public URL, such as https://memento-app.me. "
+        "It is the OAuth issuer and the resource identifier (M8, 0025); clients remember it, "
+        "so it cannot be derived per request."
+    )
+# The MCP endpoint is the OAuth resource (RFC 8707 audience), not the site root.
+MEMENTO_RESOURCE_URL = f"{MEMENTO_BASE_URL}/mcp" if MEMENTO_BASE_URL else ""
+
 # Pocket webhook signing secret (Pocket app: Settings > Integrations > Webhooks).
 POCKET_WEBHOOK_SECRET = env("POCKET_WEBHOOK_SECRET", "")
 # The pull (0021): a personal key, read-only use.

@@ -143,10 +143,38 @@ expect it to fail the same way. Either retry it knowing that, or wait for M8,
 which is the path that actually works. (`make connect-desktop` configures the
 *local* stdio server against the development database, so it is not this.)
 
-claude.ai and ChatGPT cannot use a bearer token at all. They need OAuth 2.1,
-which is M8. The hostname question that would have blocked it is settled:
-`memento-app.me` is the issuer, decided before any client registers, so no client
-needs re-registering later (0024).
+### claude.ai, ChatGPT and Claude Desktop's connector settings
+
+These connect over OAuth, not a bearer token, and Memento is its own
+authorization server (0025). Nothing needs creating in advance: the client
+registers itself, and you approve it on a consent screen.
+
+**The custom domain must be resolving first.** The OAuth issuer is
+`MEMENTO_BASE_URL`, and registered clients remember it, so connect a client only
+once `https://memento-app.me` serves Memento — not on the `onrender.com`
+hostname, or every client would have to register again later.
+
+1. In the client's connector settings, add a custom connector with the URL
+   `https://memento-app.me/mcp`.
+2. It will fetch `/.well-known/oauth-protected-resource/mcp`, then the
+   authorization server metadata, then register itself, then send you here to
+   log in.
+3. Log in with your Memento superuser. The consent screen names the client and
+   lists what it would be able to do.
+4. **`Permanently delete` is unticked by default.** Leave it that way unless you
+   want that client to be able to delete memories; deletion is not undone by
+   anything on that screen (Principle 5).
+
+To revoke later: **admin → OAuth tokens**, select and *Revoke the selected
+tokens*, or revoke the `Client` row the connection acts as, which stops every
+token issued to it.
+
+If a connection fails, the service log shows which step: a 404 on a well-known
+path means discovery, a 400 on `/oauth/register` means registration, and an error
+back at the client after consent means the token exchange. Which registration
+mechanism each client uses — a metadata document URL as its `client_id`, or
+dynamic registration — is worth recording the first time, since the spec has
+deprecated the second (0025).
 
 ## Settings that exist because of the host
 
@@ -163,6 +191,16 @@ and are covered by `DeploySettingsTests` in `memories/tests/test_ops.py`:
   healthy, so without the exemption `SECURE_SSL_REDIRECT` would answer the
   health check with a 301 and the service would report healthy with a dead
   database. The point of `/healthz` is that it runs `SELECT 1`.
+
+## The canonical URL
+
+`MEMENTO_BASE_URL` is in the blueprint as `https://memento-app.me`. It is the
+OAuth issuer and the base of the resource identifier, both of which registered
+clients remember, and RFC 8414 compares issuers by exact string — so it is one
+setting rather than something derived from the host a request arrived on, it has
+no trailing slash, and production refuses to start without it (0025).
+
+Changing it after clients have registered means they must register again.
 
 ## Database access
 
@@ -280,4 +318,5 @@ In the repository's habit of not trusting what has not been seen:
 - Pocket (0024). Either point its webhook at `/ingest/pocket/` and set
   `POCKET_WEBHOOK_SECRET`, or add the pull as a second cron job with
   `POCKET_API_KEY`. Until then, Pocket recordings reach nothing.
-- OAuth (M8), and with it claude.ai and ChatGPT.
+- Connecting claude.ai and ChatGPT (M8). The server is built (0025); the clients
+  have not been connected, and that waits on the custom domain resolving.

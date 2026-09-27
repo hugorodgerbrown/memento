@@ -13,6 +13,7 @@ Each principle from the brief is enforced here, not just documented:
 """
 
 import uuid
+from datetime import timedelta
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from django.conf import settings
@@ -393,3 +394,93 @@ class Client(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.owner})"
+
+
+# --- OAuth 2.1, for claude.ai and ChatGPT (M8, 0025) -------------------------
+#
+# Memento is its own authorization server. A registered client is not yet a
+# Client: registration is unauthenticated, so the owner is unknown until they
+# log in and consent. At that point one Client row carries provenance and scope
+# exactly as a bearer-token client does (0016), and tokens point at both.
+
+
+class OAuthClient(models.Model):
+    """
+    A client that may ask for access: registered through Dynamic Client
+    Registration, or identified by the URL of its Client ID Metadata Document
+    (0025). CIMD clients are re-fetched when their cache expires; DCR clients
+    are stored once.
+    """
+
+    client_id = models.CharField(max_length=512, unique=True)
+    client_name = models.CharField(max_length=128, blank=True)
+    redirect_uris = ArrayField(models.CharField(max_length=512))
+    # A public client has no secret: claude.ai and ChatGPT are public clients
+    # using PKCE, so this is normally empty.
+    secret_hash = models.CharField(max_length=64, blank=True, editable=False)
+    secret_expires_at = models.DateTimeField(null=True, blank=True)
+    # True when client_id is an https URL and the metadata came from it.
+    from_metadata_document = models.BooleanField(default=False)
+    metadata_fresh_until = models.DateTimeField(null=True, blank=True)
+    client_uri = models.CharField(max_length=512, blank=True)
+    registered_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.client_name or self.client_id
+
+
+class OAuthGrant(models.Model):
+    """
+    One authorization code, in flight. Single-use and short-lived: consumed at
+    the token endpoint, which is also where PKCE and the redirect URI are
+    checked against what the authorization request promised.
+    """
+
+    LIFETIME = timedelta(minutes=5)
+
+    code_hash = models.CharField(max_length=64, unique=True, editable=False)
+    oauth_client = models.ForeignKey(OAuthClient, on_delete=models.CASCADE, related_name="grants")
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="grants")
+    redirect_uri = models.CharField(max_length=512)
+    # Kept because RFC 7636 requires the token request to prove it knows the verifier.
+    code_challenge = models.CharField(max_length=128)
+    code_challenge_method = models.CharField(max_length=8, default="S256")
+    scopes = ArrayField(models.CharField(max_length=32, choices=Scope))
+    # RFC 8707: the audience the client asked for, echoed onto the token.
+    resource = models.CharField(max_length=512, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    used_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"grant for {self.oauth_client} ({self.client.owner})"
+
+
+class OAuthToken(models.Model):
+    """
+    An issued access or refresh token. Only a hash is stored, as for bearer
+    tokens (0016). `resource` is the audience the token is valid for: a token
+    issued for another resource must not be accepted here (RFC 8707).
+    """
+
+    ACCESS_LIFETIME = timedelta(hours=1)
+    REFRESH_LIFETIME = timedelta(days=90)
+
+    class Use(models.TextChoices):
+        ACCESS = "access", "Access token"
+        REFRESH = "refresh", "Refresh token"
+
+    token_hash = models.CharField(max_length=64, unique=True, editable=False)
+    use = models.CharField(max_length=8, choices=Use)
+    oauth_client = models.ForeignKey(OAuthClient, on_delete=models.CASCADE, related_name="tokens")
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="oauth_tokens")
+    scopes = ArrayField(models.CharField(max_length=32, choices=Scope))
+    resource = models.CharField(max_length=512, blank=True)
+    expires_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["use", "expires_at"])]
+
+    def __str__(self):
+        return f"{self.use} for {self.oauth_client} ({self.client.owner})"

@@ -1,0 +1,61 @@
+{% comment %}
+The only screen a person sees in the OAuth flow, so it says plainly who is
+asking and what they would be able to do. Scope labels come from the model, so
+this page and the tools cannot disagree about what a scope means.
+{% endcomment %}
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connect to Memento</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font: 16px/1.5 system-ui, sans-serif; max-width: 34rem; margin: 3rem auto; padding: 0 1.25rem; }
+    h1 { font-size: 1.375rem; }
+    .who { font-weight: 600; }
+    ul { list-style: none; padding: 0; }
+    li { padding: .5rem .75rem; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: .5rem; margin-bottom: .5rem; }
+    .forget { border-color: color-mix(in srgb, #c1121f 55%, transparent); }
+    .note { font-size: .9rem; opacity: .8; }
+    .actions { display: flex; gap: .75rem; margin-top: 1.5rem; }
+    button { font: inherit; padding: .55rem 1.1rem; border-radius: .5rem; cursor: pointer; }
+    .allow { font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>Connect <span class="who">{{ oauth_client.client_name|default:oauth_client.client_id }}</span> to your memory?</h1>
+
+  {% if oauth_client.client_uri %}<p class="note">{{ oauth_client.client_uri }}</p>{% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <p>It would be able to:</p>
+    <ul>
+      {% for value, label in scopes %}
+        <li class="{% if value == 'memento:forget' %}forget{% endif %}">
+          <label>
+            {# Deleting is never ticked by default: granting it must be a deliberate act (0025). #}
+            <input type="checkbox" name="scope_{{ value|cut:'memento:' }}"
+                   {% if value != 'memento:forget' %}checked{% endif %}>
+            {{ label }}
+          </label>
+          {% if value == 'memento:forget' %}
+            <div class="note">Deleting is permanent and is not undone by anything here. Leave this
+            unticked unless you want this client to be able to delete memories.</div>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+
+    <p class="note">Everything it saves is recorded against its name, so you can always see what
+    came from where — and you can revoke it in the admin at any time.</p>
+
+    {% for key, value in params.items %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endfor %}
+    <div class="actions">
+      <button class="allow" type="submit" name="decision" value="allow">Allow</button>
+      <button type="submit" name="decision" value="deny">Cancel</button>
+    </div>
+  </form>
+</body>
+</html>
