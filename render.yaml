@@ -73,10 +73,9 @@ services:
         value: https://memento-app.me
       - key: LOG_LEVEL
         value: INFO
-      # Pocket is deliberately not connected here yet (0024): the pull's first dry
-      # run against the real account comes first. Until this is set in the
-      # dashboard, pocket.verify_signature rejects every delivery with a 401,
-      # which is the right answer for an unsigned request.
+      # Pocket's webhook secret (M4), set in the dashboard: docs/deploy.md#pocket-m4.
+      # Until it is set, pocket.verify_signature rejects every delivery with a
+      # 401, which is the right answer for an unsigned request.
       - key: POCKET_WEBHOOK_SECRET
         sync: false
 

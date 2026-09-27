@@ -115,19 +115,36 @@ def _log(event, external_id, decision, reason=""):
 # --- ingest ------------------------------------------------------------------
 
 
+def _link_for(pocket_user_id: str) -> PocketLink | None:
+    """
+    Memento has one user (0026), so the only Pocket link takes every signed
+    delivery, whatever user id Pocket sends. The id is kept on the link when it was
+    left blank, in case it is needed later. With two or more links, only an exact
+    id match will do, so no one's recordings reach someone else.
+    """
+    links = PocketLink.objects.select_related("owner")
+    if pocket_user_id and (link := links.filter(pocket_user_id=pocket_user_id).first()):
+        return link
+    if links.count() != 1:
+        return None
+    link = links.get()
+    if pocket_user_id and not link.pocket_user_id:
+        link.pocket_user_id = pocket_user_id[:128]
+        link.save(update_fields=["pocket_user_id"])
+    return link
+
+
 @transaction.atomic
 def ingest(payload: dict) -> str:
     event = payload.get("event", "")
     recording = payload.get("recording") or {}
     rec_id = recording.get("id", "")
 
-    link = (
-        PocketLink.objects.filter(pocket_user_id=(payload.get("user") or {}).get("id", ""))
-        .select_related("owner")
-        .first()
-    )
+    link = _link_for((payload.get("user") or {}).get("id") or "")
     if not link:
-        return _log(event, rec_id, Decision.REJECTED, "unknown Pocket user")
+        return _log(
+            event, rec_id, Decision.REJECTED, "no Pocket link matches; add one in the admin"
+        )
 
     if event == "recording.deleted":
         return _log(event, rec_id, Decision.IGNORED, "kept: Memento is the permanent record")

@@ -61,7 +61,7 @@ Now: the pull is built (`make pocket-pull`, 0021) and tested against Pocket's RE
 
 Done when a dry run against the real account matches expectations, real responses (redacted) replace the hand-written pull fixtures, the unconfirmed items in 0021 are settled, and Pocket is connected to the deploy — by the webhook, which is now possible and is the intended mechanism, with the pull retired to backfills (0021). If the webhook's unknowns bite, the fallback is the pull as a second Render cron job with `POCKET_API_KEY`.
 
-- Point a personal Pocket webhook at staging `/ingest/pocket/`.
+- Point Pocket's webhook at the real Memento's `/ingest/pocket/` (`docs/deploy.md`). The only Pocket link takes every delivery, so no user id is needed (0026).
 - Record real deliveries (with personal content redacted) as test fixtures: a solo note, a conversation, a transcript edit, a label change, a deletion.
 - Resolve every Pocket item under "Verify before relying" in `CLAUDE.md`, and update `pocket.py` and its tests to match reality.
 - Decide push versus pull now that Pocket ships an MCP server with a recency mode (`docs/first-recordings.md`). Push stays the plan unless the unknowns above bite.

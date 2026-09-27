@@ -78,11 +78,39 @@ After the first deploy, on the service's **Settings > Custom Domains**:
    that zone (0017), so this is not optional.
 5. Give the distiller its environment, as [below](#the-distiller-m7).
 6. Connect your clients, as [below](#clients).
+7. Connect Pocket, as [below](#pocket-m4).
 
-`POCKET_WEBHOOK_SECRET` is deliberately unset. Pocket is not connected to the
-real Memento yet (0024): its first dry run against the real account has not
-happened. Until the secret is set, every delivery to `/ingest/pocket/` is
-rejected with a 401, which is the correct answer for an unsigned request.
+## Pocket (M4)
+
+Pocket delivers each recording by signed webhook to `/ingest/pocket/` (0006,
+0021). Until `POCKET_WEBHOOK_SECRET` is set, every delivery is rejected with a
+401, which is the right answer for an unsigned request.
+
+```
+Pocket app ──POST, signed──▶ https://memento-app.me/ingest/pocket/
+                               │ 401 unless the signature checks out
+                               │ the only Pocket link takes it (0026)
+                               │ solo voice? (0022) ── no ──▶ skipped, no content kept
+                               ▼
+                             Capture in the inbox ──▶ distiller, within 15 minutes
+```
+
+1. In the admin, add a **Pocket link**: owner you, speaker label your name,
+   **Pocket user id left blank**, and tick **One speaker is me** (0022). Memento
+   has one user, so the only link takes every delivery; the first delivery
+   fills the id in (0026).
+2. In the Pocket app: **Settings > Integrations > Webhooks**. Add
+   `https://memento-app.me/ingest/pocket/` and copy the signing secret.
+3. In Render: **memento > Environment**, set `POCKET_WEBHOOK_SECRET` to that
+   secret and save. The service redeploys.
+4. Record a short note on your own. Within a minute, the admin's **Ingest logs**
+   should show it `stored`, and **Captures** should hold it in the inbox. If it
+   says `skipped`, the reason says why; if nothing arrives, the service log
+   shows whether Pocket got a 401.
+5. Record a conversation too, and check it is `skipped` with no content kept.
+
+Then M4's remaining work is to keep real deliveries, redacted, as test fixtures,
+and settle what `CLAUDE.md` lists under "Verify before relying" for the webhook.
 
 ## How a deploy runs
 
@@ -330,8 +358,9 @@ In the repository's habit of not trusting what has not been seen:
 
 - Confirming the custom domain resolves and its certificate is issued. Until it
   does, the `onrender.com` hostname is the working one.
-- Pocket (0024). Either point its webhook at `/ingest/pocket/` and set
-  `POCKET_WEBHOOK_SECRET`, or add the pull as a second cron job with
-  `POCKET_API_KEY`. Until then, Pocket recordings reach nothing.
+- Pocket's first real deliveries (M4). The route is ready ([above](#pocket-m4));
+  until the secret is set in Render, Pocket recordings reach nothing. If the
+  webhook's unknowns bite, the fallback is the pull as a second cron job with
+  `POCKET_API_KEY`.
 - Connecting claude.ai and ChatGPT (M8). The server is built (0025); the clients
   have not been connected, and that waits on the custom domain resolving.

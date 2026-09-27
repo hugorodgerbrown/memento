@@ -26,7 +26,7 @@ One more thing, in the admin at <http://127.0.0.1:8000/admin/> (log in with your
 ## Pocket
 
 1. In the Pocket app: **Settings > Developer > API Keys**, create a key. In `.env`, set `POCKET_API_KEY=pk_...`.
-2. In the admin, add a **Pocket link**: speaker label `Hugo`, any Pocket user id, and tick **One speaker is me**.
+2. In the admin, add a **Pocket link**: speaker label `Hugo`, Pocket user id left blank, and tick **One speaker is me**.
 3. Check, then import, then keep it going:
 
    ```bash

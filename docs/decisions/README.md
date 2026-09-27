@@ -29,3 +29,4 @@ Short records of decisions that shape behaviour: context, decision, consequences
 | [0023](0023-desktop-over-stdio.md) | Claude Desktop starts Memento itself: stdio, no token |
 | [0024](0024-deployment-resumes.md) | Deployment resumes: the real Memento runs on Render (supersedes 0020) |
 | [0025](0025-memento-is-its-own-authorization-server.md) | Memento is its own OAuth 2.1 authorization server (supersedes 0005's toolkit choice) |
+| [0026](0026-pocket-one-user.md) | One user, so Pocket's webhook needs no user id |
