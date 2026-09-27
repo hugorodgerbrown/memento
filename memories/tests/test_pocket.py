@@ -200,6 +200,51 @@ class PocketIngestTests(TestCase):
         with self.assertRaises(IntegrityError), transaction.atomic():
             Capture.objects.filter(pk=c.pk).update(revisions=[])
 
+    # The webhook's real shapes (M4): read what Pocket sends, not only what we guessed
+    def test_summaries_sent_as_a_list_are_read(self):
+        as_list = payload(summarizations=list(SOLO["summarizations"].values()))
+        self.assertEqual(pocket.ingest(as_list), "stored")
+        self.assertEqual(Capture.objects.get().hints["model"], "gpt5")
+
+    def test_a_transcript_wrapped_with_its_text_is_read_from_the_webhook(self):
+        wrapped = payload(transcript={"text": "ignored", "segments": SOLO["transcript"]})
+        self.assertEqual(pocket.ingest(wrapped), "stored")
+        self.assertTrue(Capture.objects.get().text.startswith("I think we should hire slower"))
+
+    def test_a_transcript_inside_the_recording_is_read(self):
+        nested = payload(transcript=None)
+        nested["recording"]["transcript"] = SOLO["transcript"]
+        self.assertEqual(pocket.ingest(nested), "stored")
+
+    def test_each_delivery_logs_its_shape_and_none_of_its_words(self):
+        with self.assertLogs("memories.pocket", "INFO") as logs:
+            pocket.ingest(payload())
+        line = "\n".join(logs.output)
+        self.assertIn("summary.completed", line)
+        self.assertIn("transcript", line)
+        self.assertNotIn("hire slower", line.lower())
+        self.assertNotIn("Walk thoughts", line)
+        self.assertNotIn("me@example.com", line)
+
+    def test_an_updated_summary_carries_the_note_too(self):
+        self.assertEqual(pocket.ingest(payload(event="summary.updated")), "stored")
+
+    def test_events_without_your_words_are_ignored(self):
+        for event in ("recording.created", "mind_map.completed"):
+            self.assertEqual(pocket.ingest(payload(event=event)), "ignored")
+        self.assertFalse(Capture.objects.exists())
+
+    def test_names_used_as_keys_are_not_logged(self):
+        speakers = {"Ana Silva": {"segments": 3}, "ana": {"segments": 1}, "bob_2": {}}
+        with self.assertLogs("memories.pocket", "INFO") as logs:
+            pocket.ingest(payload(speakers=speakers))
+        line = "\n".join(logs.output)
+        self.assertNotIn("Ana", line)
+        self.assertNotIn("ana", line)
+        self.assertNotIn("bob", line)
+        self.assertNotIn("sum_1", line)
+        self.assertIn("<3 other keys>", line)
+
     # One user (0026): the only Pocket link takes every delivery
     def test_the_only_link_takes_a_delivery_whatever_its_user_id(self):
         self.assertEqual(pocket.ingest(payload(user={"id": "user_real"})), "stored")
