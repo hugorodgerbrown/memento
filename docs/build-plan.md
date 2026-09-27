@@ -2,23 +2,26 @@
 
 Each milestone ends in something usable and a green CI. Don't start a milestone until the previous one meets its acceptance criteria. Decisions referenced as 00NN are in `docs/decisions/`.
 
-## Now: one Mac (0020)
+## Now: deploying (0024)
 
-Memento runs on the owner's Mac while it has one user, and deployment is parked until the owner says otherwise. `docs/local.md` has the setup: launchd keeps the server running, Claude Desktop connects through `mcp-remote`, backups are manual, and the distiller runs locally once it has a key. **M1 and M8 are parked; M4 becomes a pull from Pocket (0021).** The milestones below are unchanged otherwise.
+Deployment has resumed. The real Memento runs on Render as `memento` (not staging: there is one environment, and it holds real memories from day one), and the Mac becomes the development environment. **M1 and M8 are unparked**, and M8 — OAuth, so claude.ai and ChatGPT can connect — is the next milestone after M1's deploy is green. `docs/deploy.md` is the runbook; `docs/local.md` is now the development setup.
 
-## M1. Deployable skeleton on Render (staging) (parked, 0020)
+Pocket stays on the pull, on the Mac, and so writes to the development database: connecting it to the real Memento is deliberately a separate step (0024), after 0021's first dry run against the real account.
+
+## M1. Deployable skeleton on Render
 
 - Web service and Render Postgres 16, configured from environment variables.
 - Migrations run before each deploy; `collectstatic` runs at build.
 - Health check on `/healthz`; admin reachable over HTTPS.
 - Switch serving to ASGI (uvicorn workers) in preparation for M2.
 
-**Done when:** a push to `main` deploys to staging, `/healthz` returns `ok`, and you can log in to the admin.
+**Done when:** a push to `main` deploys, `/healthz` returns `ok`, and you can log in to the admin.
 
-In progress. `render.yaml` describes both resources and the build, pre-deploy and
-start commands; serving is gunicorn with uvicorn workers over `config.asgi`, and
-`docs/deploy.md` has the first-run steps. Outstanding: apply the blueprint in
-Render, create the superuser, and confirm the deployed health check and admin.
+In progress. `render.yaml` describes the web service, the database and the
+distiller's cron job, with the build, pre-deploy and start commands; serving is
+gunicorn with uvicorn workers over `config.asgi`, and `docs/deploy.md` has the
+first-run steps. Outstanding: apply the blueprint in Render, create the superuser
+and a Profile, and confirm the deployed health check and admin.
 
 ## M2. MCP server and client registry
 
@@ -32,7 +35,7 @@ Render, create the superuser, and confirm the deployed health check and admin.
 
 **Done when:** contract tests call every tool through the MCP layer; a test fails if `remember`'s description exceeds 500 characters; Claude Code can log and recall against staging.
 
-Built (0016): `/mcp` serves the nine tools, stateless, with per-client bearer tokens from `manage.py create_client`. Contract tests cover every tool in-process and over HTTP, and a test compares each description with `docs/mcp-tools.md`. Outstanding: Claude Code against staging, which needs M1's deploy.
+Built (0016): `/mcp` serves the nine tools, stateless, with per-client bearer tokens from `manage.py create_client`. Contract tests cover every tool in-process and over HTTP, and a test compares each description with `docs/mcp-tools.md`. Outstanding: Claude Code against the deploy, which needs M1.
 
 ## M3. The contract (0013, part 1)
 
@@ -47,9 +50,11 @@ Built (0016): `/mcp` serves the nine tools, stateless, with per-client bearer to
 
 Built (0017), ahead of M1's deploy by choice: `Profile` holds the time zone; every result carries `now`; `remember` rejects relative time in claims and memories dated ahead (a scheduled `change` excepted, per 0009), warns on near-duplicate tags, and keeps raw-only saves and inbox-mode clients' words as chat captures. Tests are in `memories/tests/test_contract.py`. The tool-text changes have not had an eval run.
 
-## M4. Pocket live (on the Mac, by pull: 0020, 0021)
+## M4. Pocket live (0021, 0024)
 
-Now: the pull is built (`make pocket-pull`, 0021) and tested against Pocket's REST shape as a third-party SDK describes it. Done when a dry run against the real account matches expectations, real responses (redacted) replace the hand-written pull fixtures, and the unconfirmed items in 0021 are settled. The webhook bullets below wait with deployment. Once a reachable server exists, the webhook is the mechanism and the pull is retired to backfills only (0021).
+Now: the pull is built (`make pocket-pull`, 0021) and tested against Pocket's REST shape as a third-party SDK describes it. It runs on the Mac, so it writes to the development database, not to the real Memento. **Pocket therefore reaches nothing real until this milestone lands** (0024).
+
+Done when a dry run against the real account matches expectations, real responses (redacted) replace the hand-written pull fixtures, the unconfirmed items in 0021 are settled, and Pocket is connected to the deploy — by the webhook, which is now possible and is the intended mechanism, with the pull retired to backfills (0021). If the webhook's unknowns bite, the fallback is the pull as a second Render cron job with `POCKET_API_KEY`.
 
 - Point a personal Pocket webhook at staging `/ingest/pocket/`.
 - Record real deliveries (with personal content redacted) as test fixtures: a solo note, a conversation, a transcript edit, a label change, a deletion.
@@ -88,10 +93,11 @@ Skill built and measured (24 Sep 2026): `skill/memento` passes 54 of 54 runs on 
 
 **Done when:** Pocket notes and raw-only chat captures are structured within 15 minutes without anyone opening a client, and the distiller passes the eval bar.
 
-Built (0019), not yet measured: `distiller/distil.py` runs the skill on `claude-sonnet-5` through the Tool Runner, over notes received in the last 35 minutes. It leaves for the user what it would ask about, and it is offered only six tools, never `forget`. `inbox` gained `received_since`. `render.yaml` describes the cron job. `make distil-eval` runs the capture-policy cases as inbox notes; its plumbing is verified against the real server with a scripted model. Outstanding: a real eval run (it needs `ANTHROPIC_API_KEY`), and the cron job going live with M1.
+Built (0019), not yet measured: `distiller/distil.py` runs the skill on `claude-sonnet-5` through the Tool Runner, over notes received in the last 35 minutes. It leaves for the user what it would ask about, and it is offered only six tools, never `forget`. `inbox` gained `received_since`. `render.yaml` describes the cron job. `make distil-eval` runs the capture-policy cases as inbox notes; its plumbing is verified against the real server with a scripted model. Outstanding: a real eval run (it needs `ANTHROPIC_API_KEY`), and the cron job going live with M1's deploy, where the key lives in the cron job's own environment (0024).
 
-## M8. OAuth 2.1 for claude.ai and ChatGPT (parked with deployment, 0020)
+## M8. OAuth 2.1 for claude.ai and ChatGPT (next, after M1: 0024)
 
+- **The hostname is settled:** `memento-app.me`, decided before any client registered, so the issuer never has to move (0024).
 - Authorisation server via django-oauth-toolkit: authorisation code + PKCE, protected-resource metadata, authorisation-server metadata, dynamic client registration. Client ID metadata documents when both clients support them.
 - OAuth clients become `Client` rows, with scopes `memento:read`, `memento:write` and `memento:forget`.
 - Connect claude.ai (web and mobile) and ChatGPT. Run the evals on each, with and without the skill, and set each client's `mode` from the results.

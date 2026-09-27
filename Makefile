@@ -64,10 +64,19 @@ skill-zip:    ## Package skill/memento for upload to Claude Desktop (Customize >
 	@mkdir -p dist && rm -f dist/memento-skill.zip
 	@cd skill && zip -qr ../dist/memento-skill.zip memento -x '*.DS_Store' && echo "Wrote dist/memento-skill.zip"
 
-# --- One Mac (0020) ---------------------------------------------------------------
+# --- Development on this Mac (0020, now development only: 0024) -------------------
 
 BACKUP_DIR ?= $(HOME)/Memento backups
 PGCMD ?= docker compose exec -T db
+
+# `make backup` dumps the development database. Set REMOTE_URL to dump the real
+# Memento on Render instead (0024): its external connection string, which only
+# works while your IP is in the database's allow list. Either way the Postgres 16
+# client in the development container does the work, so nothing needs installing
+# on the Mac. Remote dumps are named apart from development ones, because
+# restoring one into the other would be a bad day.
+PGDUMP_TARGET = $(if $(REMOTE_URL),"$(REMOTE_URL)",-U memento memento)
+BACKUP_PREFIX = $(if $(REMOTE_URL),memento-remote,memento)
 LAUNCHD_JOBS ?= server
 LAUNCH_AGENTS := $(HOME)/Library/LaunchAgents
 LOG_DIR := $(HOME)/Library/Logs/Memento
@@ -82,16 +91,18 @@ local-server: ## Memento as launchd runs it: Postgres up, migrations applied, /m
 
 # A backup is written to a temporary file, checked, and only then given its name, so a
 # failed or interrupted dump never leaves a file that looks usable.
-backup:       ## Dump everything to "$(BACKUP_DIR)" (make backup BACKUP_DIR=...)
+backup:       ## Dump to "$(BACKUP_DIR)" (make backup [BACKUP_DIR=...] [REMOTE_URL=<Render connection string>])
 	@mkdir -p "$(BACKUP_DIR)"
-	@out="$(BACKUP_DIR)/memento-$$(date +%Y-%m-%d-%H%M%S).dump"; tmp="$$out.partial"; \
-	if $(PGCMD) pg_dump -U memento -Fc memento > "$$tmp" && $(PGCMD) pg_restore --list < "$$tmp" > /dev/null; \
+	@out="$(BACKUP_DIR)/$(BACKUP_PREFIX)-$$(date +%Y-%m-%d-%H%M%S).dump"; tmp="$$out.partial"; \
+	if $(PGCMD) pg_dump -Fc $(PGDUMP_TARGET) > "$$tmp" && $(PGCMD) pg_restore --list < "$$tmp" > /dev/null; \
 	then mv "$$tmp" "$$out" && echo "Backed up to $$out"; \
 	else rm -f "$$tmp"; echo "Backup failed; nothing was written."; exit 1; fi
 
 # One transaction: if anything in the archive fails, nothing in the live database changes.
 # Without it, a damaged archive can drop tables (and the immutability triggers) and stop.
-restore:      ## Replace the database with a backup: make restore FILE=... CONFIRM=yes
+# Restores into the development database only. Putting the real Memento back is
+# deliberately not a make target (0024).
+restore:      ## Replace the development database with a backup: make restore FILE=... CONFIRM=yes
 	@test -f "$(FILE)" || { echo "Say which backup: make restore FILE=path/to/memento-....dump CONFIRM=yes"; exit 2; }
 	@test "$(CONFIRM)" = yes || { echo "This replaces everything in Memento with $(FILE), including anything forgotten since it was taken. Add CONFIRM=yes to go ahead."; exit 2; }
 	@$(PGCMD) pg_restore --list < "$(FILE)" > /dev/null || { echo "$(FILE) isn't a readable backup. Nothing was changed."; exit 1; }

@@ -31,8 +31,8 @@ Each principle is enforced in code and covered by tests. If a task seems to need
 | `memories/tests/` | One file per area; tests are named for the principle or decision they protect. |
 | `docs/decisions/` | Architecture decision records. Add one for any decision that changes behaviour. |
 | `docs/build-plan.md` | What to build next, in order, with acceptance criteria. |
-| `docs/local.md` | How Memento runs now: on the owner's Mac (0020). launchd jobs in `ops/launchd/`, Claude Desktop setup, backups. |
-| `render.yaml` | Staging on Render, **parked** (0020). Explained in `docs/deploy.md`. |
+| `docs/local.md` | The development environment: the owner's Mac (0020, now development only per 0024). launchd jobs in `ops/launchd/`, Claude Desktop setup, backups. |
+| `render.yaml` | The real Memento on Render (0024): web service, Postgres and the distiller's cron job. Explained in `docs/deploy.md`. |
 | `docs/evals/capture-policy.json` | How clients should react to real messages. Run against every client. |
 | `evals/capture.py` | Runs those cases against Claude Code (`make eval`), isolated, on the `memento_eval` database. A client: never imports `memories` or `config`. Results in `docs/evals/results/`. |
 | `skill/memento/` | The Memento skill in Agent Skills format (M6). Also the distiller's instructions. `make eval SKILL=1` measures it. |
@@ -72,12 +72,12 @@ Copy `.env.example` to `.env` first. Python 3.14 (for `uuid.uuid7`), Django 6.1,
 - **British English** in user-facing text and docs.
 - Keep the MCP surface at nine tools. Adding a tool needs an ADR.
 - **The distiller is a client.** It never imports `memories` or `config`, and the server never holds a model-provider key (0013): the key lives in `distiller/.env`, and settings refuse to start with one in the environment.
-- **One Mac for now (0020).** Nothing listens beyond `127.0.0.1`. Don't propose deploying until the owner says so.
+- **Two places (0024).** The real Memento is on Render; the Mac is for development and listens only on `127.0.0.1`. Changes that affect how it is served or configured belong in `render.yaml`, which is the only description of the deployment.
 - **The skill is behaviour.** Like tool text, changes to `skill/` need eval runs before they merge.
 
 ## Status
 
-Phases 1 to 3 (interrogate, define, model) are done: the data model, services, Pocket ingest and tool spec. M2 is built: the MCP server at `/mcp` with per-client bearer tokens (0016). M3, the contract, is built too (0017), ahead of M1's deploy. M6, the skill, is built and beats a same-day control on Claude Code (54/54 against 45/54). Its description fits Claude Desktop's 200-character upload limit (`make skill-zip`); plugin packaging is outstanding. **Deployment is parked (0020):** Memento runs on the owner's Mac with Claude Desktop as the client, M1 and M8 wait, and Pocket comes in by a scheduled pull (0021), awaiting its first dry run against the real account. The pull is temporary: once a server Pocket can reach exists, the webhook is the mechanism and the pull is kept for backfills only. Phase 4 (designing the morning email and web timeline) hasn't started; the build plan says where it slots in. Cross-model consistency (0013: contract, skill, inbox fallback, distiller) is built for M3 and M6; the distiller (M7, 0019) is built and awaits its eval run.
+Phases 1 to 3 (interrogate, define, model) are done: the data model, services, Pocket ingest and tool spec. M2 is built: the MCP server at `/mcp` with per-client bearer tokens (0016). M3, the contract, is built too (0017), ahead of M1's deploy. M6, the skill, is built and beats a same-day control on Claude Code (54/54 against 45/54). Its description fits Claude Desktop's 200-character upload limit (`make skill-zip`); plugin packaging is outstanding. **Deployment has resumed (0024):** the real Memento is `memento` on Render, described entirely by `render.yaml`, and the Mac is now the development environment. M1 is being applied at `memento-app.me`, which is the canonical host and the M8 issuer, settled before any client registered. M8 (OAuth, for claude.ai and ChatGPT) is unparked and next. Claude Desktop and Claude Code connect with per-client bearer tokens. **Pocket is not connected to the real Memento yet, by choice:** the pull (0021) runs on the Mac and writes to the development database, so recordings reach nothing real until M4 lands, which awaits its first dry run against the real account. Phase 4 (designing the morning email and web timeline) hasn't started; the build plan says where it slots in. Cross-model consistency (0013: contract, skill, inbox fallback, distiller) is built for M3 and M6; the distiller (M7, 0019) is built and awaits its eval run.
 
 ## Verify before relying on these
 

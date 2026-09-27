@@ -1,6 +1,6 @@
 # 0020. One person, one Mac: deployment is parked
 
-Status: accepted, September 2026. Parks M1 and the distiller's Render cron job until the owner says otherwise.
+Status: superseded by [0024](0024-deployment-resumes.md), 27 September 2026. Was: accepted, September 2026, parking M1 and the distiller's Render cron job until the owner says otherwise. The owner said otherwise; the Mac setup described here is now the development environment.
 
 ## Context
 

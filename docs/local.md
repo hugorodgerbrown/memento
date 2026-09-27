@@ -1,6 +1,8 @@
 # Memento on your Mac
 
-Memento runs on your Mac and nowhere else (ADR 0020). Claude Desktop talks to it, and your Pocket recordings are pulled in every 15 minutes.
+This is the **development** Memento: where the code is run, tested and tried out. The real one, holding real memories, is on Render — see [`deploy.md`](deploy.md) (ADR 0024).
+
+Nothing here listens beyond `127.0.0.1`, and nothing here is your real memory store. Claude Desktop can talk to this copy, and Pocket recordings are pulled into it every 15 minutes.
 
 ## Set up (once)
 
@@ -35,6 +37,8 @@ One more thing, in the admin at <http://127.0.0.1:8000/admin/> (log in with your
 
 Recordings with one speaker are kept. Conversations are skipped (0022). Voice notes wait in the inbox until you ask Claude to sort them.
 
+**The pull writes here, to the development database, not to the real Memento** (0024). Until Pocket is connected to Render — by its webhook, or by the pull as a cron job there — recordings you make do not reach your real memories.
+
 ## The skill
 
 ```bash
@@ -63,7 +67,7 @@ In Claude Desktop: **Customize > Skills > + > Upload a skill**, and choose `dist
 
 ## Good to know
 
-- **There is one copy of your memories, on this Mac.** Run `make backup` and keep the file somewhere else too. A backup keeps what you later forget; to forget something completely, delete the backups that hold it. `make restore FILE=... CONFIRM=yes` puts a backup back.
-- **Claude Desktop starts Memento itself** (0023), so it works whenever Docker is running. Its Custom connectors setting won't work: that connects from Anthropic's servers, which can't reach your Mac.
+- **This database is disposable; the one on Render is not.** `make backup` dumps this one, and `make restore FILE=... CONFIRM=yes` puts a dump back into it — which is how you would test a dump of the real Memento. To dump the real one, see the backups section of [`deploy.md`](deploy.md). A backup keeps what you later forget; to forget something completely, delete the backups that hold it.
+- **Claude Desktop starts Memento itself** (0023), so it works whenever Docker is running, and it talks to *this* copy. To point Claude Desktop at your real memories instead, use the bearer token from [`deploy.md`](deploy.md). Its Custom connectors setting still won't work until OAuth (M8): that needs an OAuth server, not a token.
 - **The distiller** (optional) sorts the inbox on a schedule with its own Anthropic key. The key goes in `distiller/.env`, never in `.env`; the server refuses to start with a model key in its environment. Create its token with `make client USER=<you> NAME=distiller`, write `MEMENTO_URL=http://127.0.0.1:8000/mcp`, `MEMENTO_TOKEN=...` and `ANTHROPIC_API_KEY=...` to `distiller/.env`, check it with `make distil`, then run `make launchd-install LAUNCHD_JOBS="server pocket distiller"`.
-- **Deployment is parked.** When it's time, follow `docs/deploy.md` and move the data with `make backup`. Pocket's webhook then replaces the pull (0021).
+- **Deployment happened** (0024). [`deploy.md`](deploy.md) is the runbook for the real Memento; this page stays as the development setup.
