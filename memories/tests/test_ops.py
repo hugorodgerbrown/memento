@@ -56,10 +56,10 @@ class DeploySettingsTests(SimpleTestCase):
             DJANGO_SECRET_KEY="deploy-test",
             DJANGO_ALLOWED_HOSTS="",
             DJANGO_CSRF_TRUSTED_ORIGINS="",
-            RENDER_EXTERNAL_HOSTNAME="memento-staging.onrender.com",
+            RENDER_EXTERNAL_HOSTNAME="memento.onrender.com",
         )
-        self.assertEqual(settings.ALLOWED_HOSTS, ["memento-staging.onrender.com"])
-        self.assertEqual(settings.CSRF_TRUSTED_ORIGINS, ["https://memento-staging.onrender.com"])
+        self.assertEqual(settings.ALLOWED_HOSTS, ["memento.onrender.com"])
+        self.assertEqual(settings.CSRF_TRUSTED_ORIGINS, ["https://memento.onrender.com"])
 
     def test_production_is_secure_by_default(self):
         settings = self.reloaded_with(DJANGO_DEBUG="0", DJANGO_SECRET_KEY="deploy-test")

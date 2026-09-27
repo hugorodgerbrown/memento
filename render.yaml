@@ -1,14 +1,15 @@
-# Render Blueprint: Memento staging (build plan M1).
+# Render Blueprint: Memento (build plan M1).
 #
+# This describes the real Memento, the one that holds real memories (ADR 0024).
 # Apply from the Render dashboard: New > Blueprint, then pick this repository.
-# Nothing here is secret; POCKET_WEBHOOK_SECRET is marked sync: false and set
-# once, by hand, in the dashboard. See docs/deploy.md for the first-run steps.
+# Nothing here is secret: every value that must stay out of git is marked
+# `sync: false` and set once, by hand, in the dashboard. See docs/deploy.md.
 #
-# Both the service and the database sit in the same region so they talk over
-# Render's private network rather than the public internet.
+# The service and the database sit in the same region so they talk over Render's
+# private network rather than the public internet.
 
 services:
-  - name: memento-staging
+  - name: memento
     type: web
     runtime: python # Python comes from .python-version (3.14, needed for uuid7)
     region: frankfurt
@@ -28,9 +29,9 @@ services:
     # version keeps serving.
     preDeployCommand: uv run python manage.py migrate --no-input
 
-    # ASGI from the start, so M2 can mount the MCP streamable HTTP endpoint
-    # without changing how the service is served. Gunicorn supervises; uvicorn
-    # workers do the serving. Two workers fit 512MB comfortably.
+    # ASGI from the start, so M2's MCP streamable HTTP endpoint at /mcp is served
+    # without changing how the service runs. Gunicorn supervises; uvicorn workers
+    # do the serving. Two workers fit 512MB comfortably.
     startCommand: >-
       uv run gunicorn config.asgi:application
       --worker-class uvicorn_worker.UvicornWorker
@@ -42,7 +43,7 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: memento-staging-db
+          name: memento-db
           property: connectionString
       - key: DJANGO_SECRET_KEY
         generateValue: true # Render generates it once and keeps it
@@ -50,14 +51,17 @@ services:
         value: "0"
       - key: LOG_LEVEL
         value: INFO
-      # Set in the dashboard at M4, when the Pocket webhook is pointed here.
-      # Until then it is empty and pocket.verify_signature rejects every delivery.
+      # Pocket is deliberately not connected here yet (0024): the pull's first dry
+      # run against the real account comes first. Until this is set in the
+      # dashboard, pocket.verify_signature rejects every delivery with a 401,
+      # which is the right answer for an unsigned request.
       - key: POCKET_WEBHOOK_SECRET
         sync: false
 
   # The distiller (M7, ADR 0019): every 15 minutes, turns the last 35 minutes of
   # the inbox into entries. A separate client with its own environment and token;
-  # the model provider's key lives here and never on the web service.
+  # the model provider's key lives here and never on the web service, which
+  # refuses to start if it finds one (Principle 2, 0013).
   - name: memento-distiller
     type: cron
     runtime: python
@@ -78,11 +82,12 @@ services:
         value: claude-sonnet-5
 
 databases:
-  - name: memento-staging-db
+  - name: memento-db
     plan: 0.1c-256mb
     postgresMajorVersion: "16" # matches docker-compose.yml and CI
     region: frankfurt
     # No external access: the web service reaches it over the private network.
     # For a psql session, open a shell on the service and run `uv run python
-    # manage.py dbshell`. Widening this is a deliberate act, not a default.
+    # manage.py dbshell`. Widening this is a deliberate act, not a default, and
+    # docs/deploy.md says what to do when a backup needs it opened briefly.
     ipAllowList: []
