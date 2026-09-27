@@ -100,6 +100,8 @@ Skill built and measured (24 Sep 2026): `skill/memento` passes 54 of 54 runs on 
 
 Built (0019), not yet measured: `distiller/distil.py` runs the skill on `claude-sonnet-5` through the Tool Runner, over notes received in the last 35 minutes. It leaves for the user what it would ask about, and it is offered only six tools, never `forget`. `inbox` gained `received_since`. `render.yaml` describes the cron job. `make distil-eval` runs the capture-policy cases as inbox notes; its plumbing is verified against the real server with a scripted model. Outstanding: a real eval run (it needs `ANTHROPIC_API_KEY`), and the cron job going live with M1's deploy, where the key lives in the cron job's own environment (0024).
 
+Live since 27 Sep 2026: its first real run handled 41 backfilled Pocket notes (35 processed, 6 dismissed, 0 left). A spike ([`docs/spikes/jev.md`](spikes/jev.md)) will measure it properly, as its baseline, while testing whether a decision model (Jev) can make its triage, kind, tag and supersede choices.
+
 ## M8. OAuth 2.1 for claude.ai and ChatGPT (server built, 0025)
 
 - **The hostname is settled:** `memento-app.me`, decided before any client registered, so the issuer never has to move (0024).
