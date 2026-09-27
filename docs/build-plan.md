@@ -109,7 +109,11 @@ Built (0019), not yet measured: `distiller/distil.py` runs the skill on `claude-
 
 **Done when:** both clients connect, every client has a recorded eval result and a mode, and no client in `direct` mode is below the bar.
 
-Built (0025), not yet connected: 48 tests in `memories/tests/test_oauth.py` cover the discovery chain, both registration mechanisms, PKCE, code replay, refresh rotation, audience binding and an OAuth token reaching the tools with provenance intact — while bearer tokens keep working (0016). Outstanding: connect the two clients against the deploy, which needs the custom domain resolving, then the eval runs and each client's `mode`. Which registration mechanism each client actually uses is recorded when it first connects.
+Built (0025) and **claude.ai is connected** (27 Sep 2026). 76 tests in `memories/tests/test_oauth.py` cover the discovery chain, both registration mechanisms, PKCE, code replay, refresh rotation and reuse, audience binding, per-token scopes, and an OAuth token reaching the tools with provenance intact — while bearer tokens keep working (0016).
+
+claude.ai used **Client ID Metadata Documents**, not dynamic registration: `client_id=https://claude.ai/oauth/mcp-oauth-client-metadata`, no call to `/oauth/register`. It requested `memento:read memento:write` only, so `forget` is not in its grant.
+
+Two reviews of this surface found eight defects before it was used, each now fixed with a test named for it (0025). Outstanding: ChatGPT, then the eval runs on each client and setting each one's `mode` from the results.
 
 ## M9 and M10. Morning email and read-only timeline
 

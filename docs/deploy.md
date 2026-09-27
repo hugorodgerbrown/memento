@@ -165,9 +165,24 @@ hostname, or every client would have to register again later.
    want that client to be able to delete memories; deletion is not undone by
    anything on that screen (Principle 5).
 
+5. In the connector's **Tool permissions**, set **Forget** to *Ask*. Leave the
+   rest on *Always allow*: prompting on `remember` would break proactive capture
+   (0011), and Principle 9 already covers it — every save returns a receipt and
+   "don't log that" undoes it in one step. Deletion is the exception, and this is
+   a gate that does not depend on the model behaving.
+
 To revoke later: **admin → OAuth tokens**, select and *Revoke the selected
 tokens*, or revoke the `Client` row the connection acts as, which stops every
 token issued to it.
+
+### What claude.ai did, the first time (27 Sep 2026)
+
+Recorded because it settles a question the repository had been carrying. It used
+**Client ID Metadata Documents** — `client_id=https://claude.ai/oauth/mcp-oauth-client-metadata`,
+with no call to `/oauth/register` — and asked for `memento:read memento:write`
+only. So the spec's preferred mechanism is the one in use, and `forget` is not in
+its grant. ChatGPT has not been tried; both mechanisms are implemented, so
+record what it does.
 
 If a connection fails, the service log shows which step: a 404 on a well-known
 path means discovery, a 400 on `/oauth/register` means registration, and an error
