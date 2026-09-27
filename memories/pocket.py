@@ -21,7 +21,6 @@ import hashlib
 import hmac
 import json
 import logging
-import re
 import time
 import urllib.error
 import urllib.parse
@@ -37,7 +36,36 @@ from . import services
 from .models import Capture, IngestLog, PocketLink
 
 logger = logging.getLogger(__name__)
-FIELD_NAME = re.compile(r"[a-z][A-Za-z0-9_]{0,40}")
+# Pocket's field names, as the pull and the webhook have shown them (0021, M4).
+KNOWN_FIELDS = frozenset(
+    [
+        "id",
+        "title",
+        "text",
+        "speaker",
+        "start",
+        "end",
+        "segments",
+        "metadata",
+        "duration",
+        "language",
+        "createdAt",
+        "updatedAt",
+        "created_at",
+        "updated_at",
+        "recording_at",
+        "processingStatus",
+        "settings",
+        "modelId",
+        "v2",
+        "summary",
+        "markdown",
+        "bulletPoints",
+        "actionItems",
+        "summarizations",
+        "transcript",
+    ]
+)
 
 REPLAY_WINDOW_SECONDS = 300
 TRANSCRIPT_EVENTS = {
@@ -110,22 +138,30 @@ def _solo_verdict(segments: list[dict], link: PocketLink) -> tuple[bool, str]:
     return False, "one speaker, not labelled as you; to keep these, tick 'one speaker is me'"
 
 
-def _shape(value, depth=0):
+def _shape(value, depth=0, schema=True):
     """
     What a delivery looks like, with none of its content: keys and types only. Pocket's
     webhook shape is unconfirmed (M4), so each delivery logs this, and the logs can
     show what really arrives without keeping a word anyone said.
+
+    The envelope's keys and the recording's are Pocket's schema, so they are shown.
+    Deeper down, a key is shown only if it is a known Pocket field: anything else
+    could be an id or a name keying a map (a speaker, say), so it is masked.
     """
     if isinstance(value, dict):
-        if depth >= 3:
+        if depth >= 4:
             return "{...}"
-        # Keys that aren't field names (ids, or a name keying a speaker map) are masked.
-        return {
-            (k if FIELD_NAME.fullmatch(k) else "<key>"): _shape(v, depth + 1)
-            for k, v in value.items()
-        }
+        shown, masked = {}, []
+        for k, v in value.items():
+            if schema or k in KNOWN_FIELDS:
+                shown[k] = _shape(v, depth + 1, schema=depth == 0 and k == "recording")
+            else:
+                masked.append(v)
+        if masked:
+            shown[f"<{len(masked)} other keys>"] = _shape(masked[0], depth + 1, schema=False)
+        return shown
     if isinstance(value, list):
-        return [_shape(value[0], depth + 1), len(value)] if value else []
+        return [_shape(value[0], depth + 1, schema=False), len(value)] if value else []
     return type(value).__name__
 
 

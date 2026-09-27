@@ -235,9 +235,15 @@ class PocketIngestTests(TestCase):
         self.assertFalse(Capture.objects.exists())
 
     def test_names_used_as_keys_are_not_logged(self):
+        speakers = {"Ana Silva": {"segments": 3}, "ana": {"segments": 1}, "bob_2": {}}
         with self.assertLogs("memories.pocket", "INFO") as logs:
-            pocket.ingest(payload(speakers={"Ana Silva": {"segments": 3}}))
-        self.assertNotIn("Ana", "\n".join(logs.output))
+            pocket.ingest(payload(speakers=speakers))
+        line = "\n".join(logs.output)
+        self.assertNotIn("Ana", line)
+        self.assertNotIn("ana", line)
+        self.assertNotIn("bob", line)
+        self.assertNotIn("sum_1", line)
+        self.assertIn("<3 other keys>", line)
 
     # One user (0026): the only Pocket link takes every delivery
     def test_the_only_link_takes_a_delivery_whatever_its_user_id(self):
