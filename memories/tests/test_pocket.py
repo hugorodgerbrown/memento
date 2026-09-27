@@ -226,6 +226,14 @@ class PocketIngestTests(TestCase):
         self.assertNotIn("Walk thoughts", line)
         self.assertNotIn("me@example.com", line)
 
+    def test_an_updated_summary_carries_the_note_too(self):
+        self.assertEqual(pocket.ingest(payload(event="summary.updated")), "stored")
+
+    def test_events_without_your_words_are_ignored(self):
+        for event in ("recording.created", "mind_map.completed"):
+            self.assertEqual(pocket.ingest(payload(event=event)), "ignored")
+        self.assertFalse(Capture.objects.exists())
+
     def test_names_used_as_keys_are_not_logged(self):
         with self.assertLogs("memories.pocket", "INFO") as logs:
             pocket.ingest(payload(speakers={"Ana Silva": {"segments": 3}}))

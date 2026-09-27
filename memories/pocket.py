@@ -44,6 +44,7 @@ TRANSCRIPT_EVENTS = {
     "transcription.completed",
     "summary.completed",
     "summary.regenerated",
+    "summary.updated",  # seen in the first real deliveries (27 Sep 2026)
     "speakers.labeled",
 }
 
