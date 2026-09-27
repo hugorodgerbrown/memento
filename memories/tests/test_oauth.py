@@ -181,6 +181,56 @@ class MetadataDocumentTests(TestCase):
         ):
             oauth._fetch_metadata_document("https://localhost.example/c.json")
 
+    def test_an_ipv4_mapped_private_address_is_refused(self):
+        """::ffff:169.254.169.254 must not slip past the check by wearing an IPv6 coat."""
+        with (
+            mock.patch.object(
+                oauth.socket,
+                "getaddrinfo",
+                return_value=[(10, 1, 6, "", ("::ffff:169.254.169.254", 443, 0, 0))],
+            ),
+            self.assertRaisesMessage(Exception, "non-public address"),
+        ):
+            oauth._fetch_metadata_document("https://cloud.example/c.json")
+
+    def test_one_bad_address_among_good_ones_is_refused(self):
+        """Answering with a public address and an internal one must not pass."""
+        with (
+            mock.patch.object(
+                oauth.socket,
+                "getaddrinfo",
+                return_value=[
+                    (2, 1, 6, "", ("93.184.216.34", 443)),
+                    (2, 1, 6, "", ("10.0.0.5", 443)),
+                ],
+            ),
+            self.assertRaisesMessage(Exception, "non-public address"),
+        ):
+            oauth._fetch_metadata_document("https://mixed.example/c.json")
+
+    def test_the_connection_goes_to_the_address_that_was_checked(self):
+        """
+        Resolving for the check and letting an HTTP library resolve again would let
+        a short-TTL record answer public once and internal the second time (DNS
+        rebinding). The address is pinned, so the socket opens to what passed.
+        """
+        with (
+            mock.patch.object(
+                oauth.socket, "getaddrinfo", return_value=[(2, 1, 6, "", ("93.184.216.34", 443))]
+            ),
+            mock.patch.object(
+                oauth.socket, "create_connection", side_effect=OSError("stop here")
+            ) as connect,
+            self.assertRaisesMessage(Exception, "Could not fetch"),
+        ):
+            oauth._fetch_metadata_document("https://client.example/c.json")
+        connect.assert_called_once()
+        self.assertEqual(connect.call_args.args[0], ("93.184.216.34", 443))
+
+    def test_a_document_url_on_another_port_is_refused(self):
+        with self.assertRaisesMessage(Exception, "port 443"):
+            oauth._fetch_metadata_document("https://client.example:8443/c.json")
+
     def test_only_an_https_url_with_a_path_is_treated_as_a_document_id(self):
         self.assertTrue(oauth.is_metadata_document_id(DOCUMENT_ID))
         self.assertFalse(oauth.is_metadata_document_id("https://claude.ai"))
@@ -608,3 +658,160 @@ class SettingsTests(TestCase):
             self.assertRaisesMessage(Exception, "MEMENTO_BASE_URL"),
         ):
             importlib.reload(config.settings)
+
+
+@override_settings(MEMENTO_BASE_URL=BASE, MEMENTO_RESOURCE_URL=RESOURCE)
+class ImpersonationTests(TestCase):
+    """
+    A registered client chooses its own `client_name`, and registration is
+    unauthenticated. So the name is a label, never an identity: it must not decide
+    which Client row an OAuth token acts as.
+    """
+
+    def setUp(self):
+        self.me = get_user_model().objects.create_user(username="sam", password="pw")
+        # What an owner already has, with a live bearer token.
+        self.existing, self.bearer = s.create_client(self.me, "claude-code")
+        self.impostor = OAuthClient.objects.create(
+            client_id="memento-client-impostor",
+            client_name="claude-code",  # the same name on purpose
+            redirect_uris=[REDIRECT],
+        )
+        self.client.force_login(self.me)
+
+    def consent(self, **extra):
+        return self.client.post(
+            reverse("oauth-authorize"),
+            {
+                "client_id": self.impostor.client_id,
+                "redirect_uri": REDIRECT,
+                "response_type": "code",
+                "code_challenge": challenge_for(VERIFIER),
+                "code_challenge_method": "S256",
+                "resource": RESOURCE,
+                "scope": "memento:read memento:write",
+                "decision": "allow",
+                "scope_read": "on",
+                "scope_write": "on",
+                **extra,
+            },
+        )
+
+    def test_a_name_collision_does_not_take_over_an_existing_client(self):
+        self.consent()
+        grant = OAuthGrant.objects.get()
+        self.assertNotEqual(grant.client_id, self.existing.pk)
+        self.assertEqual(grant.client.oauth_client, self.impostor)
+
+    def test_a_name_collision_gets_a_distinguishable_name(self):
+        """Provenance must not be ambiguous about which client wrote an entry."""
+        self.consent()
+        name = OAuthGrant.objects.get().client.name
+        self.assertNotEqual(name, "claude-code")
+        self.assertIn("claude-code", name)
+
+    def test_consenting_never_revives_a_revoked_bearer_client(self):
+        """
+        Revoking is the kill switch. A stranger registering under the revoked
+        client's name and getting the owner to consent must not lift it.
+        """
+        Client.objects.filter(pk=self.existing.pk).update(revoked_at=timezone.now())
+        self.consent()
+        self.existing.refresh_from_db()
+        self.assertIsNotNone(self.existing.revoked_at)
+        self.assertIsNone(s.authenticate(self.bearer))
+
+    def test_consenting_never_changes_an_existing_clients_scopes(self):
+        self.consent(scope="memento:read memento:write memento:forget", scope_forget="on")
+        self.existing.refresh_from_db()
+        self.assertNotIn(Scope.FORGET, self.existing.scopes)
+
+    def test_the_row_an_oauth_token_acts_as_is_always_sealed(self):
+        self.consent()
+        self.assertEqual(OAuthGrant.objects.get().client.token_prefix, "sealed")
+
+    def test_re_consent_reuses_the_same_row_for_the_same_client(self):
+        self.consent()
+        first = OAuthGrant.objects.get().client_id
+        self.consent()
+        self.assertEqual(set(OAuthGrant.objects.values_list("client_id", flat=True)), {first})
+
+
+@override_settings(MEMENTO_BASE_URL=BASE, MEMENTO_RESOURCE_URL=RESOURCE)
+class ConsentIntegrityTests(TestCase):
+    """What is granted must be what the screen showed as ticked."""
+
+    def setUp(self):
+        self.me = get_user_model().objects.create_user(username="sam", password="pw")
+        self.oauth_client = OAuthClient.objects.create(
+            client_id="memento-client-abc", client_name="Claude", redirect_uris=[REDIRECT]
+        )
+        self.client.force_login(self.me)
+
+    def test_allowing_with_nothing_ticked_grants_nothing(self):
+        """
+        Clearing every box and pressing Allow must not hand over everything the
+        client asked for — least of all memento:forget (Principle 5).
+        """
+        response = self.client.post(
+            reverse("oauth-authorize"),
+            {
+                "client_id": self.oauth_client.client_id,
+                "redirect_uri": REDIRECT,
+                "response_type": "code",
+                "code_challenge": challenge_for(VERIFIER),
+                "code_challenge_method": "S256",
+                "resource": RESOURCE,
+                "scope": "memento:read memento:write memento:forget",
+                "decision": "allow",
+            },
+        )
+        query = parse_qs(urlparse(response["Location"]).query)
+        self.assertEqual(query["error"], ["access_denied"])
+        self.assertFalse(OAuthGrant.objects.exists())
+
+
+@override_settings(MEMENTO_BASE_URL=BASE, MEMENTO_RESOURCE_URL=RESOURCE)
+class RevocationTests(TestCase):
+    """Revoking the Client row has to stop renewal too, or it is not a kill switch."""
+
+    def setUp(self):
+        self.me = get_user_model().objects.create(username="sam")
+        self.oauth_client = OAuthClient.objects.create(
+            client_id="memento-client-abc", client_name="Claude", redirect_uris=[REDIRECT]
+        )
+        self.client_row, _ = s.create_client(self.me, "Claude")
+        self.client_row.oauth_client = self.oauth_client
+        self.client_row.save(update_fields=["oauth_client"])
+        self.refresh = oauth.TOKEN_PREFIX + "refresh-token-for-revocation"
+        OAuthToken.objects.create(
+            token_hash=oauth._hash(self.refresh),
+            use=OAuthToken.Use.REFRESH,
+            oauth_client=self.oauth_client,
+            client=self.client_row,
+            scopes=[Scope.READ],
+            resource=RESOURCE,
+            expires_at=timezone.now() + timedelta(days=90),
+        )
+
+    def refresh_once(self):
+        return self.client.post(
+            reverse("oauth-token"),
+            {
+                "grant_type": "refresh_token",
+                "refresh_token": self.refresh,
+                "client_id": self.oauth_client.client_id,
+            },
+        )
+
+    def test_a_live_client_can_refresh(self):
+        self.assertEqual(self.refresh_once().status_code, 200)
+
+    def test_a_revoked_client_cannot_refresh(self):
+        """Otherwise a revoked client rotates a fresh 90-day token indefinitely."""
+        Client.objects.filter(pk=self.client_row.pk).update(revoked_at=timezone.now())
+        self.assertEqual(self.refresh_once().status_code, 400)
+
+    def test_an_inactive_owner_cannot_refresh(self):
+        get_user_model().objects.filter(pk=self.me.pk).update(is_active=False)
+        self.assertEqual(self.refresh_once().status_code, 400)

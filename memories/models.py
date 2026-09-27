@@ -386,10 +386,23 @@ class Client(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     last_used_at = models.DateTimeField(null=True, blank=True)
     revoked_at = models.DateTimeField(null=True, blank=True)
+    # Set when this row exists because an OAuth client was granted access (0025).
+    # It is what identifies the row, not the name: a name is chosen by whoever
+    # registered, and two clients may ask to be called the same thing.
+    oauth_client = models.ForeignKey(
+        "OAuthClient", null=True, blank=True, on_delete=models.CASCADE, related_name="client_rows"
+    )
 
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["owner", "name"], name="unique_client_name"),
+            # One row per owner per OAuth client, so re-consent updates that
+            # client's own row and can never reach another client's.
+            models.UniqueConstraint(
+                fields=["owner", "oauth_client"],
+                name="unique_client_per_oauth_client",
+                condition=Q(oauth_client__isnull=False),
+            ),
         ]
 
     def __str__(self):
