@@ -45,7 +45,14 @@ The first implementation was reviewed before it went live, and four things were 
 3. **The metadata-document fetch was open to DNS rebinding.** The address was checked and then re-resolved by the HTTP library.
 4. **The refresh endpoint did not check whether the client was still live**, so revoking a client left its refresh chain rotating.
 
-All four are fixed and each has a test named for it. The lesson recorded here: on this surface, the tests must assert the security property rather than the happy path — every one of these passed a suite that only checked the flow worked.
+A second review found four more.
+
+5. **`@login_required` pointed at a login that does not exist.** Django's default `LOGIN_URL` is `/accounts/login/`, and only the admin's login is mounted, so the first authorization any client ever started would have ended at a 404. Caught only by review because every test and every manual run happened to log in first.
+6. **A token's scopes were not what the tools checked.** `verify_access_token` returned the token's own grant and the caller dropped it, so authorization used the shared `Client` row instead. A refresh narrowed to `memento:read` still carried the client's `memento:forget`. The scopes now travel with the request, and a bearer token's scopes are its client's, as before.
+7. **Refresh-token reuse did not revoke the family.** A spent token coming back is the signal it was copied, but it was simply not found, so the thief's replacement chain survived while the legitimate client got an error. Tokens now share a family, and reuse revokes all of it — both parties re-authorize, which is the safe outcome.
+8. **Codes and rotations were claimed with a read and then a write.** Two requests arriving together could both pass the check. Both are now one conditional update.
+
+All eight are fixed and each has a test named for it. The lesson recorded here: on this surface, the tests must assert the security property rather than the happy path — every one of these passed a suite that only checked the flow worked.
 
 ## Consequences
 

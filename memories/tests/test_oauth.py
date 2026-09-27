@@ -815,3 +815,169 @@ class RevocationTests(TestCase):
     def test_an_inactive_owner_cannot_refresh(self):
         get_user_model().objects.filter(pk=self.me.pk).update(is_active=False)
         self.assertEqual(self.refresh_once().status_code, 400)
+
+
+@override_settings(MEMENTO_BASE_URL=BASE, MEMENTO_RESOURCE_URL=RESOURCE)
+class LoginRouteTests(TestCase):
+    """The authorization endpoint is behind a login that has to actually exist."""
+
+    def test_an_unauthenticated_authorization_reaches_a_real_login_page(self):
+        """
+        Django's default LOGIN_URL is /accounts/login/, which this project does not
+        mount — so without LOGIN_URL set, the first authorization a client ever
+        starts ends at a 404 instead of a login form.
+        """
+        OAuthClient.objects.create(
+            client_id="memento-client-abc", client_name="Claude", redirect_uris=[REDIRECT]
+        )
+        response = self.client.get(
+            reverse("oauth-authorize"),
+            {"client_id": "memento-client-abc", "redirect_uri": REDIRECT, "response_type": "code"},
+        )
+        self.assertEqual(response.status_code, 302)
+        followed = self.client.get(response["Location"])
+        self.assertEqual(followed.status_code, 200)
+        self.assertContains(followed, "password")
+
+
+@override_settings(MEMENTO_BASE_URL=BASE, MEMENTO_RESOURCE_URL=RESOURCE)
+class TokenScopeTests(TestCase):
+    """
+    A token's own grant governs, not the Client row's scopes. A refresh may ask
+    for less, and the narrower token must not be able to act on what the client
+    is generally allowed.
+    """
+
+    def setUp(self):
+        self.me = get_user_model().objects.create(username="sam")
+        self.oauth_client = OAuthClient.objects.create(
+            client_id="memento-client-abc", client_name="Claude", redirect_uris=[REDIRECT]
+        )
+        # The client row is allowed everything, as a consent including forget leaves it.
+        self.client_row, _ = s.create_client(
+            self.me, "Claude", scopes=[Scope.READ, Scope.WRITE, Scope.FORGET]
+        )
+        self.client_row.oauth_client = self.oauth_client
+        self.client_row.save(update_fields=["oauth_client"])
+
+    def issue(self, scopes: list[str]) -> str:
+        token = oauth.TOKEN_PREFIX + f"scoped-{'-'.join(scopes)}"
+        OAuthToken.objects.create(
+            token_hash=oauth._hash(token),
+            use=OAuthToken.Use.ACCESS,
+            oauth_client=self.oauth_client,
+            client=self.client_row,
+            scopes=scopes,
+            resource=RESOURCE,
+            expires_at=timezone.now() + timedelta(hours=1),
+        )
+        return token
+
+    def test_verify_returns_the_tokens_own_scopes(self):
+        _, scopes = oauth.verify_access_token(self.issue([Scope.READ]))
+        self.assertEqual(scopes, [Scope.READ])
+
+    def test_a_read_only_token_cannot_forget_even_though_its_client_may(self):
+        from memories.mcp_server import _authenticate, current_client, current_scopes
+
+        client, scopes = _authenticate(self.issue([Scope.READ]))
+        self.assertEqual(scopes, [Scope.READ])
+        self.assertIn(Scope.FORGET, client.scopes)  # the client row is broader
+
+        reset, reset_scopes = current_client.set(client), current_scopes.set(scopes)
+        try:
+            from memories.mcp_server import _client
+
+            with self.assertRaisesMessage(Exception, "memento:forget"):
+                _client(Scope.FORGET)
+            self.assertEqual(_client(Scope.READ), client)
+        finally:
+            current_client.reset(reset)
+            current_scopes.reset(reset_scopes)
+
+    def test_a_bearer_token_still_uses_its_clients_scopes(self):
+        from memories.mcp_server import _authenticate
+
+        _, bearer = s.create_client(self.me, "claude-code", scopes=[Scope.READ, Scope.WRITE])
+        _client_row, scopes = _authenticate(bearer)
+        self.assertEqual(sorted(scopes), [Scope.READ, Scope.WRITE])
+
+
+@override_settings(MEMENTO_BASE_URL=BASE, MEMENTO_RESOURCE_URL=RESOURCE)
+class RefreshReuseTests(TestCase):
+    """
+    Refresh tokens rotate, so a spent one coming back means it was copied. OAuth
+    2.1 says revoke the whole family then: whoever holds the newer one may be the
+    thief, and both parties authorizing again is the safe outcome.
+    """
+
+    def setUp(self):
+        self.me = get_user_model().objects.create_user(username="sam", password="pw")
+        self.oauth_client = OAuthClient.objects.create(
+            client_id="memento-client-abc", client_name="Claude", redirect_uris=[REDIRECT]
+        )
+        self.client.force_login(self.me)
+        response = self.client.post(
+            reverse("oauth-authorize"),
+            {
+                "client_id": self.oauth_client.client_id,
+                "redirect_uri": REDIRECT,
+                "response_type": "code",
+                "code_challenge": challenge_for(VERIFIER),
+                "code_challenge_method": "S256",
+                "resource": RESOURCE,
+                "scope": "memento:read memento:write",
+                "decision": "allow",
+                "scope_read": "on",
+                "scope_write": "on",
+            },
+        )
+        code = parse_qs(urlparse(response["Location"]).query)["code"][0]
+        self.first = self.client.post(
+            reverse("oauth-token"),
+            {
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": REDIRECT,
+                "client_id": self.oauth_client.client_id,
+                "code_verifier": VERIFIER,
+            },
+        ).json()
+
+    def refresh_with(self, token: str):
+        return self.client.post(
+            reverse("oauth-token"),
+            {
+                "grant_type": "refresh_token",
+                "refresh_token": token,
+                "client_id": self.oauth_client.client_id,
+            },
+        )
+
+    def test_the_whole_family_dies_when_a_spent_token_comes_back(self):
+        second = self.refresh_with(self.first["refresh_token"]).json()
+        # The attacker's chain is live at this point.
+        self.assertIsNotNone(oauth.verify_access_token(second["access_token"]))
+
+        replay = self.refresh_with(self.first["refresh_token"])
+        self.assertEqual(replay.status_code, 400)
+        # Reuse detected: the replacement must not survive it.
+        self.assertIsNone(oauth.verify_access_token(second["access_token"]))
+        self.assertEqual(self.refresh_with(second["refresh_token"]).status_code, 400)
+
+    def test_a_rotated_chain_shares_one_family(self):
+        second = self.refresh_with(self.first["refresh_token"]).json()
+        self.assertEqual(OAuthToken.objects.values("family").distinct().count(), 1)
+        self.assertTrue(second["refresh_token"])
+
+    def test_a_code_cannot_be_claimed_twice(self):
+        """The claim is one conditional update, so a concurrent pair cannot both win."""
+        grant = OAuthGrant.objects.first()
+        if grant is not None:
+            claimed = OAuthGrant.objects.filter(pk=grant.pk, used_at__isnull=True).update(
+                used_at=timezone.now()
+            )
+            again = OAuthGrant.objects.filter(pk=grant.pk, used_at__isnull=True).update(
+                used_at=timezone.now()
+            )
+            self.assertEqual((claimed, again), (0, 0))  # already spent in setUp

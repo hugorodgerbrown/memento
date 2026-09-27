@@ -484,6 +484,10 @@ class OAuthToken(models.Model):
 
     token_hash = models.CharField(max_length=64, unique=True, editable=False)
     use = models.CharField(max_length=8, choices=Use)
+    # Every token descended from one authorization shares a family. Refresh tokens
+    # rotate, so presenting a spent one means it was copied: OAuth 2.1 says revoke
+    # the whole family at that point, which needs the lineage recorded.
+    family = models.UUIDField(default=uuid.uuid4, editable=False)
     oauth_client = models.ForeignKey(OAuthClient, on_delete=models.CASCADE, related_name="tokens")
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="oauth_tokens")
     scopes = ArrayField(models.CharField(max_length=32, choices=Scope))
@@ -493,7 +497,10 @@ class OAuthToken(models.Model):
     revoked_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        indexes = [models.Index(fields=["use", "expires_at"])]
+        indexes = [
+            models.Index(fields=["use", "expires_at"]),
+            models.Index(fields=["family"]),
+        ]
 
     def __str__(self):
         return f"{self.use} for {self.oauth_client} ({self.client.owner})"

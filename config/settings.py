@@ -101,6 +101,11 @@ DATABASES = {
     )
 }
 
+# The OAuth authorization endpoint is behind @login_required (0025), and the only
+# login this project mounts is the admin's. Without this the first authorization
+# a client ever starts redirects to Django's default /accounts/login/ and 404s.
+LOGIN_URL = "admin:login"
+
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},

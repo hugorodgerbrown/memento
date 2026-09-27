@@ -35,6 +35,7 @@ import logging
 import secrets
 import socket
 import ssl
+import uuid
 from datetime import timedelta
 from urllib.parse import urlencode, urlparse, urlunparse
 
@@ -550,48 +551,89 @@ def _exchange_code(request):
     if not _pkce_matches(verifier, grant.code_challenge):
         return _oauth_error("invalid_grant", "code_verifier does not match.", status=400)
 
-    grant.used_at = timezone.now()
-    grant.save(update_fields=["used_at"])
+    # One conditional update claims the code. Checking `used_at` and then writing
+    # it are two statements, and two requests arriving together would both pass
+    # the check and both be issued tokens.
+    claimed = OAuthGrant.objects.filter(pk=grant.pk, used_at__isnull=True).update(
+        used_at=timezone.now()
+    )
+    if not claimed:
+        return _oauth_error("invalid_grant", "That code has expired or been used.", status=400)
     return _issue(grant.oauth_client, grant.client, grant.scopes, grant.resource)
 
 
 def _exchange_refresh(request):
     presented = request.POST.get("refresh_token") or ""
-    # The same liveness the access path checks. Without the client filters a
-    # revoked client could rotate its refresh token indefinitely, so revoking the
-    # Client row would not be the kill switch 0025 says it is.
+    # Look it up whatever state it is in: a spent token that comes back is the
+    # signal that it was copied, and that has to be actionable rather than
+    # indistinguishable from an unknown token.
     stored = (
         OAuthToken.objects.select_related("oauth_client", "client__owner")
-        .filter(
-            token_hash=_hash(presented),
-            use=OAuthToken.Use.REFRESH,
-            revoked_at__isnull=True,
-            expires_at__gt=timezone.now(),
-            client__revoked_at__isnull=True,
-            client__owner__is_active=True,
-        )
+        .filter(token_hash=_hash(presented), use=OAuthToken.Use.REFRESH)
         .first()
     )
     if stored is None:
+        return _oauth_error("invalid_grant", "That refresh token is not usable.", status=400)
+    if stored.revoked_at:
+        # Reuse of a rotated token. Whoever holds the newer one may be the thief,
+        # so the whole family goes (OAuth 2.1 refresh token replay detection);
+        # both parties have to authorize again, which is the safe outcome.
+        OAuthToken.objects.filter(family=stored.family, revoked_at__isnull=True).update(
+            revoked_at=timezone.now()
+        )
+        logger.warning(
+            "refresh token reuse for family %s (client %s); family revoked",
+            stored.family,
+            stored.oauth_client.client_id,
+        )
+        return _oauth_error(
+            "invalid_grant", "That refresh token was already used; authorize again.", status=400
+        )
+    # The same liveness the access path checks. Without the client filters a
+    # revoked client could rotate its refresh token indefinitely, so revoking the
+    # Client row would not be the kill switch 0025 says it is.
+    if (
+        stored.expires_at <= timezone.now()
+        or stored.client.revoked_at
+        or not stored.client.owner.is_active
+    ):
         return _oauth_error("invalid_grant", "That refresh token is not usable.", status=400)
     if request.POST.get("client_id") != stored.oauth_client.client_id:
         return _oauth_error("invalid_client", "client_id does not match the token.", status=401)
     asked = _requested_scopes(request.POST.get("scope")) if request.POST.get("scope") else None
     if asked and not set(asked) <= set(stored.scopes):
         return _oauth_error("invalid_scope", "A refresh cannot widen scope.", status=400)
-    # Rotate: the presented token is spent, as OAuth 2.1 requires of public clients.
-    stored.revoked_at = timezone.now()
-    stored.save(update_fields=["revoked_at"])
-    return _issue(stored.oauth_client, stored.client, asked or stored.scopes, stored.resource)
+    # Rotate, claimed with one conditional update so two concurrent refreshes
+    # cannot both spend the same token and open two live chains.
+    spent = OAuthToken.objects.filter(pk=stored.pk, revoked_at__isnull=True).update(
+        revoked_at=timezone.now()
+    )
+    if not spent:
+        return _oauth_error("invalid_grant", "That refresh token is not usable.", status=400)
+    return _issue(
+        stored.oauth_client,
+        stored.client,
+        asked or stored.scopes,
+        stored.resource,
+        family=stored.family,
+    )
 
 
-def _issue(oauth_client: OAuthClient, client: Client, scopes: list[str], for_resource: str):
+def _issue(
+    oauth_client: OAuthClient,
+    client: Client,
+    scopes: list[str],
+    for_resource: str,
+    family=None,
+):
     now = timezone.now()
+    family = family or uuid.uuid4()
     access = TOKEN_PREFIX + secrets.token_urlsafe(32)
     refresh = TOKEN_PREFIX + secrets.token_urlsafe(32)
     OAuthToken.objects.create(
         token_hash=_hash(access),
         use=OAuthToken.Use.ACCESS,
+        family=family,
         oauth_client=oauth_client,
         client=client,
         scopes=scopes,
@@ -601,6 +643,7 @@ def _issue(oauth_client: OAuthClient, client: Client, scopes: list[str], for_res
     OAuthToken.objects.create(
         token_hash=_hash(refresh),
         use=OAuthToken.Use.REFRESH,
+        family=family,
         oauth_client=oauth_client,
         client=client,
         scopes=scopes,

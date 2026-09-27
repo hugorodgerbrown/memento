@@ -160,6 +160,13 @@ FORGET = (
 current_client: contextvars.ContextVar[Client | None] = contextvars.ContextVar(
     "memento_client", default=None
 )
+# The scopes this request may use. An OAuth access token carries its own grant,
+# which can be narrower than the client's (a refresh may ask for less), so the
+# token's scopes govern — not the Client row's, which would be a way to act
+# beyond what the presented token was issued for.
+current_scopes: contextvars.ContextVar[list[str] | None] = contextvars.ContextVar(
+    "current_scopes", default=None
+)
 _call_tz: contextvars.ContextVar[ZoneInfo | None] = contextvars.ContextVar(
     "memento_tz", default=None
 )
@@ -185,7 +192,10 @@ def _client(scope: Scope) -> Client:
     client = current_client.get()
     if client is None:
         raise ToolError("Not authenticated. Send a Memento bearer token, or connect with OAuth.")
-    if scope not in client.scopes:
+    allowed = current_scopes.get()
+    if allowed is None:
+        allowed = client.scopes
+    if scope not in allowed:
         raise ToolError(
             f"This client isn't allowed to {SCOPE_VERBS[scope]} ({scope}). "
             "Tell the user; they can grant it in Memento."
@@ -762,25 +772,34 @@ class BearerAuth:
             return await self.app(scope, receive, send)
         headers = dict(scope.get("headers") or [])
         scheme, _, token = headers.get(b"authorization", b"").decode("latin-1").partition(" ")
-        client = None
+        client, scopes = None, None
         if scheme.lower() == "bearer" and token.strip():
-            client = await sync_to_async(_authenticate)(token.strip())
+            client, scopes = await sync_to_async(_authenticate)(token.strip())
         if client is None:
             return await _unauthorised(send)
         reset = current_client.set(client)
+        reset_scopes = current_scopes.set(scopes)
         try:
             await self.app(scope, receive, send)
         finally:
             current_client.reset(reset)
+            current_scopes.reset(reset_scopes)
 
 
-def _authenticate(token: str) -> Client | None:
+def _authenticate(token: str) -> tuple[Client | None, list[str] | None]:
+    """
+    The client this token acts as, and the scopes the token itself carries.
+
+    A bearer token is the client, so its scopes are the client's. An OAuth access
+    token carries its own grant, which may be narrower — a refresh can ask for
+    less — so those scopes are returned and are what the tools check against.
+    """
     _fresh_connection()
     client = services.authenticate(token)
     if client is not None:
-        return client
+        return client, list(client.scopes)
     verified = oauth.verify_access_token(token)
-    return verified[0] if verified else None
+    return verified if verified else (None, None)
 
 
 async def _unauthorised(send):
