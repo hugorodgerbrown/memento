@@ -200,8 +200,42 @@ class PocketIngestTests(TestCase):
         with self.assertRaises(IntegrityError), transaction.atomic():
             Capture.objects.filter(pk=c.pk).update(revisions=[])
 
-    def test_unknown_pocket_user_rejected(self):
+    # One user (0026): the only Pocket link takes every delivery
+    def test_the_only_link_takes_a_delivery_whatever_its_user_id(self):
+        self.assertEqual(pocket.ingest(payload(user={"id": "user_real"})), "stored")
+        self.assertEqual(Capture.objects.get().owner, self.me)
+
+    def test_a_delivery_without_a_user_still_reaches_the_only_link(self):
+        self.assertEqual(pocket.ingest(payload(user=None)), "stored")
+
+    def test_a_blank_pocket_user_id_is_learnt_from_the_first_delivery(self):
+        PocketLink.objects.update(pocket_user_id="")
+        pocket.ingest(payload(user={"id": "user_real"}))
+        self.assertEqual(PocketLink.objects.get().pocket_user_id, "user_real")
+
+    def test_a_pocket_user_id_you_set_is_not_overwritten(self):
+        pocket.ingest(payload(user={"id": "user_real"}))
+        self.assertEqual(PocketLink.objects.get().pocket_user_id, "user_me")
+
+    def test_with_no_link_every_delivery_is_rejected(self):
+        PocketLink.objects.all().delete()
+        self.assertEqual(pocket.ingest(payload()), "rejected")
+        self.assertIn("Pocket link", IngestLog.objects.get().reason)
+
+    def test_with_two_links_an_unknown_user_is_still_rejected(self):
+        other = get_user_model().objects.create(username="ana")
+        PocketLink.objects.create(
+            owner=other, pocket_user_id="user_ana", speaker_label="Ana", one_speaker_is_me=True
+        )
         self.assertEqual(pocket.ingest(payload(user={"id": "stranger"})), "rejected")
+        self.assertEqual(pocket.ingest(payload(user={"id": "user_ana"})), "stored")
+        self.assertEqual(Capture.objects.get().owner, other)
+
+    def test_two_links_can_both_leave_the_pocket_user_id_blank(self):
+        PocketLink.objects.update(pocket_user_id="")
+        other = get_user_model().objects.create(username="ana")
+        PocketLink.objects.create(owner=other, pocket_user_id="", speaker_label="Ana")
+        self.assertEqual(PocketLink.objects.filter(pocket_user_id="").count(), 2)
 
 
 class DistillingTests(TestCase):

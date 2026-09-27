@@ -282,7 +282,13 @@ class PocketLink(models.Model):
     owner = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="pocket"
     )
-    pocket_user_id = models.CharField(max_length=128, unique=True)
+    # 0026: one user, so the only link takes every delivery; the id is kept for later.
+    pocket_user_id = models.CharField(
+        max_length=128,
+        blank=True,
+        help_text="Leave blank: it is filled in from Pocket's first delivery. "
+        "Only needed if Memento ever has more than one Pocket link.",
+    )
     speaker_label = models.CharField(
         max_length=128, help_text="Your name as Pocket's voice print labels you."
     )
@@ -295,8 +301,17 @@ class PocketLink(models.Model):
         "them. Two or more speakers, or no speaker labels, are still skipped.",
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["pocket_user_id"],
+                condition=~models.Q(pocket_user_id=""),
+                name="pocketlink_user_id_unique_when_set",
+            )
+        ]
+
     def __str__(self):
-        return f"Pocket {self.pocket_user_id} for {self.owner}"
+        return f"Pocket {self.pocket_user_id or '(id not seen yet)'} for {self.owner}"
 
 
 class IngestLog(models.Model):

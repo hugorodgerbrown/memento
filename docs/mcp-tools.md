@@ -159,7 +159,7 @@ Pocket delivers signed webhooks to `/ingest/pocket/`. Ingest is deterministic: i
 
 While Memento runs on one Mac, the same rules apply to a scheduled pull from Pocket's REST API instead (0021; `docs/local.md`).
 
-Setup: create a personal webhook in the Pocket app pointing at `/ingest/pocket/`, store its signing secret as `POCKET_WEBHOOK_SECRET`, and create a `PocketLink` with your Pocket user id and the name Pocket's voice print gives you.
+Setup: create a personal webhook in the Pocket app pointing at `/ingest/pocket/`, store its signing secret as `POCKET_WEBHOOK_SECRET`, and create a `PocketLink` with the name Pocket's voice print gives you. Leave its Pocket user id blank: Memento has one user, so the only link takes every delivery, and the first one fills the id in (0026).
 
 ## Response shape
 
