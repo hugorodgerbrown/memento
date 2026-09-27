@@ -97,7 +97,7 @@ Built (0019), not yet measured: `distiller/distil.py` runs the skill on `claude-
 
 ## M8. OAuth 2.1 for claude.ai and ChatGPT (next, after M1: 0024)
 
-- **Settle the hostname first.** An OAuth issuer is a URL that registered clients remember, so moving from `memento.onrender.com` to a custom domain afterwards means re-registering them (0024).
+- **Settle the hostname first.** An OAuth issuer is a URL that registered clients remember, so moving from the assigned `onrender.com` hostname to a custom domain afterwards means re-registering them (0024).
 - Authorisation server via django-oauth-toolkit: authorisation code + PKCE, protected-resource metadata, authorisation-server metadata, dynamic client registration. Client ID metadata documents when both clients support them.
 - OAuth clients become `Client` rows, with scopes `memento:read`, `memento:write` and `memento:forget`.
 - Connect claude.ai (web and mobile) and ChatGPT. Run the evals on each, with and without the skill, and set each client's `mode` from the results.

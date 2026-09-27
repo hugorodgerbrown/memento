@@ -16,7 +16,7 @@ What the Mac cannot do is be reached. claude.ai and ChatGPT connect from Anthrop
 
 **Bearer tokens now, OAuth next.** Claude Desktop and Claude Code get per-client bearer tokens (0005, 0016), which works the day the service is up. claude.ai and ChatGPT need OAuth 2.1, so M8 is unparked and is the next milestone rather than a someday one.
 
-**The hostname is decided before OAuth, not after.** An OAuth issuer is a URL that registered clients remember. Moving from `memento.onrender.com` to a custom domain after clients have registered means re-registering them, so the domain question belongs to M8's start.
+**The hostname is decided before OAuth, not after.** An OAuth issuer is a URL that registered clients remember. Moving from the `onrender.com` hostname Render assigns to a custom domain after clients have registered means re-registering them, so the domain question belongs to M8's start.
 
 **Pocket is not connected to the real Memento yet, and this is deliberate.** 0021's first dry run against the real account has not happened, and pointing an unproven ingest at the real store on the same day as a new deployment is two unproven things at once. Until it is connected, `POCKET_WEBHOOK_SECRET` is unset and every delivery is rejected with a 401.
 

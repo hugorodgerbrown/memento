@@ -18,6 +18,13 @@ database can be recreated from the repository. This is milestone M1 of the
 All three sit in the same region, so the service reaches the database over
 Render's private network rather than the public internet.
 
+**Render chooses the hostname, not us.** If `memento.onrender.com` is already
+taken, Render assigns a suffixed one (`memento-a1b2.onrender.com`), and a
+service's hostname need not match its name at all. Read it off the service's page
+in the dashboard once it exists, and use it wherever this page writes
+`<hostname>`. Nothing in the application needs telling: it trusts
+`RENDER_EXTERNAL_HOSTNAME`, which Render sets on every instance.
+
 ## First run
 
 1. In Render: **New > Blueprint**, pick this repository, apply. Render reads
@@ -32,9 +39,9 @@ Render's private network rather than the public internet.
    uv run python manage.py createsuperuser
    ```
 
-4. Visit `https://memento.onrender.com/admin/`, log in, and add a **Profile**
-   with your time zone (for example `Europe/London`). Every tool result carries
-   `now` in that zone (0017), so this is not optional.
+4. Visit `https://<hostname>/admin/`, log in, and add a **Profile** with your
+   time zone (for example `Europe/London`). Every tool result carries `now` in
+   that zone (0017), so this is not optional.
 5. Give the distiller its environment, as [below](#the-distiller-m7).
 6. Connect your clients, as [below](#clients).
 
@@ -82,8 +89,8 @@ uv run python manage.py create_client <your username> claude-desktop
 uv run python manage.py create_client <your username> claude-code
 ```
 
-Each prints its token once. Point the client at `https://memento.onrender.com/mcp`
-with `Authorization: Bearer <token>`.
+Each prints its token once. Point the client at `https://<hostname>/mcp` with
+`Authorization: Bearer <token>`.
 
 Claude Desktop's own **Custom connectors** setting needs OAuth, not a bearer
 token, so until M8 it connects through `mcp-remote` with the header. Note that
@@ -167,13 +174,34 @@ refuses to start if it finds a model key at all (Principle 2, 0013).
    ```
 
 2. In the cron job's **Environment**, set `MEMENTO_URL` to
-   `https://memento.onrender.com/mcp`, and set `MEMENTO_TOKEN` and
-   `ANTHROPIC_API_KEY`. `DISTILLER_MODEL` is `claude-sonnet-5` in the blueprint.
+   `https://<hostname>/mcp`, and set `MEMENTO_TOKEN` and `ANTHROPIC_API_KEY`.
+   `DISTILLER_MODEL` is `claude-sonnet-5` in the blueprint.
 3. Trigger a run from the dashboard and read its log. There is one line per note
    (processed, dismissed or left, and why), with token counts.
 
-After an outage, run it once by hand over the missed period, from a shell on the
-cron job: `uv run python distil.py --since 2026-09-24T06:00:00+01:00`.
+### Backfilling after an outage
+
+The distiller's window is 35 minutes (0019), so a longer gap leaves notes
+unprocessed. Triggering the cron job from the dashboard only reruns its fixed
+`startCommand`, and a cron job gives you no shell to pass `--since` in.
+
+Run it from your Mac instead. The distiller is only an MCP client — a URL and a
+token, no database — so a local run against the deploy is the same run the cron
+job does. Keep the deploy's settings in their own file, so `distiller/.env` stays
+pointed at development and no scheduled local run writes to the deploy by
+surprise:
+
+```bash
+# distiller/.env.deploy (gitignored, like .env):
+#   MEMENTO_URL=https://<hostname>/mcp
+#   MEMENTO_TOKEN=<the distiller's token>
+#   ANTHROPIC_API_KEY=<your key>
+
+cd distiller && set -a && . ./.env.deploy && set +a && \
+  uv run python distil.py --since 2026-09-24T06:00:00+01:00 --dry-run
+```
+
+`--dry-run` lists the notes and calls no model. Drop it to do the work.
 
 ## Known log noise
 
@@ -193,12 +221,14 @@ In the repository's habit of not trusting what has not been seen:
 - **Render's backup retention** on the `0.1c-256mb` plan, and whether it is
   enough. Check what the dashboard actually offers.
 - **Two workers in 512MB**, once `/mcp` is serving real traffic.
+- **The backfill path above**, on a real gap. It follows from the distiller being
+  a pure client, but it has not been run against the deploy.
 
 ## Not yet done
 
-- A custom domain. Until then the service is on its `onrender.com` subdomain and
-  `DJANGO_CSRF_TRUSTED_ORIGINS` stays empty. This blocks nothing except M8, where
-  it should be settled first.
+- A custom domain. Until then the service is on whichever `onrender.com`
+  hostname Render assigned, and `DJANGO_CSRF_TRUSTED_ORIGINS` stays empty. This
+  blocks nothing except M8, where it should be settled first.
 - Pocket (0024). Either point its webhook at `/ingest/pocket/` and set
   `POCKET_WEBHOOK_SECRET`, or add the pull as a second cron job with
   `POCKET_API_KEY`. Until then, Pocket recordings reach nothing.
