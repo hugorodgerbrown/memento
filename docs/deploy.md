@@ -31,16 +31,32 @@ at all. You don't need it — but it is what Render addresses health checks to, 
 of time, so it is in the blueprint as `DJANGO_ALLOWED_HOSTS` and
 `DJANGO_CSRF_TRUSTED_ORIGINS`; the `onrender.com` one cannot be.
 
+The hostname Render assigned on the first apply was
+**`memento-ru31.onrender.com`** — not `memento.onrender.com`. Read the real one
+off the service's page; don't assume it matches the service name.
+
 ### Pointing the domain at Render
 
 After the first deploy, on the service's **Settings > Custom Domains**:
 
-1. `memento-app.me` is already listed, from the blueprint. Render shows the DNS
-   records it wants — read them there rather than from memory; the apex needs an
-   `A` record (or an `ALIAS`/`ANAME` if your DNS provider offers one), not a
-   `CNAME`.
-2. Add those records at your registrar for `memento-app.me`.
-3. Wait for Render to verify the domain and issue its TLS certificate. Until it
+1. **Add `memento-app.me` by hand.** The blueprint's `domains:` key did *not*
+   create it on the first apply (27 Sep 2026), so don't wait for it to appear.
+2. Render then shows the DNS records it wants — read them there rather than from
+   memory; the apex needs an `A` record (or an `ALIAS`/`ANAME` if your DNS
+   provider offers one), not a `CNAME`.
+3. Replace any existing records at your registrar. **A `200` alone proves
+   nothing:** a parked domain answers `200` on every path from the registrar's
+   own server, with an empty body. Check the body and the server separately —
+   the first needs a GET, so don't use `-I` for it:
+
+   ```bash
+   curl -s https://memento-app.me/healthz                      # must print: ok
+   curl -sI https://memento-app.me/healthz | grep -i '^server' # must not be your registrar
+   ```
+
+   On the first apply the parked domain answered `200` with an empty body and
+   `server: Squarespace`, which is exactly what this catches.
+4. Wait for Render to verify the domain and issue its TLS certificate. Until it
    does, the `onrender.com` hostname still serves.
 
 ## First run
@@ -110,10 +126,22 @@ uv run python manage.py create_client <your username> claude-code
 Each prints its token once. Point the client at `https://memento-app.me/mcp` with
 `Authorization: Bearer <token>`.
 
-Claude Desktop's own **Custom connectors** setting needs OAuth, not a bearer
-token, so until M8 it connects through `mcp-remote` with the header. Note that
-`make connect-desktop` configures the *local* stdio server (0023) and is not what
-you want here.
+**Claude Code** takes the header directly, and is the client to prove the deploy
+with:
+
+```bash
+claude mcp add --transport http memento https://<hostname>/mcp \
+  --header "Authorization: Bearer <token>"
+```
+
+**Claude Desktop is not straightforward, and this is known.** Its **Custom
+connectors** setting needs OAuth, not a bearer token, so before M8 the only route
+is `mcp-remote` with the header — and that is exactly what failed on the owner's
+Mac and caused 0023: the token was refused, `mcp-remote` fell back to hunting for
+OAuth, and Memento was unreachable. Nothing in this deployment changes that, so
+expect it to fail the same way. Either retry it knowing that, or wait for M8,
+which is the path that actually works. (`make connect-desktop` configures the
+*local* stdio server against the development database, so it is not this.)
 
 claude.ai and ChatGPT cannot use a bearer token at all. They need OAuth 2.1,
 which is M8. The hostname question that would have blocked it is settled:
@@ -241,10 +269,9 @@ In the repository's habit of not trusting what has not been seen:
 - **Two workers in 512MB**, once `/mcp` is serving real traffic.
 - **The backfill path above**, on a real gap. It follows from the distiller being
   a pure client, but it has not been run against the deploy.
-- **`domains:` in the blueprint.** That Render creates the custom domain from
-  `render.yaml` rather than needing it added by hand has not been seen here. If it
-  does not appear, add it on the service's Custom Domains page; the environment
-  variables are right either way.
+- **Whether `domains:` ever creates the domain.** It did not on the first apply,
+  so the runbook says to add it by hand. If a later apply does create it, this
+  note can go.
 
 ## Not yet done
 

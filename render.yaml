@@ -17,10 +17,13 @@ services:
     branch: main
     healthCheckPath: /healthz
 
-    # The custom domain (0024). Render still assigns an onrender.com hostname and
+    # The custom domain (0024). NOTE: on the first apply, 27 Sep 2026, this did
+    # not create the domain — it had to be added by hand on the service's
+    # Settings > Custom Domains page. Kept so the blueprint still records the
+    # intended hostname, but don't trust it to do the work; docs/deploy.md has
+    # the manual steps. Render also assigns an onrender.com hostname and
     # addresses health checks to it, which settings.py trusts through
-    # RENDER_EXTERNAL_HOSTNAME, so both work. DNS records come from the service's
-    # Settings > Custom Domains page; docs/deploy.md has the steps.
+    # RENDER_EXTERNAL_HOSTNAME, so both hostnames work.
     domains:
       - memento-app.me
 
