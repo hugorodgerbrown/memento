@@ -61,6 +61,22 @@ class DeploySettingsTests(SimpleTestCase):
         self.assertEqual(settings.ALLOWED_HOSTS, ["memento.onrender.com"])
         self.assertEqual(settings.CSRF_TRUSTED_ORIGINS, ["https://memento.onrender.com"])
 
+    def test_custom_domain_and_render_hostname_are_both_allowed(self):
+        """0024: memento-app.me is the canonical host, but health checks come to
+        the onrender.com one, so losing either turns those requests into a 400."""
+        settings = self.reloaded_with(
+            DJANGO_DEBUG="0",
+            DJANGO_SECRET_KEY="deploy-test",
+            DJANGO_ALLOWED_HOSTS="memento-app.me",
+            DJANGO_CSRF_TRUSTED_ORIGINS="https://memento-app.me",
+            RENDER_EXTERNAL_HOSTNAME="memento-a1b2.onrender.com",
+        )
+        self.assertEqual(settings.ALLOWED_HOSTS, ["memento-app.me", "memento-a1b2.onrender.com"])
+        self.assertEqual(
+            settings.CSRF_TRUSTED_ORIGINS,
+            ["https://memento-app.me", "https://memento-a1b2.onrender.com"],
+        )
+
     def test_production_is_secure_by_default(self):
         settings = self.reloaded_with(DJANGO_DEBUG="0", DJANGO_SECRET_KEY="deploy-test")
         self.assertTrue(settings.SECURE_SSL_REDIRECT)

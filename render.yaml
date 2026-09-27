@@ -17,6 +17,13 @@ services:
     branch: main
     healthCheckPath: /healthz
 
+    # The custom domain (0024). Render still assigns an onrender.com hostname and
+    # addresses health checks to it, which settings.py trusts through
+    # RENDER_EXTERNAL_HOSTNAME, so both work. DNS records come from the service's
+    # Settings > Custom Domains page; docs/deploy.md has the steps.
+    domains:
+      - memento-app.me
+
     # uv first, then the locked environment, then hashed and compressed static
     # files for WhiteNoise (CompressedManifestStaticFilesStorage insists on them).
     buildCommand: >-
@@ -49,6 +56,13 @@ services:
         generateValue: true # Render generates it once and keeps it
       - key: DJANGO_DEBUG
         value: "0"
+      # The custom domain is the canonical host and the OAuth issuer (M8), so
+      # unlike the onrender.com hostname it is known before the service exists.
+      # settings.py appends RENDER_EXTERNAL_HOSTNAME to both of these.
+      - key: DJANGO_ALLOWED_HOSTS
+        value: memento-app.me
+      - key: DJANGO_CSRF_TRUSTED_ORIGINS
+        value: https://memento-app.me
       - key: LOG_LEVEL
         value: INFO
       # Pocket is deliberately not connected here yet (0024): the pull's first dry

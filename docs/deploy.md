@@ -18,12 +18,30 @@ database can be recreated from the repository. This is milestone M1 of the
 All three sit in the same region, so the service reaches the database over
 Render's private network rather than the public internet.
 
-**Render chooses the hostname, not us.** If `memento.onrender.com` is already
-taken, Render assigns a suffixed one (`memento-a1b2.onrender.com`), and a
-service's hostname need not match its name at all. Read it off the service's page
-in the dashboard once it exists, and use it wherever this page writes
-`<hostname>`. Nothing in the application needs telling: it trusts
-`RENDER_EXTERNAL_HOSTNAME`, which Render sets on every instance.
+## The hostname
+
+Memento is served at **`memento-app.me`**, and that is the name to use everywhere:
+it is the canonical host, and it will be the OAuth issuer at M8 (0024).
+
+Render *also* assigns an `onrender.com` hostname, which it may suffix if the name
+is taken (`memento-a1b2.onrender.com`) and which need not match the service's name
+at all. You don't need it — but it is what Render addresses health checks to, so
+`settings.py` appends `RENDER_EXTERNAL_HOSTNAME` to both `ALLOWED_HOSTS` and
+`CSRF_TRUSTED_ORIGINS`, and both hostnames work. The custom domain is known ahead
+of time, so it is in the blueprint as `DJANGO_ALLOWED_HOSTS` and
+`DJANGO_CSRF_TRUSTED_ORIGINS`; the `onrender.com` one cannot be.
+
+### Pointing the domain at Render
+
+After the first deploy, on the service's **Settings > Custom Domains**:
+
+1. `memento-app.me` is already listed, from the blueprint. Render shows the DNS
+   records it wants — read them there rather than from memory; the apex needs an
+   `A` record (or an `ALIAS`/`ANAME` if your DNS provider offers one), not a
+   `CNAME`.
+2. Add those records at your registrar for `memento-app.me`.
+3. Wait for Render to verify the domain and issue its TLS certificate. Until it
+   does, the `onrender.com` hostname still serves.
 
 ## First run
 
@@ -39,7 +57,7 @@ in the dashboard once it exists, and use it wherever this page writes
    uv run python manage.py createsuperuser
    ```
 
-4. Visit `https://<hostname>/admin/`, log in, and add a **Profile** with your
+4. Visit `https://memento-app.me/admin/`, log in, and add a **Profile** with your
    time zone (for example `Europe/London`). Every tool result carries `now` in
    that zone (0017), so this is not optional.
 5. Give the distiller its environment, as [below](#the-distiller-m7).
@@ -89,7 +107,7 @@ uv run python manage.py create_client <your username> claude-desktop
 uv run python manage.py create_client <your username> claude-code
 ```
 
-Each prints its token once. Point the client at `https://<hostname>/mcp` with
+Each prints its token once. Point the client at `https://memento-app.me/mcp` with
 `Authorization: Bearer <token>`.
 
 Claude Desktop's own **Custom connectors** setting needs OAuth, not a bearer
@@ -98,9 +116,9 @@ token, so until M8 it connects through `mcp-remote` with the header. Note that
 you want here.
 
 claude.ai and ChatGPT cannot use a bearer token at all. They need OAuth 2.1,
-which is M8. **Decide the hostname before starting M8:** an OAuth issuer is a URL
-that registered clients remember, so moving to a custom domain afterwards means
-re-registering them.
+which is M8. The hostname question that would have blocked it is settled:
+`memento-app.me` is the issuer, decided before any client registers, so no client
+needs re-registering later (0024).
 
 ## Settings that exist because of the host
 
@@ -174,7 +192,7 @@ refuses to start if it finds a model key at all (Principle 2, 0013).
    ```
 
 2. In the cron job's **Environment**, set `MEMENTO_URL` to
-   `https://<hostname>/mcp`, and set `MEMENTO_TOKEN` and `ANTHROPIC_API_KEY`.
+   `https://memento-app.me/mcp`, and set `MEMENTO_TOKEN` and `ANTHROPIC_API_KEY`.
    `DISTILLER_MODEL` is `claude-sonnet-5` in the blueprint.
 3. Trigger a run from the dashboard and read its log. There is one line per note
    (processed, dismissed or left, and why), with token counts.
@@ -193,7 +211,7 @@ surprise:
 
 ```bash
 # distiller/.env.deploy (gitignored, like .env):
-#   MEMENTO_URL=https://<hostname>/mcp
+#   MEMENTO_URL=https://memento-app.me/mcp
 #   MEMENTO_TOKEN=<the distiller's token>
 #   ANTHROPIC_API_KEY=<your key>
 
@@ -223,12 +241,15 @@ In the repository's habit of not trusting what has not been seen:
 - **Two workers in 512MB**, once `/mcp` is serving real traffic.
 - **The backfill path above**, on a real gap. It follows from the distiller being
   a pure client, but it has not been run against the deploy.
+- **`domains:` in the blueprint.** That Render creates the custom domain from
+  `render.yaml` rather than needing it added by hand has not been seen here. If it
+  does not appear, add it on the service's Custom Domains page; the environment
+  variables are right either way.
 
 ## Not yet done
 
-- A custom domain. Until then the service is on whichever `onrender.com`
-  hostname Render assigned, and `DJANGO_CSRF_TRUSTED_ORIGINS` stays empty. This
-  blocks nothing except M8, where it should be settled first.
+- Confirming the custom domain resolves and its certificate is issued. Until it
+  does, the `onrender.com` hostname is the working one.
 - Pocket (0024). Either point its webhook at `/ingest/pocket/` and set
   `POCKET_WEBHOOK_SECRET`, or add the pull as a second cron job with
   `POCKET_API_KEY`. Until then, Pocket recordings reach nothing.
